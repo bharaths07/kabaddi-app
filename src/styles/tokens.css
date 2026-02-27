@@ -1,0 +1,122 @@
+/* ═══════════════════════════════════════════════════════════════
+   src/styles/tokens.css
+   KABADDI LIVE — Design Tokens
+   ═══════════════════════════════════════════════════════════════ */
+
+:root {
+
+  /* ── BRAND COLORS ─────────────────────────────────────────── */
+
+  /* Orange — Primary action, CTA buttons, highlights */
+  --color-orange:           #F4511E;
+  --color-orange-dark:      #C53D13;
+  --color-orange-light:     #FF6B3D;
+  --color-orange-subtle:    rgba(244, 81, 30, 0.12);
+
+  /* Gold — Special moments: live badge, top rank, man of match */
+  --color-gold:             #F5C518;
+  --color-gold-dark:        #D4A80C;
+  --color-gold-light:       #FFD84D;
+  --color-gold-subtle:      rgba(245, 197, 24, 0.12);
+
+  /* Dark Green — Success, confirmed, win, scorer assigned */
+  --color-green:            #16A34A;
+  --color-green-dark:       #0F6B31;
+  --color-green-light:      #22C55E;
+  --color-green-subtle:     rgba(22, 163, 74, 0.12);
+
+  /* Sky Blue — Info, upcoming, neutral states */
+  --color-sky:              #0EA5E9;
+  --color-sky-dark:         #0284C7;
+  --color-sky-light:        #38BDF8;
+  --color-sky-subtle:       rgba(14, 165, 233, 0.12);
+
+  /* Light Purple — Stats, player profiles, secondary info */
+  --color-purple:           #A855F7;
+  --color-purple-dark:      #7C3AED;
+  --color-purple-light:     #C084FC;
+  --color-purple-subtle:    rgba(168, 85, 247, 0.12);
+
+  /* ── BACKGROUNDS ──────────────────────────────────────────── */
+  --bg-page:                #0A0E14;   /* deepest — page bg       */
+  --bg-surface:             #111827;   /* cards, panels           */
+  --bg-elevated:            #1C2433;   /* modals, dropdowns       */
+  --bg-input:               #1C2433;   /* form fields             */
+  --bg-hover:               #243044;   /* hover states            */
+  --bg-border:              #2A3547;   /* dividers, card borders  */
+  --bg-border-subtle:       #1E293B;   /* very subtle dividers    */
+
+  /* ── TEXT ─────────────────────────────────────────────────── */
+  --text-primary:           #F1F5F9;   /* headings, main content  */
+  --text-secondary:         #94A3B8;   /* subtitles, meta info    */
+  --text-muted:             #475569;   /* placeholders, disabled  */
+  --text-inverse:           #0A0E14;   /* text on bright bg       */
+
+  /* ── SEMANTIC COLOR MAPPING ───────────────────────────────── */
+  --color-primary:          var(--color-orange);
+  --color-primary-dark:     var(--color-orange-dark);
+  --color-primary-light:    var(--color-orange-light);
+  --color-primary-subtle:   var(--color-orange-subtle);
+
+  --color-live:             var(--color-gold);
+  --color-success:          var(--color-green);
+  --color-info:             var(--color-sky);
+  --color-stat:             var(--color-purple);
+  --color-danger:           #EF4444;
+  --color-warning:          var(--color-gold);
+
+  /* ── SPACING ──────────────────────────────────────────────── */
+  --space-2xs:  2px;
+  --space-xs:   4px;
+  --space-sm:   8px;
+  --space-md:   16px;
+  --space-lg:   24px;
+  --space-xl:   32px;
+  --space-2xl:  48px;
+  --space-3xl:  64px;
+
+  /* ── BORDER RADIUS ────────────────────────────────────────── */
+  --radius-xs:   4px;
+  --radius-sm:   8px;
+  --radius-md:   12px;
+  --radius-lg:   16px;
+  --radius-xl:   20px;
+  --radius-2xl:  28px;
+  --radius-full: 9999px;
+
+  /* ── SHADOWS ──────────────────────────────────────────────── */
+  --shadow-xs:     0 1px 4px rgba(0,0,0,0.3);
+  --shadow-sm:     0 2px 10px rgba(0,0,0,0.35);
+  --shadow-md:     0 4px 20px rgba(0,0,0,0.4);
+  --shadow-lg:     0 8px 40px rgba(0,0,0,0.5);
+  --shadow-orange: 0 4px 24px rgba(244, 81, 30, 0.35);
+  --shadow-gold:   0 4px 24px rgba(245, 197, 24, 0.3);
+  --shadow-green:  0 4px 24px rgba(22, 163, 74, 0.3);
+  --shadow-sky:    0 4px 24px rgba(14, 165, 233, 0.3);
+  --shadow-purple: 0 4px 24px rgba(168, 85, 247, 0.3);
+
+  /* ── TYPOGRAPHY ───────────────────────────────────────────── */
+  --font-display: 'Rajdhani', 'Teko', sans-serif;
+  --font-body:    'Nunito', 'DM Sans', sans-serif;
+
+  --text-xs:   11px;
+  --text-sm:   13px;
+  --text-base: 14px;
+  --text-md:   16px;
+  --text-lg:   18px;
+  --text-xl:   20px;
+  --text-2xl:  24px;
+  --text-3xl:  30px;
+  --text-4xl:  36px;
+
+  /* ── TRANSITIONS ──────────────────────────────────────────── */
+  --ease:       all 0.2s ease;
+  --ease-slow:  all 0.35s ease;
+  --ease-spring: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* ── Z-INDEX ──────────────────────────────────────────────── */
+  --z-base:    1;
+  --z-nav:     100;
+  --z-modal:   200;
+  --z-toast:   300;
+}

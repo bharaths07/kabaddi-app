@@ -1,0 +1,50 @@
+ .as-page { padding: 24px; max-width: 1100px; margin: 0 auto; }
+ .as-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+ .as-title { font-size: 24px; font-weight: 600; }
+.as-sub { color: var(--text-secondary); }
+ .as-tabs { display: flex; gap: 8px; margin: 12px 0; }
+.as-tab { padding: 8px 12px; border: 1px solid var(--bg-border); border-radius: var(--radius-md); background: var(--bg-surface); color: var(--text-secondary); cursor: pointer; }
+.as-tab.active { background: var(--color-orange); color: #fff; border-color: var(--color-orange); }
+ .as-section { margin: 16px 0; }
+ .as-form-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+ .as-field { display: flex; flex-direction: column; gap: 6px; }
+.as-label { font-size: 12px; color: var(--text-secondary); }
+.as-input, .as-select { padding: 8px 10px; border: 1px solid var(--bg-border); border-radius: var(--radius-md); background: var(--bg-surface); color: var(--text-primary); }
+ .as-input.small, .as-select.small { width: 140px; }
+ .as-actions { display: flex; gap: 8px; }
+.as-primary { background: var(--color-orange); color: #fff; border: none; border-radius: var(--radius-md); padding: 8px 12px; cursor: pointer; }
+.as-secondary { background: var(--bg-surface); color: var(--text-primary); border: 1px solid var(--bg-border); border-radius: var(--radius-md); padding: 8px 12px; cursor: pointer; }
+.as-outline { background: transparent; color: var(--color-orange); border: 1px solid var(--color-orange); border-radius: var(--radius-md); padding: 8px 12px; cursor: pointer; }
+ .as-note { color: #666; }
+ .as-section-head { display: flex; align-items: center; justify-content: space-between; }
+ .as-section-title { font-weight: 600; }
+ .as-filters { display: flex; gap: 8px; align-items: center; }
+ .as-fixture-list { display: grid; grid-template-columns: 1fr; gap: 12px; }
+.as-fixture-card { border: 1px solid var(--bg-border-subtle); border-radius: var(--radius-lg); padding: 12px; background: var(--bg-panel); }
+ .as-fixture-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+ .as-versus { font-weight: 600; }
+.as-vs { color: var(--text-secondary); margin: 0 6px; }
+ .as-badge { padding: 4px 8px; border-radius: 999px; font-size: 12px; text-transform: capitalize; }
+.as-badge.s-unscheduled { background: var(--bg-surface); color: var(--text-secondary); }
+.as-badge.s-scheduled { background: #e6fffa; color: var(--color-green); }
+.as-badge.s-scorer_assigned { background: #eef2ff; color: var(--color-purple); }
+.as-badge.s-live { background: rgba(245,197,24,0.18); color: var(--color-orange); }
+.as-badge.s-completed { background: #dcfce7; color: var(--color-green); }
+ .as-fixture-meta { display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; }
+ .as-meta-row { display: flex; gap: 12px; flex-wrap: wrap; }
+.as-meta-item { color: var(--text-primary); }
+.as-confirmed { color: var(--color-green); font-weight: 600; }
+ .as-fixture-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.as-empty { color: var(--text-secondary); }
+ .as-foot { display: flex; gap: 8px; margin-top: 16px; }
+.as-sheet { position: fixed; left: 0; right: 0; bottom: 0; background: var(--bg-panel); border-top: 1px solid var(--bg-border); border-radius: var(--radius-lg) var(--radius-lg) 0 0; padding: 16px; box-shadow: var(--shadow-2); }
+ .as-sheet-head { display: flex; align-items: center; justify-content: space-between; }
+ .as-sheet-title { font-weight: 600; }
+.as-mini { padding: 6px 10px; border: 1px solid var(--bg-border); background: var(--bg-surface); border-radius: var(--radius-md); cursor: pointer; }
+.as-sheet-sub { color: var(--text-secondary); margin: 8px 0; }
+ .as-sheet-search { margin-bottom: 8px; }
+ .as-sheet-list { display: flex; flex-direction: column; gap: 8px; }
+.as-sheet-item { display: flex; align-items: center; justify-content: space-between; border: 1px solid var(--bg-border-subtle); border-radius: var(--radius-md); padding: 8px; background: var(--bg-panel); }
+ .as-sheet-user { display: flex; flex-direction: column; }
+ .as-user-name { font-weight: 600; }
+.as-user-phone { color: var(--text-secondary); font-size: 12px; }

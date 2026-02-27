@@ -1,0 +1,530 @@
+/* Kabaddi Live Scorer Styling */
+
+.kabaddi-scorer {
+  background: #0a0e27;
+  color: #fff;
+  font-family: 'Arial', sans-serif;
+  padding: 20px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Header Section */
+.scorer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #ff4444;
+}
+
+.period-display {
+  font-size: 24px;
+  font-weight: bold;
+  color: #ffff00;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.timer-display {
+  font-size: 48px;
+  font-weight: bold;
+  color: #ffff00;
+  font-family: 'Courier New', monospace;
+  letter-spacing: 3px;
+}
+
+.sound-toggle {
+  display: flex;
+  gap: 10px;
+}
+
+.sound-btn {
+  background: #1a1f3a;
+  border: 2px solid #ff4444;
+  color: #ff4444;
+  width: 50px;
+  height: 50px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  font-weight: bold;
+}
+
+.sound-btn:hover {
+  background: #ff4444;
+  color: #0a0e27;
+  transform: scale(1.05);
+}
+
+.sound-btn.active {
+  background: #ff4444;
+  color: #0a0e27;
+}
+
+/* Raid Counter */
+.raid-counter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  margin-bottom: 30px;
+  padding: 15px;
+  background: #1a1f3a;
+  border-radius: 8px;
+  border: 2px solid #ffff00;
+}
+
+.raid-label {
+  font-size: 20px;
+  font-weight: bold;
+  color: #ffff00;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.raid-number {
+  font-size: 48px;
+  font-weight: bold;
+  color: #ffff00;
+  font-family: 'Courier New', monospace;
+  min-width: 80px;
+  text-align: center;
+}
+
+/* Main Scoring Container */
+.scoring-container {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 20px;
+  flex: 1;
+  margin-bottom: 20px;
+}
+
+/* Team Sections */
+.team-section {
+  background: #1a1f3a;
+  border: 3px solid;
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.team-section.home-team {
+  border-color: #ff4444;
+}
+
+.team-section.guest-team {
+  border-color: #00ccff;
+}
+
+.team-name {
+  font-size: 24px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  text-align: center;
+}
+
+.team-section.home-team .team-name {
+  color: #ff4444;
+}
+
+.team-section.guest-team .team-name {
+  color: #00ccff;
+}
+
+.team-score {
+  font-size: 72px;
+  font-weight: bold;
+  text-align: center;
+  font-family: 'Courier New', monospace;
+  color: #ffff00;
+  text-shadow: 0 0 10px rgba(255, 255, 0, 0.5);
+  margin: 10px 0;
+}
+
+/* Bonus Section */
+.bonus-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.bonus-label {
+  font-size: 13px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #aaa;
+}
+
+.bonus-buttons {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.bonus-btn {
+  background: #0a0e27;
+  border: 2px solid #666;
+  color: #aaa;
+  width: 45px;
+  height: 40px;
+  border-radius: 6px;
+  font-weight: bold;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.bonus-btn:hover {
+  border-color: #fff;
+  color: #fff;
+  transform: scale(1.05);
+}
+
+.bonus-dots {
+  display: flex;
+  gap: 6px;
+}
+
+.bonus-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #333;
+  border: 2px solid #666;
+  transition: all 0.2s ease;
+}
+
+.bonus-dot.active {
+  background: #ffff00;
+  border-color: #ffff00;
+  box-shadow: 0 0 8px rgba(255, 255, 0, 0.6);
+}
+
+/* Defense Section */
+.defense-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.defense-label {
+  font-size: 13px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #aaa;
+}
+
+.defense-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.defense-btn {
+  background: #0a0e27;
+  border: 2px solid #666;
+  color: #aaa;
+  padding: 10px 8px;
+  border-radius: 6px;
+  font-weight: bold;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+}
+
+.defense-btn:hover:not(:disabled) {
+  transform: scale(1.05);
+  border-color: #fff;
+  color: #fff;
+}
+
+.defense-btn.btn-1 {
+  border-color: #00ff00;
+  color: #00ff00;
+}
+
+.defense-btn.btn-1:hover:not(:disabled) {
+  background: #00ff00;
+  color: #0a0e27;
+  box-shadow: 0 0 10px rgba(0, 255, 0, 0.6);
+}
+
+.defense-btn.btn-2 {
+  border-color: #ffaa00;
+  color: #ffaa00;
+}
+
+.defense-btn.btn-2:hover:not(:disabled) {
+  background: #ffaa00;
+  color: #0a0e27;
+  box-shadow: 0 0 10px rgba(255, 170, 0, 0.6);
+}
+
+.defense-btn.btn-3 {
+  border-color: #ff0088;
+  color: #ff0088;
+}
+
+.defense-btn.btn-3:hover:not(:disabled) {
+  background: #ff0088;
+  color: #fff;
+  box-shadow: 0 0 10px rgba(255, 0, 136, 0.6);
+}
+
+.defense-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Controls Section */
+.controls-section {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  justify-content: center;
+  min-width: 150px;
+}
+
+/* Raid Buttons */
+.raid-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.raid-btn {
+  padding: 15px 10px;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 13px;
+  cursor: pointer;
+  border: 2px solid;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.raid-btn.raid-success {
+  background: #00ff00;
+  color: #0a0e27;
+  border-color: #00ff00;
+}
+
+.raid-btn.raid-success:hover {
+  box-shadow: 0 0 15px rgba(0, 255, 0, 0.7);
+  transform: scale(1.05);
+}
+
+.raid-btn.raid-fail {
+  background: #ff4444;
+  color: #fff;
+  border-color: #ff4444;
+}
+
+.raid-btn.raid-fail:hover {
+  box-shadow: 0 0 15px rgba(255, 68, 68, 0.7);
+  transform: scale(1.05);
+}
+
+/* Timer Controls */
+.timer-controls {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.timer-btn {
+  background: #1a1f3a;
+  border: 3px solid #ffff00;
+  color: #ffff00;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  font-weight: bold;
+}
+
+.timer-btn:hover {
+  background: #ffff00;
+  color: #0a0e27;
+  box-shadow: 0 0 15px rgba(255, 255, 0, 0.6);
+  transform: scale(1.1);
+}
+
+/* Action Buttons */
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.action-btn {
+  background: #1a1f3a;
+  border: 2px solid #666;
+  color: #aaa;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.action-btn:hover:not(:disabled) {
+  border-color: #fff;
+  color: #fff;
+  transform: scale(1.05);
+}
+
+.undo-btn:hover:not(:disabled) {
+  border-color: #00ccff;
+  color: #00ccff;
+  box-shadow: 0 0 10px rgba(0, 204, 255, 0.5);
+}
+
+.settings-btn:hover {
+  border-color: #ffaa00;
+  color: #ffaa00;
+  box-shadow: 0 0 10px rgba(255, 170, 0, 0.5);
+}
+
+.reset-btn:hover {
+  border-color: #ff4444;
+  color: #ff4444;
+  box-shadow: 0 0 10px rgba(255, 68, 68, 0.5);
+}
+
+.action-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Last Raid Info */
+.last-raid-info {
+  background: #1a1f3a;
+  border: 1px solid #ff4444;
+  color: #aaa;
+  padding: 10px 15px;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 13px;
+  min-height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .scoring-container {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+
+  .controls-section {
+    order: 3;
+    flex-direction: row;
+    min-width: auto;
+    gap: 10px;
+  }
+
+  .team-section {
+    padding: 15px;
+  }
+
+  .team-score {
+    font-size: 56px;
+  }
+}
+
+@media (max-width: 768px) {
+  .kabaddi-scorer {
+    padding: 10px;
+  }
+
+  .timer-display {
+    font-size: 32px;
+  }
+
+  .raid-number {
+    font-size: 36px;
+  }
+
+  .team-score {
+    font-size: 48px;
+  }
+
+  .defense-buttons {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .controls-section {
+    flex-direction: row;
+    justify-content: space-around;
+  }
+
+  .raid-buttons {
+    flex-direction: row;
+  }
+
+  .timer-btn {
+    width: 50px;
+    height: 50px;
+  }
+}
+
+/* Animations */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.team-score {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+/* Print Friendly */
+@media print {
+  .controls-section,
+  .action-buttons {
+    display: none;
+  }
+
+  .kabaddi-scorer {
+    background: white;
+    color: black;
+  }
+
+  .team-section {
+    border-color: black;
+  }
+}

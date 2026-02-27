@@ -1,0 +1,39 @@
+ .home-page{display:flex;flex-direction:column;gap:16px}
+ .home-hero{display:flex}
+ .hero-card{flex:1;background:linear-gradient(180deg,#2a155a,#140d3b);border:1px solid var(--border);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:12px}
+ .hero-card.upcoming{background:linear-gradient(180deg,#151b3e,#0e1433)}
+ .hero-top{display:flex;justify-content:space-between;align-items:center}
+ .hero-badge{background:#7f1d1d;color:#fff;border-radius:999px;padding:4px 10px;font-size:12px}
+ .hero-badge.upcoming{background:#1e3a8a}
+ .hero-title{font-weight:700}
+ .hero-score{display:flex;justify-content:space-between;align-items:center}
+ .hero-team{font-weight:700}
+ .hero-scoreline{font-size:28px;font-weight:800}
+ .hero-sep{color:#cbd5e1;margin:0 6px}
+ .hero-meta{color:#cbd5e1;font-size:12px}
+ .hero-cta{display:inline-block;width:max-content;background:#4169e1;color:#fff;text-decoration:none;border-radius:8px;padding:10px 14px;font-weight:600}
+ .hero-versus{display:flex;gap:12px;align-items:center;justify-content:center}
+ .hero-vs{background:#182052;color:#fff;border:1px solid var(--border);border-radius:8px;padding:6px 10px}
+ 
+ .home-section{display:flex;flex-direction:column;gap:8px}
+ .section-title{font-weight:800}
+ 
+ .live-cards{display:flex;gap:12px;flex-wrap:wrap}
+ .live-card{flex:1;min-width:240px;background:#0e1433;border:1px solid var(--border);border-radius:10px;padding:10px 12px;color:#fff;text-decoration:none}
+ .live-row{display:flex;align-items:center;justify-content:space-between}
+ .live-left{font-weight:700}
+ .live-score{font-weight:800}
+ .live-meta{color:#cbd5e1;font-size:12px;margin-top:6px}
+ .live-sep{color:#cbd5e1;margin:0 6px}
+ 
+ .upcoming-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
+ .up-card{background:#0e1433;border:1px solid var(--border);border-radius:10px;padding:10px 12px;color:#fff;text-decoration:none;display:flex;flex-direction:column;gap:4px}
+ .up-date{color:#9aa4b2;font-size:12px}
+ .up-versus{font-weight:700}
+ .up-time{color:#cbd5e1;font-size:12px}
+ 
+ .feed-list{display:flex;flex-direction:column;gap:8px}
+ .feed-card{background:#0e1433;border:1px solid var(--border);border-radius:10px;padding:10px 12px}
+ .feed-title{font-weight:700}
+ .feed-date{color:#9aa4b2;font-size:12px}
+ .feed-sub{color:#cbd5e1}

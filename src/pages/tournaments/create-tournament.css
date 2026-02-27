@@ -1,0 +1,35 @@
+ .ct-page{display:flex;flex-direction:column;gap:16px}
+ .ct-header{display:flex;flex-direction:column;gap:4px}
+ .ct-title{margin:0}
+ .ct-sub{color:#9aa4b2}
+ .ct-section{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:12px}
+.ct-section-title{font-weight:800}
+ .ct-field{display:flex;flex-direction:column;gap:6px}
+ .ct-label{color:#cbd5e1;font-size:12px}
+ .ct-input{background:#0e1433;color:#fff;border:1px solid var(--border);border-radius:8px;padding:8px}
+ .ct-grid-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.ct-grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+ .ct-upload{display:flex;align-items:center;gap:12px}
+ .ct-logo{width:80px;height:80px;border-radius:10px;object-fit:cover;border:1px solid var(--border)}
+ .ct-logo.placeholder{display:flex;align-items:center;justify-content:center;background:#182052;color:#fff}
+ .ct-upload-btn{display:flex;align-items:center;gap:8px;background:#151b3e;color:#cbd5e1;border:1px solid var(--border);border-radius:8px;padding:8px 10px;cursor:pointer}
+ .ct-upload-btn input{display:none}
+.ct-options{display:flex;gap:8px;flex-wrap:wrap}
+.ct-option{background:#151b3e;border:1px solid var(--border);color:#cbd5e1;border-radius:999px;padding:8px 12px;cursor:pointer}
+.ct-option.active{background:#4169e1;color:#fff}
+.ct-textarea{background:#0e1433;color:#fff;border:1px solid var(--border);border-radius:8px;padding:8px;min-height:80px}
+.ct-toggles{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.ct-toggle{display:flex;gap:8px;align-items:center}
+ .ct-footer{display:flex;gap:8px;justify-content:flex-end}
+ .ct-secondary{background:#0e1433;color:#fff;border:1px solid var(--border);border-radius:8px;padding:10px 12px}
+ .ct-primary{background:#4169e1;color:#fff;border:none;border-radius:8px;padding:10px 12px}
+.ct-success{align-items:center;text-align:center}
+.ct-trophy{font-size:48px;animation:pop .8s ease}
+.ct-success-title{font-weight:800}
+.ct-tip{color:#10b981}
+.ct-steps{display:flex;flex-direction:column;gap:8px;margin-top:8px;width:100%;max-width:520px}
+.ct-step{display:flex;gap:8px;align-items:center;justify-content:center;background:#0e1433;border:1px solid var(--border);border-radius:10px;padding:10px;color:#fff;text-decoration:none}
+.ct-step-badge{background:#f59e0b;color:#000;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-weight:800}
+.ct-actions{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.ct-link{color:#9aa4b2;text-decoration:none}
+@keyframes pop{0%{transform:scale(.8);opacity:.3}100%{transform:scale(1);opacity:1}}

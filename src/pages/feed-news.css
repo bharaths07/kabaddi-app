@@ -1,0 +1,28 @@
+ .fn-page{display:flex;flex-direction:column;gap:16px}
+ .fn-header{display:flex;flex-direction:column;gap:4px}
+ .fn-title{margin:0}
+ .fn-sub{color:#9aa4b2}
+ .fn-tabs{display:flex;gap:8px;flex-wrap:wrap}
+ .fn-tab{background:#151b3e;border:1px solid var(--border);color:#cbd5e1;border-radius:999px;padding:8px 12px;cursor:pointer}
+ .fn-tab.active{background:#4169e1;color:#fff}
+ .fn-list{display:flex;flex-direction:column;gap:10px}
+ .fn-card{background:#0e1433;border:1px solid var(--border);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:6px}
+ .fn-top{display:flex;justify-content:space-between;align-items:center}
+ .fn-badge{border-radius:999px;padding:4px 10px;font-size:12px;color:#fff;background:#374151}
+ .fn-update .fn-badge,.fn-card.fn-update .fn-badge{background:#7f1d1d}
+ .fn-card.fn-highlight .fn-badge{background:#182052}
+ .fn-card.fn-announcement .fn-badge{background:#1e3a8a}
+ .fn-titleline{font-weight:800}
+ .fn-subline{color:#cbd5e1}
+ .fn-match{display:flex;flex-direction:column;gap:4px}
+ .fn-matchline{font-weight:700}
+ .fn-meta{color:#10b981;font-size:12px}
+ .fn-cta{width:max-content;background:#4169e1;color:#fff;text-decoration:none;border-radius:8px;padding:8px 12px;font-weight:600}
+.fn-admin{display:flex;flex-direction:column;gap:8px}
+.fn-admin-btn{width:max-content;background:#182052;color:#fff;border:1px solid var(--border);border-radius:8px;padding:8px 12px}
+.fn-admin-form{display:flex;flex-direction:column;gap:8px;background:#0e1433;border:1px solid var(--border);border-radius:10px;padding:12px}
+.fn-input{background:#0e1433;color:#fff;border:1px solid var(--border);border-radius:8px;padding:8px}
+.fn-textarea{background:#0e1433;color:#fff;border:1px solid var(--border);border-radius:8px;padding:8px;min-height:80px}
+.fn-admin-actions{display:flex;gap:8px;justify-content:flex-end}
+.fn-secondary{border:1px solid var(--border);background:transparent;color:#fff;border-radius:8px;padding:8px 12px}
+.fn-primary{background:#4169e1;color:#fff;border:none;border-radius:8px;padding:8px 12px}

@@ -1,0 +1,27 @@
+.sm-page{display:flex;flex-direction:column;gap:12px;padding:16px}
+.sm-header{display:flex;align-items:center;justify-content:space-between;background:#b91c1c;color:#fff;border-radius:10px;padding:10px 12px}
+.sm-title{font-weight:700}
+.sm-back{background:transparent;border:none;color:#fff;font-size:18px;cursor:pointer}
+.sm-versus{display:flex;align-items:flex-start;justify-content:center;gap:20px;margin-top:10px}
+.sm-team{display:flex;flex-direction:column;align-items:center;gap:6px}
+.sm-avatar{width:72px;height:72px;border-radius:50%;background:#333;display:flex;align-items:center;justify-content:center;color:#fff;font-size:24px}
+.sm-name{max-width:160px;text-align:center;font-weight:700}
+.sm-cta{background:#4169e1;color:#fff;border:none;border-radius:6px;padding:8px 10px}
+.sm-vs{width:36px;height:36px;border-radius:8px;border:1px solid #cbd5e1;color:#cbd5e1;display:flex;align-items:center;justify-content:center;margin-top:18px}
+.sm-section{background:#0e1433;border:1px solid var(--border);border-radius:10px;padding:12px}
+.sm-label{color:#cbd5e1;font-size:12px;margin-bottom:6px}
+.sm-row{font-weight:600}
+.sm-chips{display:flex;flex-wrap:wrap;gap:8px}
+.sm-chip{background:#151b3e;color:#cbd5e1;border:1px solid var(--border);border-radius:999px;padding:6px 10px;cursor:pointer}
+.sm-chip.active{background:#4169e1;color:#fff}
+.sm-field{display:flex;flex-direction:column;gap:6px}
+.sm-input{background:#0a0e27;color:#fff;border:1px solid var(--border);border-radius:8px;padding:8px 10px}
+.sm-toggles{display:flex;flex-direction:column;gap:8px}
+.sm-toggle{display:flex;gap:8px;align-items:center}
+.sm-grid-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.sm-grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.sm-grid-4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.sm-footer{position:sticky;bottom:0;display:flex;gap:8px;justify-content:space-between;background:var(--panel);padding:10px 0}
+.sm-secondary{flex:1;background:#0e1433;color:#fff;border:1px solid var(--border);border-radius:8px;padding:12px 10px}
+.sm-primary{flex:1;background:#0f766e;color:#fff;border:none;border-radius:8px;padding:12px 10px}
+.sm-section+.sm-section{margin-top:8px}

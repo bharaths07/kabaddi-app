@@ -1,0 +1,13 @@
+ .st-page{display:flex;flex-direction:column;gap:16px}
+ .st-header{display:flex;flex-direction:column;gap:4px}
+ .st-title{margin:0}
+ .st-sub{color:#9aa4b2}
+ .st-section{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:10px}
+ .st-section-title{font-weight:800}
+ .st-field{display:flex;flex-direction:column;gap:6px}
+ .st-label{color:#cbd5e1;font-size:12px}
+ .st-options{display:flex;gap:8px}
+ .st-option{background:#151b3e;border:1px solid var(--border);color:#cbd5e1;border-radius:999px;padding:8px 12px;cursor:pointer}
+ .st-option.active{background:#4169e1;color:#fff}
+ .st-input{background:#0e1433;color:#fff;border:1px solid var(--border);border-radius:8px;padding:8px}
+ .st-toggle{display:flex;gap:8px;align-items:center}
