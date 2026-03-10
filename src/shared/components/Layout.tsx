@@ -6,6 +6,31 @@ import { Outlet } from 'react-router-dom'
 import { LayoutProvider, useLayout } from './LayoutContext'
 import { applyThemeClass } from '../state/settingsStore'
 
+type ErrorBoundaryState = { hasError: boolean }
+
+class ErrorBoundary extends React.Component<{ children: React.ReactNode }, ErrorBoundaryState> {
+  state: ErrorBoundaryState = { hasError: false }
+
+  static getDerivedStateFromError() {
+    return { hasError: true }
+  }
+
+  componentDidCatch(error: unknown, info: unknown) {
+    console.error('UI error:', error, info)
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="page-wrapper">
+          <div>Something went wrong. Please refresh the page.</div>
+        </div>
+      )
+    }
+    return this.props.children
+  }
+}
+
 function Shell() {
   const { sidebarOpen, toggleSidebar } = useLayout()
   React.useEffect(() => {
@@ -25,9 +50,11 @@ function Shell() {
       <TopNav />
       <div className="gl-body">
         <main className="gl-content">
-          <div className="page-wrapper">
-            <Outlet />
-          </div>
+          <ErrorBoundary>
+            <div className="page-wrapper">
+              <Outlet />
+            </div>
+          </ErrorBoundary>
         </main>
         <RightSidebar />
       </div>

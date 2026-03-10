@@ -1,0 +1,48 @@
+.ks-page { min-height: 100vh; background: #f0f9ff; font-family: 'Nunito', sans-serif; }
+.ks-header { display: flex; align-items: center; padding: 16px 20px; background: #0c1832; gap: 12px; }
+.ks-back-btn { text-decoration: none; width: 36px; height: 36px; border-radius: 10px; background: rgba(255,255,255,0.1); border: none; color: #fff; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; }
+.ks-header-text { flex: 1; }
+.ks-header-sub { color: rgba(255,255,255,0.5); font-size: 11px; font-weight: 700; }
+.ks-header-title { color: #fff; font-weight: 900; font-size: 16px; }
+.ks-prize-badge { background: rgba(251,191,36,0.2); border: 1px solid #fbbf24; border-radius: 8px; padding: 4px 10px; font-size: 12px; color: #fbbf24; font-weight: 800; }
+.ks-nav-container { background: #0c1832; padding-bottom: 16px; padding-top: 4px; }
+.ks-nav-scroll { display: flex; gap: 8px; overflow-x: auto; padding: 0 16px; scrollbar-width: none; }
+.ks-nav-btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 999px; cursor: pointer; font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 12px; transition: all 0.2s; }
+.ks-podium-container { background: linear-gradient(145deg, #0c1832 0%, #0f2d5e 50%); padding: 28px 20px 0; position: relative; overflow: hidden; min-height: 220px; }
+.ks-podium-grid { position: absolute; inset: 0; opacity: 0.05; background-image: repeating-linear-gradient(0deg, #fff 0, #fff 1px, transparent 0, transparent 40px), repeating-linear-gradient(90deg, #fff 0, #fff 1px, transparent 0, transparent 40px); }
+.ks-podium-glow { position: absolute; top: 30%; left: 50%; transform: translateX(-50%); width: 200px; height: 200px; border-radius: 50%; filter: blur(30px); }
+.ks-podium-header { text-align: left; margin-bottom: 20px; position: relative; }
+.ks-podium-meta { color: rgba(255,255,255,0.6); font-size: 12px; font-weight: 700; letter-spacing: 1px; }
+.ks-podium-title { color: #fff; font-weight: 900; font-size: 20px; line-height: 1.2; margin-top: 4px; }
+.ks-podium-prize { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.1); border-radius: 20px; padding: 4px 12px; margin-top: 8px; border: 1px solid rgba(255,255,255,0.15); }
+.ks-podium-prize-text { font-size: 12px; color: #fbbf24; font-weight: 800; }
+.ks-podium-row { display: flex; align-items: flex-end; justify-content: center; gap: 12px; position: relative; }
+.ks-podium-spot { flex: 1; text-align: center; position: relative; }
+.ks-podium-crown { font-size: 20px; margin-bottom: 4px; }
+.ks-podium-avatar { display: flex; justify-content: center; margin-bottom: 6px; }
+.ks-podium-name { color: #fff; font-weight: 900; line-height: 1.2; }
+.ks-podium-pts { font-weight: 900; margin-top: 2px; }
+.ks-podium-unit { color: rgba(255,255,255,0.5); font-size: 10px; }
+.ks-podium-base { margin-top: 8px; border-radius: 8px 8px 0 0; display: flex; align-items: flex-start; justify-content: center; padding-top: 8px; border-bottom: none; }
+.ks-podium-rank { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 11px; }
+.ks-table-container { background: #fff; border-radius: 0 0 16px 16px; overflow: hidden; }
+.ks-table-head { display: flex; align-items: center; padding: 10px 16px; background: #f8fafc; border-bottom: 1.5px solid #e2e8f0; }
+.ks-table-head-rank { width: 28px; font-size: 11px; color: #94a3b8; font-weight: 800; }
+.ks-table-head-player { flex: 1; font-size: 11px; color: #94a3b8; font-weight: 800; }
+.ks-table-head-cell { width: 52px; text-align: center; font-size: 11px; font-weight: 800; }
+.ks-table-row { display: flex; align-items: center; padding: 11px 16px; border-bottom: 1px solid #f1f5f9; transition: background 0.15s; }
+.ks-table-rank-cell { width: 28px; }
+.ks-table-rank-icon { font-size: 16px; }
+.ks-table-rank-num { font-weight: 800; font-size: 13px; color: #94a3b8; }
+.ks-table-player-cell { flex: 1; display: flex; align-items: center; gap: 10px; min-width: 0; }
+.ks-table-player-name { font-weight: 800; font-size: 13px; color: #1e293b; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ks-table-player-meta { display: flex; align-items: center; gap: 4px; margin-top: 1px; }
+.ks-table-player-team { font-size: 10px; color: #94a3b8; font-weight: 600; }
+.ks-table-cell { width: 52px; text-align: center; }
+.ks-load-more { width: 100%; padding: 14px; border: none; background: #f8fafc; cursor: pointer; font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 13px; border-top: 1px solid #e2e8f0; }
+.ks-team-badge { display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 900; font-family: 'Nunito', sans-serif; flex-shrink: 0; }
+.ks-player-avatar { display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 900; font-family: 'Nunito', sans-serif; flex-shrink: 0; border: 2.5px solid #fff; }
+.ks-table-player-info { min-width: 0; }
+.ks-main-content { padding: 0 16px 24px; margin-top: -12px; }
+
+

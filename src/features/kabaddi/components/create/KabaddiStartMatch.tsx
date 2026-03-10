@@ -63,13 +63,13 @@ export default function KabaddiStartMatch() {
         <div className="sm-team">
           <div className="sm-avatar">{draft.teamA?.name?.slice(0,2).toUpperCase() || 'A'}</div>
           <div className="sm-name">{draft.teamA?.name || 'Team A'}</div>
-          <button className="sm-cta">Squad (0)</button>
+          <button className="sm-cta" onClick={()=>navigate('/kabaddi/create/squad')}>Squad</button>
         </div>
         <div className="sm-vs">vs</div>
         <div className="sm-team">
           <div className="sm-avatar">{draft.teamB?.name?.slice(0,2).toUpperCase() || 'B'}</div>
           <div className="sm-name">{draft.teamB?.name || 'Team B'}</div>
-          <button className="sm-cta">Squad (0)</button>
+          <button className="sm-cta" onClick={()=>navigate('/kabaddi/create/squad')}>Squad</button>
         </div>
       </div>
 

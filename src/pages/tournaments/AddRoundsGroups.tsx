@@ -325,7 +325,7 @@ export default function AddRoundsGroups() {
       )}
 
       <div className="ar-foot">
-        <button className="ar-outline" onClick={() => navigate(`/tournaments/${tournament.id}/teams`)}>Back to Add Teams</button>
+        <button className="ar-outline" onClick={() => navigate(`/tournament/${tournament.id}/add-teams`)}>Back to Add Teams</button>
         <button className="ar-primary" onClick={onSave} disabled={type === 'hybrid' && !isGroupsValid}>Save & Continue</button>
       </div>
     </div>

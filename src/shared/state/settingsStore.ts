@@ -3,6 +3,11 @@ export type Settings = {
   theme: Theme
   newsRefreshMs: number
   showLiveHints: boolean
+  notifications: {
+    push: boolean
+    email: boolean
+    sms: boolean
+  }
 }
 
 const KEY = 'gl.settings'
@@ -10,7 +15,12 @@ const KEY = 'gl.settings'
 const DEFAULTS: Settings = {
   theme: 'dark',
   newsRefreshMs: 2000,
-  showLiveHints: true
+  showLiveHints: true,
+  notifications: {
+    push: true,
+    email: false,
+    sms: false
+  }
 }
 
 export function getSettings(): Settings {

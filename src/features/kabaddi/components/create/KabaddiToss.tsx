@@ -54,7 +54,7 @@ export default function KabaddiToss() {
       courtSideChoice: decision === 'court_side' ? courtSide : undefined
     })
     setStatus('live')
-    navigate(`/kabaddi/matches/${match.id}/live`)
+    navigate(`/matches/${match.id}/live`)
   }
 
   if (!match) return null

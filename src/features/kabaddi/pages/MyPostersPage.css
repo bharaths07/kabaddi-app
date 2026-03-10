@@ -1,0 +1,7 @@
+.mp-page { padding: 16px; }
+.mp-header { display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px; }
+.mp-title { font-weight:900; font-size:18px; }
+.mp-actions { display:flex; gap:8px; }
+.mp-tabs { display:flex; gap:8; margin-bottom: 12px; }
+.mp-grid { display:grid; grid-template-columns:1fr; gap: 24px; }
+.mp-section-title { font-weight:800; margin-bottom: 8px; color:#0f172a; }

@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react'
 import './create-tournament.css'
-import { saveDraft, getDraft } from '../../shared/state/tournamentDraftStore'
+import { Link, useNavigate } from 'react-router-dom'
+import { saveDraft, getDraft, saveTournamentDraft } from '../../shared/state/tournamentDraftStore'
 
 export default function CreateTournament() {
   const initial = useMemo(() => getDraft(), [])
@@ -13,6 +14,7 @@ export default function CreateTournament() {
   const [prize, setPrize] = useState(initial.prize || '')
   const [logo, setLogo] = useState<string | undefined>(initial.logo)
   const [tid, setTid] = useState<string>(initial.id || String(Date.now()))
+  const [saving, setSaving] = useState(false)
   const canNext = name.trim().length > 0 && organizer.trim().length > 0
   const onUpload = (f: File | null) => {
     if (!f) return
@@ -20,14 +22,44 @@ export default function CreateTournament() {
     reader.onload = () => setLogo(String(reader.result))
     reader.readAsDataURL(f)
   }
-  const onNext = () => {
+  const onNext = async () => {
     if (step === 1) {
       saveDraft({ id: tid, name, level, organizer, contact, entryFee, prize, logo })
       setStep(2)
       return
     }
-    saveDraft({ id: tid, name, level, organizer, contact, entryFee, prize, logo, format, halfDuration, playersOnCourt, squadSize, timeoutsPerHalf, superTackleEnabled, bonusPointEnabled, scoringNotes, registrationDeadline, startDate, endDate, venueName, cityState, mapsLink, courtsAvailable })
-    setStep(3)
+    try {
+      setSaving(true)
+      const id = await saveTournamentDraft({
+        id: tid,
+        name,
+        level,
+        organizer,
+        contact,
+        entryFee,
+        prize,
+        logo,
+        format,
+        halfDuration,
+        playersOnCourt,
+        squadSize,
+        timeoutsPerHalf,
+        superTackleEnabled,
+        bonusPointEnabled,
+        scoringNotes,
+        registrationDeadline,
+        startDate,
+        endDate,
+        venueName,
+        cityState,
+        mapsLink,
+        courtsAvailable,
+      })
+      setTid(id)
+      setStep(3)
+    } finally {
+      setSaving(false)
+    }
   }
   const onBack = () => {
     if (step === 2) setStep(1)
@@ -87,7 +119,7 @@ export default function CreateTournament() {
 
         <div className="ct-field">
           <label className="ct-label">Tournament Level</label>
-          <select className="ct-input" value={level} onChange={e=>setLevel(e.target.value)}>
+          <select className="ct-input" value={level} onChange={e=>setLevel(e.target.value as 'local'|'district'|'state'|'national')}>
             <option value="local">Local / Village</option>
             <option value="district">District</option>
             <option value="state">State</option>
@@ -198,22 +230,22 @@ export default function CreateTournament() {
           <div className="ct-success-title">Great, your tournament is registered!</div>
           <div className="ct-tip">Teams not available yet? No worries — you can do this later from Dashboard.</div>
           <div className="ct-steps">
-            <a className="ct-step" href={`/tournament/${tid}/add-teams`}>
+            <Link className="ct-step" to={`/tournament/${tid}/add-teams`}>
               <span className="ct-step-badge">!</span>
               <span className="ct-step-text">Add Teams</span>
-            </a>
-            <a className="ct-step" href={`/tournament/${tid}/add-rounds`}>
+            </Link>
+            <Link className="ct-step" to={`/tournament/${tid}/add-rounds`}>
               <span className="ct-step-badge">!</span>
               <span className="ct-step-text">Add Rounds / Groups</span>
-            </a>
-            <a className="ct-step" href={`/tournament/${tid}/add-schedule`}>
+            </Link>
+            <Link className="ct-step" to={`/tournament/${tid}/add-schedule`}>
               <span className="ct-step-badge">!</span>
               <span className="ct-step-text">Add Schedule</span>
-            </a>
+            </Link>
           </div>
           <div className="ct-actions">
-            <a className="ct-primary" href={`/tournament/${tid}/dashboard`}>OK, LET'S GO</a>
-            <a className="ct-link" href={`/tournament/${tid}/dashboard`}>Go to Dashboard, I'll do this later</a>
+            <Link className="ct-primary" to={`/tournament/${tid}/dashboard`}>OK, LET'S GO</Link>
+            <Link className="ct-link" to={`/tournament/${tid}/dashboard`}>Go to Dashboard, I'll do this later</Link>
           </div>
         </div>
       )}
@@ -221,7 +253,7 @@ export default function CreateTournament() {
       <div className="ct-footer">
         <button className="ct-secondary" onClick={()=>saveDraft({ name, level, organizer, contact, entryFee, prize, logo, format, halfDuration, playersOnCourt, squadSize, timeoutsPerHalf, superTackleEnabled, bonusPointEnabled, scoringNotes, registrationDeadline, startDate, endDate, venueName, cityState, mapsLink, courtsAvailable })}>Save Draft</button>
         {step !== 1 && <button className="ct-secondary" onClick={onBack}>Back</button>}
-        {step !== 3 && <button className="ct-primary" disabled={step===1 ? !canNext : false} onClick={onNext}>{step===1?'Next':'Save & Continue'}</button>}
+        {step !== 3 && <button className="ct-primary" disabled={saving || (step===1 ? !canNext : false)} onClick={onNext}>{step===1?'Next':'Save & Continue'}</button>}
       </div>
     </div>
   )

@@ -1,7 +1,25 @@
-import React from 'react'
 import { supabase } from '@shared/lib/supabase'
 import type { RealtimeChannel } from '@supabase/supabase-js'
-import type { KabaddiMatch, RaidEvent, ScoringUpdate } from '../../features/kabaddi/types/kabaddi.types'
+import type { RaidEvent, ScoringUpdate } from '../../features/kabaddi/types/kabaddi.types'
+
+type DBMatchRow = {
+  id: string
+  home_score: number | null
+  guest_score: number | null
+  raid_number: number | null
+}
+
+type DBRaidEventRow = {
+  id: string
+  match_id: string
+  raid_number: number
+  raider_id: string
+  defending_team: 'home' | 'guest'
+  points_scored: number
+  touch_points: number
+  success: boolean
+  created_at: string
+}
 
 /**
  * Kabaddi Live Scoring Service
@@ -11,6 +29,7 @@ class KabaddiScoringService {
   private channel: RealtimeChannel | null = null
   private matchId: string | null = null
   private listeners: Set<(update: ScoringUpdate) => void> = new Set()
+  private currentState: ScoringUpdate['currentState'] | null = null
 
   /**
    * Subscribe to live match updates
@@ -30,8 +49,8 @@ class KabaddiScoringService {
           table: 'kabaddi_matches',
           filter: `id=eq.${matchId}`,
         },
-        (payload) => {
-          this.handleMatchUpdate(payload.new as KabaddiMatch)
+        (payload: { new: DBMatchRow }) => {
+          this.handleMatchUpdate(payload.new)
         }
       )
       .on(
@@ -42,8 +61,8 @@ class KabaddiScoringService {
           table: 'raid_events',
           filter: `match_id=eq.${matchId}`,
         },
-        (payload) => {
-          this.handleRaidEvent(payload.new as RaidEvent)
+        (payload: { new: DBRaidEventRow }) => {
+          this.handleRaidEvent(payload.new)
         }
       )
       .subscribe()
@@ -64,35 +83,48 @@ class KabaddiScoringService {
   }
 
   /**
-   * Handle match update
+   * Handle match update from DB row
    */
-  private handleMatchUpdate(match: KabaddiMatch) {
+  private handleMatchUpdate(match: DBMatchRow) {
     const update: ScoringUpdate = {
       matchId: match.id,
       timestamp: new Date(),
       event: {} as any,
       currentState: {
-        homeScore: match.homeScore,
-        guestScore: match.guestScore,
-        currentRaid: match.raidNumber,
+        homeScore: match.home_score ?? 0,
+        guestScore: match.guest_score ?? 0,
+        currentRaid: match.raid_number ?? 0,
       },
     }
 
+    this.currentState = update.currentState
     this.notifyListeners(update)
   }
 
   /**
-   * Handle raid event
+   * Handle raid event from DB row
    */
-  private handleRaidEvent(event: RaidEvent) {
+  private handleRaidEvent(event: DBRaidEventRow) {
+    const base = this.currentState || { homeScore: 0, guestScore: 0, currentRaid: 0 }
+
     const update: ScoringUpdate = {
       matchId: this.matchId || '',
       timestamp: new Date(),
-      event,
+      event: {
+        id: event.id,
+        raidNumber: event.raid_number,
+        raider: {} as any,
+        defendingTeam: {} as any,
+        pointsScored: event.points_scored,
+        touchPoints: event.touch_points,
+        allOut: false,
+        success: event.success,
+        timestamp: new Date(event.created_at),
+      },
       currentState: {
-        homeScore: 0, // Will be updated by component
-        guestScore: 0,
-        currentRaid: event.raidNumber,
+        homeScore: base.homeScore,
+        guestScore: base.guestScore,
+        currentRaid: event.raid_number,
       },
     }
 
@@ -182,6 +214,10 @@ class KabaddiScoringService {
         .eq('id', matchId)
 
       if (error) throw error
+
+      await supabase.functions.invoke('end-match', {
+        body: { matchId },
+      })
     } catch (error) {
       console.error('Error ending match:', error)
       throw error
@@ -189,18 +225,18 @@ class KabaddiScoringService {
   }
 
   /**
-   * Get live match data
+   * Get live match data (raw DB row)
    */
-  async getLiveMatch(matchId: string): Promise<KabaddiMatch | null> {
+  async getLiveMatch(matchId: string): Promise<DBMatchRow | null> {
     try {
       const { data, error } = await supabase
         .from('kabaddi_matches')
-        .select('*')
+        .select('id, home_score, guest_score, raid_number')
         .eq('id', matchId)
         .single()
 
       if (error) throw error
-      return data as KabaddiMatch
+      return data as DBMatchRow
     } catch (error) {
       console.error('Error fetching live match:', error)
       return null
@@ -214,12 +250,23 @@ class KabaddiScoringService {
     try {
       const { data, error } = await supabase
         .from('raid_events')
-        .select('*')
+        .select('id, match_id, raid_number, raider_id, defending_team, points_scored, touch_points, success, created_at')
         .eq('match_id', matchId)
         .order('raid_number', { ascending: true })
 
       if (error) throw error
-      return (data || []) as RaidEvent[]
+      const rows = (data || []) as DBRaidEventRow[]
+      return rows.map(row => ({
+        id: row.id,
+        raidNumber: row.raid_number,
+        raider: {} as any,
+        defendingTeam: {} as any,
+        pointsScored: row.points_scored,
+        touchPoints: row.touch_points,
+        allOut: false,
+        success: row.success,
+        timestamp: new Date(row.created_at),
+      }))
     } catch (error) {
       console.error('Error fetching raid history:', error)
       return []
@@ -239,10 +286,10 @@ class KabaddiScoringService {
 
       if (error) throw error
 
-      const raids = data || []
-      const raidPoints = raids.reduce((sum, r) => sum + r.points_scored, 0)
+      const raids = (data || []) as DBRaidEventRow[]
+      const raidPoints = raids.reduce((sum: number, r: DBRaidEventRow) => sum + r.points_scored, 0)
       const raidCount = raids.length
-      const successfulRaids = raids.filter(r => r.success).length
+      const successfulRaids = raids.filter((r: DBRaidEventRow) => r.success).length
 
       return {
         playerId,
@@ -271,33 +318,3 @@ class KabaddiScoringService {
 
 // Export singleton instance
 export const kabaddiScoringService = new KabaddiScoringService()
-
-/**
- * Hook for using Kabaddi scoring in React components
- */
-export function useKabaddiLiveScoring(matchId: string) {
-  const [score, setScore] = React.useState({
-    homeScore: 0,
-    guestScore: 0,
-    currentRaid: 0,
-  })
-
-  React.useEffect(() => {
-    const unsubscribe = kabaddiScoringService.subscribeToMatch(matchId, (update) => {
-      setScore(update.currentState)
-    })
-
-    return () => {
-      unsubscribe()
-    }
-  }, [matchId])
-
-  return {
-    ...score,
-    recordRaid: (data: any) => kabaddiScoringService.recordRaid(matchId, data),
-    updateScore: (home: number, guest: number) =>
-      kabaddiScoringService.updateMatchScore(matchId, home, guest),
-    endMatch: (home: number, guest: number) =>
-      kabaddiScoringService.endMatch(matchId, home, guest),
-  }
-}

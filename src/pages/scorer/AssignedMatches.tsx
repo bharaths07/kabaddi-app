@@ -9,16 +9,19 @@ type AssignedFixture = {
   startsAt: string
   court?: string
   status: 'upcoming' | 'live' | 'completed'
-  scorerStatus: 'assigned' | 'confirmed'
+  scorerStatus: 'assigned' | 'confirmed' | 'accepted' | 'declined' | 'scoring'
 }
 
 export default function AssignedMatches() {
   const userId = 'current-user'
   const [items, setItems] = useState<AssignedFixture[]>([])
   const [filter, setFilter] = useState<'all'|'upcoming'|'live'|'completed'>('all')
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    getAssignedFixturesFor(userId).then(setItems)
+    getAssignedFixturesFor(userId)
+      .then(data => setItems(data))
+      .finally(() => setLoading(false))
   }, [userId])
 
   const visible = useMemo(() => {
@@ -60,7 +63,18 @@ export default function AssignedMatches() {
       </div>
 
       <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))', gap:12 }}>
-        {visible.map(m => (
+        {loading && (
+          <>
+            {[1,2,3].map(i => (
+              <div key={i} className="card card--clickable">
+                <div style={{ height:16, borderRadius:6, background:'var(--bg-elevated)', marginBottom:6 }} />
+                <div style={{ height:12, borderRadius:6, background:'var(--bg-elevated)', width:'70%' }} />
+                <div style={{ height:12, borderRadius:6, background:'var(--bg-elevated)', width:'50%', marginTop:8 }} />
+              </div>
+            ))}
+          </>
+        )}
+        {!loading && visible.map(m => (
           <div key={m.id} className="card card--clickable">
             <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
               <div style={{ fontWeight:700 }}>{m.home} <span style={{ color:'var(--text-muted)' }}>vs</span> {m.guest}</div>
@@ -80,7 +94,7 @@ export default function AssignedMatches() {
                 <button className="btn btn-primary" onClick={() => onStartScoring(m)}>Start Scoring</button>
               )}
               {m.status==='live' && (
-                <Link to={`/kabaddi/match/${m.id}/live`} className="btn btn-primary">Continue Scoring</Link>
+                <Link to={`/matches/${m.id}/live`} className="btn btn-primary">Continue Scoring</Link>
               )}
               {m.status==='completed' && (
                 <Link to={`/matches/${m.id}/summary`} className="btn">View Summary</Link>
@@ -89,7 +103,7 @@ export default function AssignedMatches() {
             </div>
           </div>
         ))}
-        {visible.length === 0 && <div className="muted">No matches for this filter</div>}
+        {!loading && visible.length === 0 && <div className="muted">No matches for this filter</div>}
       </div>
     </div>
   )

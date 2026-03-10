@@ -1,3 +1,5 @@
+import { supabase } from '@shared/lib/supabase'
+
 export type TournamentDraft = {
   id?: string
   name?: string
@@ -22,6 +24,49 @@ export type TournamentDraft = {
   cityState?: string
   mapsLink?: string
   courtsAvailable?: number
+}
+
+export async function saveTournamentDraft(patch: Partial<TournamentDraft>): Promise<string> {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+
+  const { data, error } = await supabase
+    .from('tournaments')
+    .upsert({
+      organizer_id: user.id,
+      status: 'draft',
+      name: patch.name || 'Untitled',
+      ...mapDraftToRow(patch),
+    })
+    .select('id')
+    .single()
+
+  if (error) throw error
+  return data.id
+}
+
+function mapDraftToRow(draft: Partial<TournamentDraft>) {
+  return {
+    level: draft.level,
+    format: draft.format,
+    entry_fee: draft.entryFee,
+    prize: draft.prize,
+    registration_deadline: draft.registrationDeadline,
+    start_date: draft.startDate,
+    end_date: draft.endDate,
+    venue_name: draft.venueName,
+    city_state: draft.cityState,
+    maps_link: draft.mapsLink,
+    courts_available: draft.courtsAvailable,
+    half_duration_min: draft.halfDuration,
+    players_on_court: draft.playersOnCourt,
+    squad_size: draft.squadSize,
+    timeouts_per_half: draft.timeoutsPerHalf,
+    super_tackle_enabled: draft.superTackleEnabled,
+    bonus_point_enabled: draft.bonusPointEnabled,
+    scoring_notes: draft.scoringNotes,
+    contact: draft.contact,
+  }
 }
 
 const KEY = 'gl.tournament.draft'

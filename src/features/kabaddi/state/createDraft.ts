@@ -1,5 +1,5 @@
 import type { KabaddiMatchConfig } from '../types/matchConfig'
-export type TeamSummary = { id: string; name: string }
+export type TeamSummary = { id: string; name: string; location?: string }
 export type CreateDraft = { teamA?: TeamSummary; teamB?: TeamSummary; config?: KabaddiMatchConfig }
 
 const KEY = 'kabaddi.create.draft'

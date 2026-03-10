@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { getItems as feedGetItems, addAnnouncement as feedAddAnnouncement } from '../shared/state/feedStore'
-import { getSettings } from '../shared/state/settingsStore'
+import { getItems as feedGetItems, addAnnouncement as feedAddAnnouncement } from '../../shared/state/feedStore'
+import { getSettings } from '../../shared/state/settingsStore'
 import './feed-news.css'
 
 type FeedType = 'update' | 'announcement' | 'highlight' | 'result'
@@ -135,7 +135,7 @@ export default function FeedNews() {
 
       <div className="fn-list">
         {filtered.map(i => {
-          const link = i.match ? `/kabaddi/match/${i.match.id}${i.match.status==='live'?'/live':''}` : undefined
+          const link = i.match ? `/matches/${i.match.id}` : undefined
           return (
             <div key={i.id} className={`fn-card fn-${i.type}`}>
               <div className="fn-top">

@@ -1,10 +1,11 @@
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import '../features/kabaddi/pages/tournaments/tournaments.css'
+import './tournaments.css'
 
 export default function Tournaments() {
   const now = useMemo(() => new Date(), [])
   const [tab, setTab] = useState<'all'|'ongoing'|'upcoming'|'completed'>('all')
+  const [loading, setLoading] = useState(true)
 
   const tournaments = useMemo(() => [
     { id: 'kpl2026', name: 'KPL 2026', start: '2026-01-10', end: '2026-02-20', teams: 12, matches: 48, poster: 'KPL' },
@@ -25,6 +26,11 @@ export default function Tournaments() {
   const featured = useMemo(() => withStatus.slice(0, 6), [withStatus])
   const filtered = useMemo(() => withStatus.filter(t => tab === 'all' ? true : t.status === tab), [withStatus, tab])
 
+  useEffect(() => {
+    const t = setTimeout(() => setLoading(false), 300)
+    return () => clearTimeout(t)
+  }, [])
+
   return (
     <div className="t-page">
       <div className="t-header">
@@ -36,14 +42,22 @@ export default function Tournaments() {
 
       <div className="t-featured">
         <div className="t-featured-scroll">
-          {featured.map(t => (
-            <Link key={t.id} to={`/tournaments/${t.id}`} className="t-fcard">
-              <div className="t-fposter">{t.poster}</div>
-              <div className="t-fname">{t.name}</div>
-              <div className="t-fmeta">{new Date(t.start).toLocaleDateString()} – {new Date(t.end).toLocaleDateString()}</div>
-              <span className={`t-badge t-${t.status}`}>{t.status}</span>
-            </Link>
-          ))}
+          {loading
+            ? Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="t-fcard">
+                  <div className="t-fposter" />
+                  <div className="t-fname" style={{ background:'var(--bg-elevated)', borderRadius:6, height:14, marginTop:8 }} />
+                  <div className="t-fmeta" style={{ background:'var(--bg-elevated)', borderRadius:6, height:12, width:'70%', marginTop:6 }} />
+                </div>
+              ))
+            : featured.map(t => (
+                <Link key={t.id} to={`/tournaments/${t.id}`} className="t-fcard">
+                  <div className="t-fposter">{t.poster}</div>
+                  <div className="t-fname">{t.name}</div>
+                  <div className="t-fmeta">{new Date(t.start).toLocaleDateString()} – {new Date(t.end).toLocaleDateString()}</div>
+                  <span className={`t-badge t-${t.status}`}>{t.status}</span>
+                </Link>
+              ))}
         </div>
       </div>
 
@@ -55,7 +69,26 @@ export default function Tournaments() {
         ))}
       </div>
 
-      {filtered.length === 0 ? (
+      {loading ? (
+        <div className="t-grid">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="t-card">
+              <div className="t-card-head">
+                <div className="t-card-title" style={{ background:'var(--bg-elevated)', borderRadius:6, height:16, width:'60%' }} />
+                <span className="t-badge" style={{ background:'var(--bg-elevated)', borderRadius:12, height:14, width:60, color:'transparent' }}>.</span>
+              </div>
+              <div className="t-meta" style={{ background:'var(--bg-elevated)', borderRadius:6, height:12, width:'70%', marginTop:8 }} />
+              <div className="t-stats">
+                <span style={{ background:'var(--bg-elevated)', borderRadius:6, height:12, width:80 }} />
+                <span style={{ background:'var(--bg-elevated)', borderRadius:6, height:12, width:80 }} />
+              </div>
+              <div className="t-actions">
+                <span className="t-secondary" style={{ background:'var(--bg-elevated)', borderRadius:8, height:32, width:80, display:'inline-block' }} />
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : filtered.length === 0 ? (
         <div className="t-empty"><div>No tournaments found.</div></div>
       ) : (
         <div className="t-grid">

@@ -85,12 +85,11 @@ function MatchHeroHeader({ d }: { d: Details }) {
   )
 }
 
-function Tabs({ active, onChange }: { active: 'updates'|'lineups'|'stats'|'info'; onChange:(t:any)=>void }) {
+function Tabs({ active, onChange }: { active: 'info'|'live'|'scorecard'; onChange:(t:any)=>void }) {
   const tabs = [
-    {k:'updates', label:'Updates'},
-    {k:'lineups', label:'Lineups'},
-    {k:'stats', label:'Stats'},
     {k:'info', label:'Info'},
+    {k:'live', label:'Live'},
+    {k:'scorecard', label:'Scorecard'},
   ] as const
   return (
     <div className="md-tabs">
@@ -99,7 +98,7 @@ function Tabs({ active, onChange }: { active: 'updates'|'lineups'|'stats'|'info'
   )
 }
 
-function Updates({ d }: { d: Details }) {
+function Live({ d }: { d: Details }) {
   useEffect(() => {
     d.events.forEach(e => {
       feedAddEvent({
@@ -122,7 +121,7 @@ function Updates({ d }: { d: Details }) {
     <div className="md-feed">
       {d.events.slice(0,12).map(e => (
         <div key={e.id} className="md-event">
-          <div className="md-event-title">{e.type.replaceAll('_',' ').toUpperCase()}</div>
+          <div className="md-event-title">{String(e.type).replace(/_/g,' ').toUpperCase()}</div>
           <div className="md-event-sub">{e.note || '—'}</div>
           <div className="md-event-meta">{`Half ${e.half} • ${new Date(e.ts).toLocaleTimeString()}`}</div>
         </div>
@@ -186,31 +185,108 @@ function Stats({ d }: { d: Details }) {
 }
 
 function Info({ d }: { d: Details }) {
+  const raidLeaders = [
+    { name:'Bharath Gowda', team:d.teams.a.name, raids:12, sr:6, pts:8 },
+    { name:'Ashu Malik', team:d.teams.b.name, raids:10, sr:4, pts:6 },
+  ]
+  const tackleLeaders = [
+    { name:'Fazel Atrachali', team:d.teams.b.name, tackles:9, tt:3, pts:6 },
+    { name:'Rahul Sharma', team:d.teams.a.name, tackles:7, tt:2, pts:5 },
+  ]
   return (
-    <div className="md-info">
-      <div>Date: {d.startsAt ? new Date(d.startsAt).toLocaleString() : '—'}</div>
-      <div>Venue: {d.venue || '—'}</div>
-      <div>Stage: {d.stage || '—'}</div>
-      <div>Surface: Mat</div>
-      <div>Officials: Referee • Umpire • Scorer • Technical Official</div>
-    </div>
+    <>
+      <div className="md-info">
+        <div className="md-infolabel">Venue</div><div className="md-infovalue">{d.venue || '—'}</div>
+        <div className="md-infolabel">Date & Time</div><div className="md-infovalue">{d.startsAt ? new Date(d.startsAt).toLocaleString() : '—'}</div>
+        <div className="md-infolabel">Format</div><div className="md-infovalue">{d.stage || 'League Stage'}</div>
+        <div className="md-infolabel">Duration</div><div className="md-infovalue">40 min (2 halves)</div>
+        <div className="md-infolabel">Referee</div><div className="md-infovalue">Kumar Raj</div>
+      </div>
+      <div className="md-table">
+        <div className="md-table-title">Raid Leaders</div>
+        <div className="md-table-head">
+          <div className="md-th player">Player</div><div className="md-th small">Raids</div><div className="md-th small">SR</div><div className="md-th small">Pts</div>
+        </div>
+        {raidLeaders.map(r=>(
+          <div key={r.name} className="md-tr">
+            <div className="md-td player"><div className="md-pinline"><div className="md-pavatar sm">{r.name.slice(0,2).toUpperCase()}</div><div><div className="md-pname">{r.name}</div><div className="md-prole">{r.team}</div></div></div></div>
+            <div className="md-td small">{r.raids}</div><div className="md-td small">{r.sr}</div><div className="md-td small">{r.pts}</div>
+          </div>
+        ))}
+      </div>
+      <div className="md-table">
+        <div className="md-table-title">Tackle Leaders</div>
+        <div className="md-table-head">
+          <div className="md-th player">Player</div><div className="md-th small">Tackles</div><div className="md-th small">TT</div><div className="md-th small">Pts</div>
+        </div>
+        {tackleLeaders.map(r=>(
+          <div key={r.name} className="md-tr">
+            <div className="md-td player"><div className="md-pinline"><div className="md-pavatar sm">{r.name.slice(0,2).toUpperCase()}</div><div><div className="md-pname">{r.name}</div><div className="md-prole">{r.team}</div></div></div></div>
+            <div className="md-td small">{r.tackles}</div><div className="md-td small">{r.tt}</div><div className="md-td small">{r.pts}</div>
+          </div>
+        ))}
+      </div>
+    </>
+  )
+}
+
+function Scorecard({ d }: { d: Details }) {
+  const halves = [
+    { label:'Half 1', a: 15, b: 12 },
+    { label:'Half 2', a: d.score.a-15, b: d.score.b-12 },
+  ]
+  const players = [
+    { name:'Ajay', team:d.teams.a.short, raid:6, tackle:4 },
+    { name:'Ravi', team:d.teams.a.short, raid:2, tackle:2 },
+    { name:'Nitin', team:d.teams.b.short, raid:5, tackle:3 },
+    { name:'Manu', team:d.teams.b.short, raid:2, tackle:1 },
+  ]
+  return (
+    <>
+      <div className="md-halves">
+        {halves.map(h=>(
+          <div key={h.label} className="md-half">
+            <div className="md-half-title">{h.label}</div>
+            <div className="md-half-scores"><span>{d.teams.a.name}</span><span className="md-vs">vs</span><span>{d.teams.b.name}</span></div>
+            <div className="md-half-values"><span className="md-half-a">{h.a}</span><span className="md-sep">-</span><span className="md-half-b">{h.b}</span></div>
+          </div>
+        ))}
+      </div>
+      <div className="md-table">
+        <div className="md-table-title">Player Scorecard</div>
+        <div className="md-table-head">
+          <div className="md-th player">Player</div><div className="md-th small">Raid</div><div className="md-th small">Tackle</div><div className="md-th small">Total</div>
+        </div>
+        {players.map(p=>(
+          <div key={p.name} className="md-tr">
+            <div className="md-td player"><div className="md-pinline"><div className="md-pavatar sm">{p.name.slice(0,2).toUpperCase()}</div><div><div className="md-pname">{p.name}</div><div className="md-prole">{p.team}</div></div></div></div>
+            <div className="md-td small">{p.raid}</div><div className="md-td small">{p.tackle}</div><div className="md-td small">{p.raid+p.tackle}</div>
+          </div>
+        ))}
+      </div>
+    </>
   )
 }
 
 export default function MatchDetailsPage() {
   const { id } = useParams()
   const d = useMockDetails(id)
-  const defaultTab = d.status === 'live' ? 'updates' : d.status === 'completed' ? 'stats' : 'info'
-  const [tab, setTab] = useState<'updates'|'lineups'|'stats'|'info'>(defaultTab as any)
+  const defaultTab = d.status === 'live' ? 'live' : d.status === 'completed' ? 'scorecard' : 'info'
+  const [tab, setTab] = useState<'info'|'live'|'scorecard'>(defaultTab as any)
   useEffect(() => { setTab(defaultTab as any) }, [defaultTab])
   return (
     <div className="md-page">
       <MatchHeroHeader d={d} />
       <Tabs active={tab} onChange={setTab} />
       <div className="md-content">
-        {tab === 'updates' && <Updates d={d} />}
-        {tab === 'lineups' && <Lineups d={d} />}
-        {tab === 'stats' && <Stats d={d} />}
+        {tab === 'live' && <Live d={d} />}
+        {tab === 'scorecard' && (
+          <>
+            <Stats d={d} />
+            <Lineups d={d} />
+            <Scorecard d={d} />
+          </>
+        )}
         {tab === 'info' && <Info d={d} />}
       </div>
     </div>

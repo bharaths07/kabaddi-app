@@ -1,25 +1,26 @@
  .lb-page{display:flex;flex-direction:column;gap:12px}
  .lb-header{display:flex;flex-direction:column;gap:4px}
- .lb-title{margin:0}
- .lb-subtitle{color:#9aa4b2}
+ .lb-title{margin:0;color:var(--text-primary)}
+ .lb-subtitle{color:var(--text-secondary)}
  .lb-tabs{display:flex;gap:8px;flex-wrap:wrap}
- .lb-tab{background:#151b3e;border:1px solid var(--border);color:#cbd5e1;border-radius:999px;padding:8px 12px;cursor:pointer}
- .lb-tab.active{background:#4169e1;color:#fff}
+ .lb-tab{background:var(--bg-elevated);border:1px solid var(--bg-border);color:var(--text-secondary);border-radius:999px;padding:8px 12px;cursor:pointer;font-weight:800}
+ .lb-tab:hover{background:var(--bg-hover);color:var(--text-primary)}
+ .lb-tab.active{background:var(--color-sky-subtle);color:var(--color-sky-dark);border-color:var(--color-sky-border)}
  .lb-filters{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end}
  .lb-filter{display:flex;flex-direction:column;gap:6px}
- .lb-label{font-size:12px;color:#cbd5e1}
- .lb-select{background:#0e1433;border:1px solid var(--border);color:#fff;border-radius:8px;padding:8px 10px}
- .lb-table{display:flex;flex-direction:column;border:1px solid var(--border);border-radius:12px;overflow:hidden}
-.lb-row{display:grid;gap:8px;padding:10px 12px}
-.lb-row.teams{grid-template-columns:60px 1.4fr 1fr 1fr 1fr 1fr 1fr}
-.lb-row.raiders{grid-template-columns:60px 1.6fr 1fr 1fr 1fr 1fr}
-.lb-row.defenders{grid-template-columns:60px 1.6fr 1fr 1fr 1fr}
-.lb-row.allrounders{grid-template-columns:60px 1.6fr 1fr 1fr 1fr}
- .lb-row .lb-cell{color:#cbd5e1}
- .lb-row .rank{font-weight:700}
- .lb-row .team,.lb-row .player{font-weight:600;color:#fff}
- .lb-row:nth-child(odd){background:#0b1130}
- .lb-row:nth-child(even){background:#0e1433}
- .lb-head{background:#182052;border-bottom:1px solid var(--border)}
- .lb-head .lb-cell{font-weight:700;color:#fff}
+ .lb-label{font-size:12px;color:var(--text-muted);font-weight:800;letter-spacing:.06em;text-transform:uppercase}
+ .lb-select{background:var(--bg-input);border:1px solid var(--bg-border);color:var(--text-primary);border-radius:8px;padding:8px 10px;box-shadow:var(--shadow-xs)}
+ .lb-table{display:flex;flex-direction:column;border:1px solid var(--bg-border);border-radius:12px;overflow:hidden;background:var(--bg-surface);box-shadow:var(--shadow-sm)}
+ .lb-row{display:grid;gap:8px;padding:10px 12px}
+ .lb-row.teams{grid-template-columns:60px 1.4fr 1fr 1fr 1fr 1fr 1fr}
+ .lb-row.raiders{grid-template-columns:60px 1.6fr 1fr 1fr 1fr 1fr}
+ .lb-row.defenders{grid-template-columns:60px 1.6fr 1fr 1fr 1fr}
+ .lb-row.allrounders{grid-template-columns:60px 1.6fr 1fr 1fr 1fr}
+ .lb-row .lb-cell{color:var(--text-secondary)}
+ .lb-row .rank{font-weight:900;color:var(--text-primary)}
+ .lb-row .team,.lb-row .player{font-weight:700;color:var(--text-primary)}
+ .lb-row:nth-child(odd){background:var(--bg-surface)}
+ .lb-row:nth-child(even){background:var(--bg-elevated)}
+ .lb-head{background:var(--bg-elevated);border-bottom:1px solid var(--bg-border)}
+ .lb-head .lb-cell{font-weight:800;color:var(--text-primary)}
  

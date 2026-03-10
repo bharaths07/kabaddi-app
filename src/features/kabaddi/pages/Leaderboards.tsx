@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import './leaderboards.css'
 
 type TabKey = 'teams' | 'raiders' | 'defenders' | 'allrounders'
@@ -36,6 +36,12 @@ export default function Leaderboards() {
   const [tournament, setTournament] = useState('all')
   const [season, setSeason] = useState('KPL 2026')
   const [narrowLossBonus, setNarrowLossBonus] = useState(true)
+  const [teamSort, setTeamSort] = useState<'points' | 'winrate' | 'scoreDiff' | 'streak'>('points')
+  const [playerSort, setPlayerSort] = useState<'raidPoints' | 'tacklePoints' | 'totalPoints' | 'successRate' | 'avg'>('totalPoints')
+  const [position, setPosition] = useState<'raider' | 'defender' | 'allrounder' | 'all'>('all')
+  const [time, setTime] = useState<'season' | 'month' | 'week'>('season')
+  const [teamFilter, setTeamFilter] = useState<string>('all')
+  const [loading, setLoading] = useState(true)
 
   const teamStandings = useMemo<TeamStanding[]>(
     () => [
@@ -50,8 +56,15 @@ export default function Leaderboards() {
   const computePoints = (t: TeamStanding) => (t.wins * 5) + (t.draws * 3) + (t.losses * 0) + (narrowLossBonus ? (t.narrowLosses || 0) : 0)
   const processedTeams = useMemo(() => {
     const rows = teamStandings.map(t => ({ ...t, points: computePoints(t) }))
-    return rows.sort((a, b) => (b.points - a.points) || ((b.scoreDiff || 0) - (a.scoreDiff || 0))).map((t, i) => ({ ...t, rank: i + 1 }))
-  }, [teamStandings, narrowLossBonus])
+    const sorted = rows.sort((a, b) => {
+      if (teamSort === 'points') return (b.points - a.points) || ((b.scoreDiff || 0) - (a.scoreDiff || 0))
+      if (teamSort === 'winrate') return ((b.wins / b.matches) - (a.wins / a.matches))
+      if (teamSort === 'scoreDiff') return ((b.scoreDiff || 0) - (a.scoreDiff || 0))
+      if (teamSort === 'streak') return ((b.narrowLosses || 0) - (a.narrowLosses || 0))
+      return 0
+    })
+    return sorted.map((t, i) => ({ ...t, rank: i + 1 }))
+  }, [teamStandings, narrowLossBonus, teamSort])
 
   const raiders = useMemo<PlayerRow[]>(
     () => [
@@ -93,6 +106,40 @@ export default function Leaderboards() {
     { key: 'allrounders', label: 'All-Rounders' }
   ]
 
+  const playerRows = useMemo(() => {
+    let rows: PlayerRow[] = tab === 'raiders' ? raiders : tab === 'defenders' ? defenders : allRounders
+    if (teamFilter !== 'all') rows = rows.filter(r => r.team === teamFilter)
+    if (position !== 'all') {
+      rows = rows.filter(r => {
+        if (position === 'raider') return typeof r.raidPoints === 'number'
+        if (position === 'defender') return typeof r.tacklePoints === 'number' && !r.raidPoints
+        return typeof r.raidPoints === 'number' && typeof r.tacklePoints === 'number'
+      })
+    }
+    const sorted = rows.slice().sort((a, b) => {
+      if (playerSort === 'raidPoints') return (b.raidPoints || 0) - (a.raidPoints || 0)
+      if (playerSort === 'tacklePoints') return (b.tacklePoints || 0) - (a.tacklePoints || 0)
+      if (playerSort === 'totalPoints') return (b.totalPoints || 0) - (a.totalPoints || 0)
+      if (playerSort === 'successRate') {
+        const sa = tab === 'defenders' ? (a.tackleSuccessPct || 0) : (a.raidSuccessPct || 0)
+        const sb = tab === 'defenders' ? (b.tackleSuccessPct || 0) : (b.raidSuccessPct || 0)
+        return sb - sa
+      }
+      if (playerSort === 'avg') {
+        const aa = (a.totalPoints || 0) / (a.matches || 1)
+        const ab = (b.totalPoints || 0) / (b.matches || 1)
+        return ab - aa
+      }
+      return 0
+    }).map((r, i) => ({ ...r, rank: i + 1 }))
+    return sorted
+  }, [tab, raiders, defenders, allRounders, playerSort, teamFilter, position])
+
+  useEffect(() => {
+    const t = setTimeout(() => setLoading(false), 300)
+    return () => clearTimeout(t)
+  }, [])
+
   return (
     <div className="lb-page">
       <div className="lb-header">
@@ -126,15 +173,94 @@ export default function Leaderboards() {
           </select>
         </div>
         <div className="lb-filter">
+          <label className="lb-label">Time</label>
+          <select className="lb-select" value={time} onChange={e => setTime(e.target.value as any)}>
+            <option value="season">Season</option>
+            <option value="month">Month</option>
+            <option value="week">Week</option>
+          </select>
+        </div>
+        <div className="lb-filter">
+          <label className="lb-label">Team</label>
+          <select className="lb-select" value={teamFilter} onChange={e => setTeamFilter(e.target.value)}>
+            <option value="all">All</option>
+            <option value="Dabangg Delhi">Dabangg Delhi</option>
+            <option value="Puneri Paltan">Puneri Paltan</option>
+            <option value="Wolves">Wolves</option>
+            <option value="Falcons">Falcons</option>
+            <option value="Spartans">Spartans</option>
+          </select>
+        </div>
+        <div className="lb-filter">
           <label className="lb-label">Narrow loss bonus</label>
           <select className="lb-select" value={narrowLossBonus ? 'on' : 'off'} onChange={e => setNarrowLossBonus(e.target.value === 'on')}>
             <option value="on">On</option>
             <option value="off">Off</option>
           </select>
         </div>
+        {tab === 'teams' ? (
+          <div className="lb-filter">
+            <label className="lb-label">Sort</label>
+            <select className="lb-select" value={teamSort} onChange={e => setTeamSort(e.target.value as any)}>
+              <option value="points">Points</option>
+              <option value="winrate">Win rate</option>
+              <option value="scoreDiff">Points difference</option>
+              <option value="streak">Win streak (proxy)</option>
+            </select>
+          </div>
+        ) : (
+          <>
+            <div className="lb-filter">
+              <label className="lb-label">Position</label>
+              <select className="lb-select" value={position} onChange={e => setPosition(e.target.value as any)}>
+                <option value="all">All</option>
+                <option value="raider">Raider</option>
+                <option value="defender">Defender</option>
+                <option value="allrounder">All-rounder</option>
+              </select>
+            </div>
+            <div className="lb-filter">
+              <label className="lb-label">Sort</label>
+              <select className="lb-select" value={playerSort} onChange={e => setPlayerSort(e.target.value as any)}>
+                <option value="totalPoints">Total points</option>
+                <option value="raidPoints">Total raids (points)</option>
+                <option value="tacklePoints">Defensive points</option>
+                <option value="successRate">Strike rate</option>
+                <option value="avg">Avg points / match</option>
+              </select>
+            </div>
+          </>
+        )}
       </div>
 
-      {tab === 'teams' && (
+      {loading && (
+        <div className="lb-table">
+          <div className="lb-row lb-head teams">
+            <div className="lb-cell rank">#</div>
+            <div className="lb-cell team">Team</div>
+            <div className="lb-cell">Played</div>
+            <div className="lb-cell">Won</div>
+            <div className="lb-cell">Lost</div>
+            <div className="lb-cell">Tie</div>
+            <div className="lb-cell">Points</div>
+            <div className="lb-cell">Score Diff</div>
+          </div>
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="lb-row teams">
+              <div className="lb-cell rank"> </div>
+              <div className="lb-cell team" style={{ background:'var(--bg-elevated)', borderRadius:6, height:12 }} />
+              <div className="lb-cell" style={{ background:'var(--bg-elevated)', borderRadius:6, height:12 }} />
+              <div className="lb-cell" style={{ background:'var(--bg-elevated)', borderRadius:6, height:12 }} />
+              <div className="lb-cell" style={{ background:'var(--bg-elevated)', borderRadius:6, height:12 }} />
+              <div className="lb-cell" style={{ background:'var(--bg-elevated)', borderRadius:6, height:12 }} />
+              <div className="lb-cell" style={{ background:'var(--bg-elevated)', borderRadius:6, height:12 }} />
+              <div className="lb-cell" style={{ background:'var(--bg-elevated)', borderRadius:6, height:12 }} />
+            </div>
+          ))}
+        </div>
+      )}
+
+      {!loading && tab === 'teams' && (
         <div className="lb-table">
           <div className="lb-row lb-head teams">
             <div className="lb-cell rank">#</div>
@@ -161,7 +287,7 @@ export default function Leaderboards() {
         </div>
       )}
 
-      {tab === 'raiders' && (
+      {!loading && tab === 'raiders' && (
         <div className="lb-table">
           <div className="lb-row lb-head raiders">
             <div className="lb-cell rank">#</div>
@@ -172,10 +298,10 @@ export default function Leaderboards() {
             <div className="lb-cell">Success %</div>
             <div className="lb-cell">Do-or-die %</div>
           </div>
-          {raiders.map(p => (
+          {playerRows.map(p => (
             <div key={p.rank} className="lb-row raiders">
               <div className="lb-cell rank">{p.rank}</div>
-              <div className="lb-cell player">{p.name}</div>
+              <div className="lb-cell player"><a href="/me/stats" style={{ textDecoration:'none' }}>{p.name}</a></div>
               <div className="lb-cell team">{p.team}</div>
               <div className="lb-cell">{p.raidPoints}</div>
               <div className="lb-cell">{p.superRaids}</div>
@@ -186,7 +312,7 @@ export default function Leaderboards() {
         </div>
       )}
 
-      {tab === 'defenders' && (
+      {!loading && tab === 'defenders' && (
         <div className="lb-table">
           <div className="lb-row lb-head defenders">
             <div className="lb-cell rank">#</div>
@@ -196,10 +322,10 @@ export default function Leaderboards() {
             <div className="lb-cell">Super Tackles</div>
             <div className="lb-cell">Success %</div>
           </div>
-          {defenders.map(p => (
+          {playerRows.map(p => (
             <div key={p.rank} className="lb-row defenders">
               <div className="lb-cell rank">{p.rank}</div>
-              <div className="lb-cell player">{p.name}</div>
+              <div className="lb-cell player"><a href="/me/stats" style={{ textDecoration:'none' }}>{p.name}</a></div>
               <div className="lb-cell team">{p.team}</div>
               <div className="lb-cell">{p.tacklePoints}</div>
               <div className="lb-cell">{p.superTackles}</div>
@@ -209,7 +335,7 @@ export default function Leaderboards() {
         </div>
       )}
 
-      {tab === 'allrounders' && (
+      {!loading && tab === 'allrounders' && (
         <div className="lb-table">
           <div className="lb-row lb-head allrounders">
             <div className="lb-cell rank">#</div>
@@ -219,16 +345,49 @@ export default function Leaderboards() {
             <div className="lb-cell">Tackle Pts</div>
             <div className="lb-cell">Total</div>
           </div>
-          {allRounders.map(p => (
+          {playerRows.map(p => (
             <div key={p.rank} className="lb-row allrounders">
               <div className="lb-cell rank">{p.rank}</div>
-              <div className="lb-cell player">{p.name}</div>
+              <div className="lb-cell player"><a href="/me/stats" style={{ textDecoration:'none' }}>{p.name}</a></div>
               <div className="lb-cell team">{p.team}</div>
               <div className="lb-cell">{p.raidPoints}</div>
               <div className="lb-cell">{p.tacklePoints}</div>
               <div className="lb-cell">{p.totalPoints}</div>
             </div>
           ))}
+        </div>
+      )}
+
+      {!loading && tab !== 'teams' && (
+        <div className="lb-section">
+          <div className="lb-header">
+            <h2 className="lb-title">Team Leaderboard</h2>
+            <div className="lb-subtitle">Wins, win rate, points difference</div>
+          </div>
+          <div className="lb-table">
+            <div className="lb-row lb-head teams">
+              <div className="lb-cell rank">#</div>
+              <div className="lb-cell team">Team</div>
+              <div className="lb-cell">Played</div>
+              <div className="lb-cell">Won</div>
+              <div className="lb-cell">Lost</div>
+              <div className="lb-cell">Tie</div>
+              <div className="lb-cell">Points</div>
+              <div className="lb-cell">Score Diff</div>
+            </div>
+            {processedTeams.map(s => (
+              <div key={s.rank} className="lb-row teams">
+                <div className="lb-cell rank">{s.rank}</div>
+                <div className="lb-cell team">{s.team}</div>
+                <div className="lb-cell">{s.matches}</div>
+                <div className="lb-cell">{s.wins}</div>
+                <div className="lb-cell">{s.losses}</div>
+                <div className="lb-cell">{s.draws}</div>
+                <div className="lb-cell">{s.points}</div>
+                <div className="lb-cell">{(s.scoreDiff ?? 0) >= 0 ? `+${s.scoreDiff}` : s.scoreDiff}</div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>

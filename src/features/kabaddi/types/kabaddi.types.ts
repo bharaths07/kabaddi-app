@@ -121,6 +121,7 @@ export interface KabaddiMatch {
   endTime?: Date
   currentTime: number // seconds elapsed
   currentPeriod: 'first' | 'second' | 'halftime'
+  timeRemaining: number
   status: 'scheduled' | 'live' | 'paused' | 'completed'
 
   // Raids
@@ -286,8 +287,8 @@ export const calculateRaidPoints = (
   defendersOut: number
 ): number => {
   if (defendersOut === defenderCount) {
-    // All Out
-    return 2 // Bonus for allout
+    const base = Math.min(touchCount, 5)
+    return base + 2
   }
   return Math.min(touchCount, 5) // Max 5 points
 }

@@ -26,14 +26,14 @@ export default function PlanUpgrade() {
   }
 
   return (
-    <div className="pl-page">
-      <div className="pl-header">
-        <h1 className="pl-title">Choose Your Plan</h1>
-        <div className="pl-sub">Current: {current.toUpperCase()}</div>
+    <div className="page-wrapper--narrow">
+      <div className="page-header">
+        <h1>Choose Your Plan</h1>
+        <p>Current: {current.toUpperCase()}</p>
       </div>
       <div className="pl-grid">
         {TIERS.map(t => (
-          <div key={t.id} className={`pl-card ${selected===t.id?'active':''}`}>
+          <div key={t.id} className={`card pl-card ${selected===t.id ? 'active' : ''}`}>
             <div className="pl-card-head">
               <div className="pl-name">{t.name}</div>
               <div className="pl-price">{t.price}</div>
@@ -41,13 +41,16 @@ export default function PlanUpgrade() {
             <ul className="pl-features">
               {t.features.map((f,i)=><li key={i} className="pl-feature">{f}</li>)}
             </ul>
-            <button className={`pl-btn ${selected===t.id?'selected':''}`} onClick={()=>onUpgrade(t.id)}>
-              {selected===t.id?'Selected':'Choose'}
+            <button
+              className={`btn ${selected===t.id ? 'btn-primary' : 'btn-ghost'} btn-full`}
+              onClick={()=>onUpgrade(t.id)}
+            >
+              {selected===t.id ? 'Selected' : 'Choose'}
             </button>
           </div>
         ))}
       </div>
-      <div className="pl-note">Upgrading updates features instantly across the app.</div>
+      <p className="pl-note">Upgrading updates features instantly across the app.</p>
     </div>
   )
 }

@@ -4,6 +4,7 @@ export type TieBreakerMode = 'extra_time' | 'golden_raid'
 export interface KabaddiMatchConfig {
   format: KabaddiFormat
   halfDurationMinutes: number
+  periodMins?: number
   breakDurationMinutes: number
   playersOnCourt: number
   substitutesAllowed: number

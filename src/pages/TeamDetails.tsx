@@ -78,7 +78,7 @@ export default function TeamDetails() {
         <div className="tm-content">
           <div className="tm-match-list">
             {data.matches.map(m => (
-              <Link key={m.id} to={`/kabaddi/match/${m.id}${m.status==='live'?'/live':''}`} className="tm-match-card">
+              <Link key={m.id} to={`/matches/${m.id}`} className="tm-match-card">
                 <div className="tm-versus">
                   <span>{m.home}</span>
                   <span className="tm-vs">vs</span>

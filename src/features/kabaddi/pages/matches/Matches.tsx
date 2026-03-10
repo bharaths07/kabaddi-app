@@ -12,7 +12,7 @@ export default function Matches() {
           <div>Kabaddi Match 1</div>
           <div>
             <Link to="/matches/1/summary">Summary</Link>
-            {can(role, 'scoring:update') && <> · <Link to="/kabaddi/matches/1/live">Live Scorer</Link></>}
+            {can(role, 'scoring:update') && <> · <Link to="/matches/1">Details</Link></>}
           </div>
         </div>
       </div>

@@ -1,4 +1,5 @@
 import type { KabaddiMatchConfig } from '../types/matchConfig'
+import { supabase } from '@shared/lib/supabase'
 
 export type MatchStatus = 'draft' | 'toss_pending' | 'toss_completed' | 'live' | 'completed'
 export type TossDetails = {
@@ -60,4 +61,49 @@ export function setStatus(status: MatchStatus) {
   if (!m) return
   m.status = status
   saveCurrentMatch(m)
+}
+
+export async function createKabaddiMatch(fixtureId: string, config: KabaddiMatchConfig) {
+  const { data, error } = await supabase
+    .from('kabaddi_matches')
+    .insert({
+      fixture_id: fixtureId,
+      format: config.format,
+      half_duration_min: config.halfDurationMinutes,
+      break_duration_min: config.breakDurationMinutes,
+      players_on_court: config.playersOnCourt,
+      substitutes_allowed: config.substitutesAllowed,
+      raid_time_seconds: config.raidTimeSeconds,
+      bonus_line_enabled: config.bonusLineEnabled,
+      do_or_die_enabled: config.doOrDieEnabled,
+      super_tackle_enabled: config.superTackleEnabled,
+      all_out_points: config.allOutPoints,
+      golden_raid_enabled: config.goldenRaidEnabled,
+      tie_breaker_mode: config.tieBreakerMode,
+      surface: config.venue.surface,
+      indoor: config.venue.indoor,
+      status: 'toss_pending',
+    })
+    .select()
+    .single()
+
+  if (error) throw error
+  return data
+}
+
+export async function saveToss(matchId: string, toss: TossDetails) {
+  const { error } = await supabase
+    .from('kabaddi_matches')
+    .update({
+      toss_called_by_team_id: toss.calledByTeamId,
+      toss_called_choice: toss.calledChoice,
+      toss_result: toss.result,
+      toss_winner_team_id: toss.winnerTeamId,
+      toss_decision: toss.decision,
+      first_raid_team_id: toss.firstRaidTeamId,
+      status: 'toss_completed',
+    })
+    .eq('id', matchId)
+
+  if (error) throw error
 }

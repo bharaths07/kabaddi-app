@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import './matches.css'
 
@@ -37,9 +37,8 @@ function MatchesTabs({ active, onChange }: { active: 'top'|'live'|'upcoming'|'co
 function MatchCard({ match }: { match: MatchListItem }) {
   const navigate = useNavigate()
   const onOpen = () => {
-    if (match.status === 'live') navigate(`/kabaddi/match/${match.id}/live`)
-    else if (match.status === 'completed') navigate(`/kabaddi/match/${match.id}/summary`)
-    else navigate(`/kabaddi/match/${match.id}`)
+    if (match.status === 'completed') navigate(`/matches/${match.id}/summary`)
+    else navigate(`/matches/${match.id}`)
   }
   return (
     <div className="mx-card" onClick={onOpen}>
@@ -76,6 +75,7 @@ function MatchCard({ match }: { match: MatchListItem }) {
 
 export default function KabaddiMatchesPage() {
   const [active, setActive] = useState<'top'|'live'|'upcoming'|'completed'>('top')
+  const [loading, setLoading] = useState(true)
   const matches: MatchListItem[] = useMemo(() => [
     { id:'m2', tournamentName:'KPL 2026', roundName:'Semi Final', teamA:{id:'sk', name:'SKBC', shortName:'SK', score:18}, teamB:{id:'ra', name:'Rangers', shortName:'RA', score:15}, status:'live', startTime:new Date().toISOString(), venue:'Indoor Stadium', currentHalf:1, raidInfo:'Raid 12' },
     { id:'m3', tournamentName:'KPL 2026', teamA:{id:'sk', name:'SKBC', shortName:'SK'}, teamB:{id:'ra', name:'Rangers', shortName:'RA'}, status:'upcoming', startTime:new Date(Date.now()+20*3600*1000).toISOString(), venue:'Arena' },
@@ -91,6 +91,11 @@ export default function KabaddiMatchesPage() {
     return matches.filter(m => m.status === active)
   }, [active, matches])
 
+  useEffect(() => {
+    const t = setTimeout(() => setLoading(false), 300)
+    return () => clearTimeout(t)
+  }, [])
+
   return (
     <div className="mx-page">
       <div className="mx-header">
@@ -99,7 +104,30 @@ export default function KabaddiMatchesPage() {
       </div>
       <MatchesTabs active={active} onChange={setActive} />
       <div className="mx-list">
-        {filtered.map(m => <MatchCard key={m.id} match={m} />)}
+        {loading
+          ? Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="mx-card">
+                <div className="mx-topline">
+                  <div className="mx-status" style={{ background:'var(--bg-elevated)', borderColor:'var(--bg-elevated)', color:'transparent' }}>.</div>
+                  <div className="mx-meta" style={{ background:'var(--bg-elevated)', borderRadius:6, height:12, width:'40%' }} />
+                </div>
+                <div className="mx-versus">
+                  <div className="mx-side">
+                    <div className="mx-badge" style={{ background:'var(--bg-elevated)', color:'transparent' }}>.</div>
+                    <div className="mx-score" style={{ background:'var(--bg-elevated)', borderRadius:6, height:18, width:32, color:'transparent' }}>.</div>
+                    <div className="mx-name" style={{ background:'var(--bg-elevated)', borderRadius:6, height:12, width:'70%' }} />
+                  </div>
+                  <div className="mx-mid">-</div>
+                  <div className="mx-side right">
+                    <div className="mx-badge" style={{ background:'var(--bg-elevated)', color:'transparent' }}>.</div>
+                    <div className="mx-score" style={{ background:'var(--bg-elevated)', borderRadius:6, height:18, width:32, color:'transparent' }}>.</div>
+                    <div className="mx-name" style={{ background:'var(--bg-elevated)', borderRadius:6, height:12, width:'70%' }} />
+                  </div>
+                </div>
+                <div className="mx-subtle" style={{ background:'var(--bg-elevated)', borderRadius:6, height:12, width:'60%' }} />
+              </div>
+            ))
+          : filtered.map(m => <MatchCard key={m.id} match={m} />)}
       </div>
     </div>
   )

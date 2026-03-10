@@ -1,0 +1,27 @@
+ .nt-page{display:flex;flex-direction:column;gap:12px;padding:16px}
+ .nt-head{display:flex;justify-content:space-between;align-items:center}
+ .nt-title{font-weight:900;color:var(--text-primary);font-size:18px}
+ .nt-actions-head{display:flex;gap:8px}
+ .nt-tabs{display:flex;gap:8px;flex-wrap:wrap}
+ .nt-tab{background:var(--bg-elevated);border:1px solid var(--bg-border);color:var(--text-secondary);border-radius:999px;padding:8px 12px;cursor:pointer;font-weight:800}
+ .nt-tab.active{background:var(--color-sky-subtle);color:var(--color-sky-dark);border-color:var(--color-sky-border)}
+ .nt-section{display:flex;flex-direction:column;gap:8px}
+ .nt-section-title{font-weight:900;color:var(--text-primary)}
+ .nt-list{display:flex;flex-direction:column;gap:8px}
+ .nt-row{display:grid;grid-template-columns:auto auto 1fr auto auto;align-items:center;gap:10px;background:var(--bg-surface);border:1px solid var(--bg-border);border-radius:12px;padding:10px 12px;box-shadow:var(--shadow-xs)}
+ .nt-row.unread{border-left:3px solid var(--color-sky)}
+ .nt-dot{width:8px;height:8px;border-radius:50%;background:transparent;border:1px solid var(--bg-border)}
+ .nt-dot.on{background:var(--color-sky)}
+ .nt-badge{border:1px solid var(--bg-border);border-radius:999px;padding:4px 8px;font-size:12px;font-weight:800;color:var(--text-secondary);background:var(--bg-elevated)}
+ .nt-badge.t-match{color:var(--color-green-dark);border-color:var(--color-green-border);background:var(--color-green-subtle)}
+ .nt-badge.t-tournament{color:var(--color-gold-dark);border-color:var(--color-gold-border);background:var(--color-gold-subtle)}
+ .nt-badge.t-poster{color:var(--color-purple-dark);border-color:var(--color-purple-border);background:var(--color-purple-subtle)}
+ .nt-badge.t-system{color:var(--text-secondary)}
+ .nt-main{display:flex;flex-direction:column}
+ .nt-title{font-weight:800;color:var(--text-primary)}
+ .nt-body{font-size:12px;color:var(--text-secondary)}
+ .nt-meta{font-size:12px;color:var(--text-muted);font-weight:700}
+ .nt-actions{display:flex;gap:8px}
+ .nt-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:30px;border:1px dashed var(--bg-border);border-radius:12px;color:var(--text-secondary)}
+ .nt-empty-title{font-weight:900;color:var(--text-primary)}
+ .nt-empty-sub{font-size:12px}

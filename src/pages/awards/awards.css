@@ -1,0 +1,30 @@
+ .aw-page{display:flex;flex-direction:column;gap:12px;padding:16px}
+ .aw-head{display:flex;justify-content:space-between;align-items:center}
+ .aw-title{font-weight:900;color:var(--text-primary);font-size:18px}
+ .aw-sub{color:var(--text-secondary);font-weight:700;font-size:12px}
+ .aw-filters{display:flex;gap:8px}
+ .aw-tabs{display:flex;gap:8px;flex-wrap:wrap}
+ .aw-tab{background:var(--bg-elevated);border:1px solid var(--bg-border);color:var(--text-secondary);border-radius:999px;padding:8px 12px;cursor:pointer;font-weight:800}
+ .aw-tab.active{background:var(--color-sky-subtle);color:var(--color-sky-dark);border-color:var(--color-sky-border)}
+ .aw-grid{display:grid;grid-template-columns:1fr;gap:12px}
+ @media(min-width:900px){.aw-grid{grid-template-columns:1fr 1fr}}
+ .aw-card{background:var(--bg-surface);border:1px solid var(--bg-border);border-radius:12px;padding:12px;box-shadow:var(--shadow-sm);display:flex;flex-direction:column;gap:10px}
+ .aw-card-head{display:flex;align-items:center;gap:10px}
+ .aw-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:var(--bg-elevated);border:1px solid var(--bg-border);font-size:18px}
+ .aw-card-title{font-weight:900;color:var(--text-primary)}
+ .aw-card-body{display:flex;flex-direction:column;gap:8px}
+ .aw-row{display:flex;align-items:center;gap:10px}
+ .aw-player{display:flex;flex-direction:column}
+ .aw-name{font-weight:800;color:var(--text-primary)}
+ .aw-team{font-size:12px;color:var(--text-secondary)}
+ .aw-stat{margin-left:auto;font-weight:900;color:var(--color-orange)}
+ .aw-card-foot{display:flex;gap:8px}
+
+.aw-team-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 900;
+}
+
