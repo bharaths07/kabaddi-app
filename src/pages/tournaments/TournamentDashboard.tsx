@@ -1,64 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import "./tournament-details.css";
-
-// ─────────────────────────────────────────────────────────────
-// TYPES — move to kabaddi.types.ts
-// ─────────────────────────────────────────────────────────────
-interface Tournament {
-  id: string;
-  name: string;
-  venue: string;
-  level: string;
-  status: "Registration Open" | "Live" | "Upcoming" | "Completed";
-  startDate: string;
-  endDate: string;
-  totalTeams: number;
-  confirmedTeams: number;
-  totalMatches: number;
-  completedMatches: number;
-  joinCode: string;
-}
-
-interface Team {
-  id: number;
-  name: string;
-  color: string;
-  captain: string;
-  players: number;
-  status: "confirmed" | "invited" | "pending";
-}
-
-interface Fixture {
-  id: number;
-  round: string;
-  teamA: string;
-  teamB: string;
-  date: string;
-  time: string;
-  court: string;
-  scorer: string | null;
-  scorerStatus: "confirmed" | "pending" | "unassigned";
-  status: "scheduled" | "live" | "completed";
-  result?: string;
-}
-
-interface StandingRow {
-  rank: number;
-  team: string;
-  color: string;
-  played: number;
-  won: number;
-  lost: number;
-  points: number;
-  diff: string;
-}
-
-interface PlayerStat {
-  name: string;
-  team: string;
-  value: number;
-}
+import { 
+  Tournament, 
+  TournamentTeam as Team, 
+  TournamentFixture as Fixture, 
+  TournamentStandingRow as StandingRow, 
+  TournamentPlayerStat as PlayerStat 
+} from "../../features/kabaddi/types/kabaddi.types";
+import { getTournament, getTournamentTeams, getTournamentFixtures } from "../../shared/services/tournamentService";
 
 // ─────────────────────────────────────────────────────────────
 // MOCK DATA — replace with your API / useTournament(id) hook
@@ -149,10 +99,13 @@ function TeamAvatar({ name, color, size = 38 }: { name: string; color: string; s
 // ─────────────────────────────────────────────────────────────
 // OVERVIEW TAB
 // ─────────────────────────────────────────────────────────────
-function OverviewTab({ onTabChange }: { onTabChange: (tab: string) => void }) {
+function OverviewTab({ onTabChange, fixtures }: { onTabChange: (tab: string) => void, fixtures: Fixture[] }) {
   const teamPct  = Math.round((TOURNAMENT.confirmedTeams   / TOURNAMENT.totalTeams)   * 100);
   const matchPct = Math.round((TOURNAMENT.completedMatches / TOURNAMENT.totalMatches)  * 100);
-  const upcoming = FIXTURES.filter(f => f.status === "scheduled").slice(0, 2);
+  
+  // Use fixtures from state if available, else fallback to mock
+  const displayFixtures = fixtures.length > 0 ? fixtures : FIXTURES;
+  const upcoming = displayFixtures.filter(f => f.status === "scheduled").slice(0, 3);
 
   return (
     <div className="tab-content">
@@ -232,12 +185,12 @@ function OverviewTab({ onTabChange }: { onTabChange: (tab: string) => void }) {
         <h3 className="section-title">Quick Actions</h3>
         <div className="quick-actions">
           {[
+            { icon: "📅", label: "Schedule Match",   onClick: () => onTabChange("fixtures") },
             { icon: "📢", label: "Send Announcement" },
             { icon: "👤", label: "Assign Scorer"     },
             { icon: "✏️", label: "Edit Tournament"   },
-            { icon: "⚙️", label: "Settings"          },
           ].map(a => (
-            <button className="quick-action-btn" key={a.label}>
+            <button className="quick-action-btn" key={a.label} onClick={a.onClick}>
               <span className="quick-action-btn__icon">{a.icon}</span>
               <span>{a.label}</span>
             </button>
@@ -285,7 +238,7 @@ function TeamsTab() {
           </div>
           <div className="team-card__right">
             <Badge label={team.status.charAt(0).toUpperCase() + team.status.slice(1)} />
-            <button className="link-btn" style={{ marginTop: 6, display: "block" }}>View ›</button>
+            <Link to={`/teams/${team.name.toLowerCase().replace(/\s+/g, '-')}`} className="link-btn" style={{ marginTop: 6, display: "block", textDecoration: 'none' }}>View ›</Link>
           </div>
         </div>
       ))}
@@ -304,9 +257,17 @@ function TeamsTab() {
 // ─────────────────────────────────────────────────────────────
 // FIXTURES TAB
 // ─────────────────────────────────────────────────────────────
-function FixturesTab() {
+function FixturesTab({ fixtures, setFixtures }: { fixtures: Fixture[], setFixtures: (f: any) => void }) {
+  const { id: tournamentId } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [assigningMatch, setAssigningMatch] = useState<Fixture | null>(null);
   const [searchQuery, setSearchQuery]       = useState("");
+  const [showAddSingle, setShowAddSingle]   = useState(false);
+
+  // Form state for a single match
+  const [newMatch, setNewMatch] = useState({
+    teamA: "", teamB: "", date: "", time: "", round: "Round 1", court: "Court 1"
+  });
 
   const SUGGESTED = [
     { name: "Rahul Sharma", phone: "+91 9876543210" },
@@ -314,15 +275,65 @@ function FixturesTab() {
     { name: "Ankit Mehta",  phone: "+91 9811234567" },
   ];
 
-  const rounds = [...new Set(FIXTURES.map(f => f.round))];
+  const rounds = [...new Set(fixtures.map(f => f.round))];
+
+  const onAddSingle = () => {
+    if (!newMatch.teamA || !newMatch.teamB) return;
+    const f: Fixture = {
+      id: fixtures.length + 1,
+      round: newMatch.round,
+      teamA: newMatch.teamA,
+      teamB: newMatch.teamB,
+      date: newMatch.date,
+      time: newMatch.time,
+      court: newMatch.court,
+      scorer: null,
+      scorerStatus: "unassigned",
+      status: "scheduled"
+    };
+    setFixtures([...fixtures, f]);
+    setShowAddSingle(false);
+  };
 
   return (
     <div className="tab-content">
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16, gap: 12 }}>
+        <button 
+          className="btn btn--outline" 
+          onClick={() => setShowAddSingle(true)}
+          style={{ padding: '10px 20px', fontSize: 14 }}
+        >
+          + Quick Add
+        </button>
+        <button 
+          className="btn btn--primary" 
+          onClick={() => navigate(`/tournament/${tournamentId}/add-schedule`)}
+          style={{ padding: '10px 20px', fontSize: 14 }}
+        >
+          📅 Schedule Wizard
+        </button>
+      </div>
+
+      {showAddSingle && (
+        <div className="section-card" style={{ marginBottom: 20, border: '2px dashed #e2e8f0' }}>
+          <h4 style={{ margin: '0 0 12px 0' }}>Quick Schedule Single Match</h4>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <input className="input" placeholder="Team A" value={newMatch.teamA} onChange={e=>setNewMatch({...newMatch, teamA: e.target.value})} />
+            <input className="input" placeholder="Team B" value={newMatch.teamB} onChange={e=>setNewMatch({...newMatch, teamB: e.target.value})} />
+            <input className="input" type="date" value={newMatch.date} onChange={e=>setNewMatch({...newMatch, date: e.target.value})} />
+            <input className="input" type="time" value={newMatch.time} onChange={e=>setNewMatch({...newMatch, time: e.target.value})} />
+          </div>
+          <div style={{ display: 'flex', gap: 10, marginTop: 12 }}>
+            <button className="btn btn--primary btn--sm" onClick={onAddSingle}>Add to Schedule</button>
+            <button className="btn btn--ghost btn--sm" onClick={() => setShowAddSingle(false)}>Cancel</button>
+          </div>
+        </div>
+      )}
 
       {rounds.map(round => (
         <div key={round}>
           <p className="round-label">{round}</p>
-          {FIXTURES.filter(f => f.round === round).map(fixture => (
+          {fixtures.filter(f => f.round === round).map(fixture => (
             <div
               key={fixture.id}
               className={`fixture-card ${fixture.status === "completed" ? "fixture-card--done" : ""}`}
@@ -486,10 +497,10 @@ function StatsTab() {
           <span className="stat-player-card__medal">
             {["🥇", "🥈", "🥉"][i]}
           </span>
-          <div className="stat-player-card__info">
+          <Link to={`/players/${player.name.toLowerCase().replace(/\s+/g, '-')}`} className="stat-player-card__info" style={{ textDecoration: 'none', color: 'inherit' }}>
             <p className="stat-player-card__name">{player.name}</p>
             <p className="stat-player-card__team">{player.team}</p>
-          </div>
+          </Link>
           <div className="stat-player-card__score">
             <span className="stat-player-card__value">{player.value}</span>
             <span className="stat-player-card__unit">
@@ -517,16 +528,27 @@ export default function TournamentDashboard() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
-  const [activeTab, setActiveTab] = useState("overview");
-  const [menuOpen,  setMenuOpen]  = useState(false);
+  const [activeTab, setActiveTab] = useState<string>("overview");
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [tournament, setTournament] = useState<Tournament | null>(null);
+  const [teams, setTeams] = useState<Team[]>([]);
+  const [fixtures, setFixtures] = useState<Fixture[]>([]);
 
-  // TODO: const { tournament, loading } = useTournament(id);
+  useEffect(() => {
+    if (id) {
+      getTournament(id).then(setTournament);
+      getTournamentTeams(id).then(setTeams);
+      getTournamentFixtures(id).then(setFixtures);
+    }
+  }, [id]);
+
+  if (!tournament) return <div style={{ padding: 20 }}>Loading...</div>;
 
   const renderTab = () => {
     switch (activeTab) {
-      case "overview":  return <OverviewTab onTabChange={setActiveTab} />;
+      case "overview":  return <OverviewTab onTabChange={setActiveTab} fixtures={fixtures} />;
       case "teams":     return <TeamsTab />;
-      case "fixtures":  return <FixturesTab />;
+      case "fixtures":  return <FixturesTab fixtures={fixtures} setFixtures={setFixtures} />;
       case "standings": return <StandingsTab />;
       case "stats":     return <StatsTab />;
       default:          return null;
@@ -572,13 +594,13 @@ export default function TournamentDashboard() {
         <div className="dashboard__hero">
           <div className="dashboard__trophy">🏅</div>
           <div>
-            <h1 className="dashboard__name">{TOURNAMENT.name}</h1>
-            <p className="dashboard__venue">📍 {TOURNAMENT.venue}</p>
+            <h1 className="dashboard__name">{tournament.name}</h1>
+            <p className="dashboard__venue">📍 {tournament.venue}</p>
             <div className="dashboard__badges">
-              <Badge label={TOURNAMENT.status} />
-              <Badge label={TOURNAMENT.level} />
+              <Badge label={tournament.status} />
+              <Badge label={tournament.level} />
               <span className="dashboard__date-range">
-                {TOURNAMENT.startDate} – {TOURNAMENT.endDate}
+                {tournament.startDate} – {tournament.endDate}
               </span>
             </div>
           </div>

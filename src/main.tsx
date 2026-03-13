@@ -26,7 +26,10 @@ import KabaddiMatchesPage from './features/kabaddi/components/matches/KabaddiMat
 import MatchSummary       from './pages/MatchSummary'
 
 // ── Leaderboards ───────────────────────────────────────────────
-import KabaddiLeaderboards from './features/kabaddi/pages/Leaderboards'
+import LeaderboardsLayout from './pages/leaderboards/LeaderboardsLayout'
+import PlayerLeaderboardsPage from './pages/leaderboards/PlayerLeaderboardsPage'
+import TeamLeaderboardsPage from './pages/leaderboards/TeamLeaderboardsPage'
+import TeamDetailLeaderboardPage from './pages/leaderboards/TeamDetailLeaderboardPage'
 
 // ── Tournaments ────────────────────────────────────────────────
 import Tournaments         from './pages/Tournaments'
@@ -38,7 +41,6 @@ import AddRoundsGroups     from './pages/tournaments/AddRoundsGroups'
 import AddSchedule         from './pages/tournaments/AddSchedule'
 import Awards              from './pages/awards/Awards'
 import Notifications       from './pages/Notifications'
-import TeamLeaderboards    from './features/kabaddi/pages/TeamLeaderboards'
 
 // ── Scorer ─────────────────────────────────────────────────────
 import AssignedMatches from './pages/scorer/AssignedMatches'
@@ -61,8 +63,14 @@ const router = createBrowserRouter([
       { path: 'about', element: <AboutProject /> },
 
       // ── Leaderboards ──────────────────────────────────────────
-      { path: 'leaderboards', element: <KabaddiLeaderboards /> },
-      { path: 'leaderboards/teams', element: <TeamLeaderboards /> },
+      { 
+        path: 'leaderboards', 
+        element: <LeaderboardsLayout />,
+        children: [
+          { index: true, element: <PlayerLeaderboardsPage /> },
+          { path: 'teams', element: <TeamLeaderboardsPage /> },
+        ]
+      },
       { path: 'key-stats', element: <KeyStats /> },
       { path: 'awards', element: <Awards /> },
       { path: 'notifications', element: <Notifications /> },
@@ -75,7 +83,7 @@ const router = createBrowserRouter([
       { path: 'me/stats', element: <MyStats /> },
       { path: 'me/posters', element: <MyPostersPage /> },
       { path: 'players/:id', element: <PlayerProfilePage /> },
-      { path: 'teams/:id', element: <TeamPage /> },
+      { path: 'teams/:id', element: <TeamDetailLeaderboardPage /> },
       { path: 'settings', element: <Settings /> },
       { path: 'upgrade',  element: <PlanUpgrade /> },
 
@@ -89,7 +97,7 @@ const router = createBrowserRouter([
       { path: 'tournaments',                   element: <Tournaments /> },
       { path: 'tournament/create',             element: <CreateTournament /> },
       { path: 'tournaments/:id',               element: <TournamentDetails /> },
-      { path: 'tournaments/:id/teams/:teamId', element: <TeamDetails /> },
+      { path: 'tournaments/:id/teams/:teamId', element: <TeamDetailLeaderboardPage /> },
 
       // Tournament wizard (singular /tournament/:id/...)
       { path: 'tournament/:id/add-teams',    element: <AddTeams /> },

@@ -33,9 +33,7 @@ export default function RightSidebar({ role = 'organizer', user = { name: 'User'
         <Link to="/tournament/create" className="gl-menu-item">Add a Tournament/Series <span className="gl-free-pill">Free</span></Link>
         <Link to="/matches" className="gl-menu-item">Go Live</Link>
         <Link to="/me/stats" className="gl-menu-item">My Kabaddi</Link>
-        <Link to="/me/stats" className="gl-menu-item">My Performance</Link>
-        <Link to="/leaderboards" className="gl-menu-item">Player Leaderboard</Link>
-        <Link to="/leaderboards/teams" className="gl-menu-item">Team Leaderboard</Link>
+        <Link to="/leaderboards" className="gl-menu-item">Leaderboards</Link>
         <Link to="/awards" className="gl-menu-item">Play Kabaddi Awards</Link>
       </div>
 

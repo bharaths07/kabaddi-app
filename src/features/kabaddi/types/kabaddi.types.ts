@@ -317,3 +317,62 @@ export const formatTime = (seconds: number): string => {
   const secs = seconds % 60
   return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
 }
+
+/**
+ * Tournament Types
+ */
+
+export interface Tournament {
+  id: string;
+  name: string;
+  venue: string;
+  level: string;
+  status: "Registration Open" | "Live" | "Upcoming" | "Completed";
+  startDate: string;
+  endDate: string;
+  totalTeams: number;
+  confirmedTeams: number;
+  totalMatches: number;
+  completedMatches: number;
+  joinCode: string;
+}
+
+export interface TournamentTeam {
+  id: number;
+  name: string;
+  color: string;
+  captain: string;
+  players: number;
+  status: "confirmed" | "invited" | "pending";
+}
+
+export interface TournamentFixture {
+  id: number;
+  round: string;
+  teamA: string;
+  teamB: string;
+  date: string;
+  time: string;
+  court: string;
+  scorer: string | null;
+  scorerStatus: "confirmed" | "pending" | "unassigned";
+  status: "scheduled" | "live" | "completed";
+  result?: string;
+}
+
+export interface TournamentStandingRow {
+  rank: number;
+  team: string;
+  color: string;
+  played: number;
+  won: number;
+  lost: number;
+  points: number;
+  diff: string;
+}
+
+export interface TournamentPlayerStat {
+  name: string;
+  team: string;
+  value: number;
+}

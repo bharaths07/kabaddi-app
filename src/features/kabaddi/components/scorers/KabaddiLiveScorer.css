@@ -612,3 +612,273 @@
   cursor: pointer;
   font-family: 'Nunito', sans-serif;
 }
+/* ═══════════════════════════════════════════════════════════════════════════
+   ADD THIS TO THE BOTTOM OF KabaddiLiveScorer.css
+   New styles for: RaiderStrip + DefenderPicker
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ─── RAIDER STRIP ───────────────────────────────────────────────────────── */
+/* The horizontal "WHO'S RAIDING?" player selector below the raid bar         */
+
+.kls-raider-strip {
+  background: rgba(0, 0, 0, 0.25);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  padding: 8px 12px;
+  flex-shrink: 0;
+}
+
+.kls-raider-strip__label {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: rgba(255, 255, 255, 0.35);
+  font-family: 'Nunito', sans-serif;
+  margin-bottom: 7px;
+  text-transform: uppercase;
+}
+
+.kls-raider-strip__scroll {
+  display: flex;
+  gap: 7px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  /* hide scrollbar on mobile */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.kls-raider-strip__scroll::-webkit-scrollbar { display: none; }
+
+/* Each player pill */
+.kls-raider-pill {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1.5px solid rgba(255, 255, 255, 0.10);
+  border-radius: 10px;
+  padding: 6px 10px;
+  min-width: 46px;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: 'Nunito', sans-serif;
+}
+
+.kls-raider-pill:active { transform: scale(0.92); }
+
+/* Jersey number badge */
+.kls-raider-pill__num {
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 900;
+  color: rgba(255, 255, 255, 0.8);
+  font-family: 'Rajdhani', sans-serif;
+  transition: background 0.15s, color 0.15s;
+}
+
+/* First name below number */
+.kls-raider-pill__name {
+  font-size: 9px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.45);
+  max-width: 44px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: center;
+}
+
+/* ACTIVE pill (player selected) */
+.kls-raider-pill--active {
+  border-color: currentColor; /* set via inline style */
+}
+
+.kls-raider-pill--active .kls-raider-pill__name {
+  color: rgba(255, 255, 255, 0.85);
+  font-weight: 800;
+}
+
+/* Skip / Unknown pill */
+.kls-raider-pill--skip {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.kls-raider-pill--skip .kls-raider-pill__num {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 16px;
+}
+
+.kls-raider-pill--skip-active {
+  border-color: rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.10);
+}
+
+.kls-raider-pill--skip-active .kls-raider-pill__num {
+  background: rgba(255, 255, 255, 0.25);
+  color: #fff;
+}
+
+.kls-raider-pill--skip .kls-raider-pill__name,
+.kls-raider-pill--skip-active .kls-raider-pill__name {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* ─── DEFENDER PICKER MODAL ──────────────────────────────────────────────── */
+/* Pops up after pressing Tackle +1 or +2 button                              */
+
+.kls-defender-picker {
+  background: #1a2744;
+  border-radius: 22px;
+  padding: 22px 18px 18px;
+  max-width: 340px;
+  width: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  animation: kls-fadeUp 0.22s ease;
+}
+
+.kls-defender-picker__title {
+  color: #fff;
+  font-weight: 900;
+  font-size: 18px;
+  font-family: 'Rajdhani', sans-serif;
+  text-align: center;
+  margin-bottom: 4px;
+}
+
+.kls-defender-picker__sub {
+  color: rgba(255, 255, 255, 0.40);
+  font-size: 12px;
+  font-family: 'Nunito', sans-serif;
+  text-align: center;
+  margin-bottom: 18px;
+}
+
+/* Grid of player cards */
+.kls-defender-picker__grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 18px;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.kls-defender-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1.5px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 10px 6px 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  position: relative;
+  font-family: 'Nunito', sans-serif;
+}
+
+.kls-defender-card:active { transform: scale(0.91); }
+
+.kls-defender-card__num {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.10);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  font-weight: 900;
+  color: rgba(255, 255, 255, 0.75);
+  font-family: 'Rajdhani', sans-serif;
+  transition: background 0.15s, color 0.15s;
+}
+
+/* When selected, num background = team color (set inline) */
+.kls-defender-card--on .kls-defender-card__num {
+  color: #fff;
+}
+
+.kls-defender-card__name {
+  font-size: 9px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.40);
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 52px;
+}
+
+.kls-defender-card--on .kls-defender-card__name {
+  color: rgba(255, 255, 255, 0.85);
+  font-weight: 800;
+}
+
+/* Green tick shown on selected card */
+.kls-defender-card__check {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 14px;
+  height: 14px;
+  background: #22c55e;
+  border-radius: 50%;
+  font-size: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 900;
+}
+
+/* Action buttons */
+.kls-defender-picker__actions {
+  display: flex;
+  gap: 10px;
+}
+
+.kls-defender-picker__skip {
+  flex: 0 0 auto;
+  padding: 13px 18px;
+  border-radius: 13px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.55);
+  font-weight: 800;
+  font-size: 14px;
+  cursor: pointer;
+  font-family: 'Nunito', sans-serif;
+  transition: all 0.15s;
+}
+
+.kls-defender-picker__skip:hover {
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.kls-defender-picker__confirm {
+  flex: 1;
+  padding: 13px;
+  border-radius: 13px;
+  border: none;
+  color: #fff;
+  font-weight: 900;
+  font-size: 15px;
+  cursor: pointer;
+  font-family: 'Nunito', sans-serif;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  transition: opacity 0.15s, transform 0.15s;
+}
+
+.kls-defender-picker__confirm:active {
+  transform: scale(0.96);
+}

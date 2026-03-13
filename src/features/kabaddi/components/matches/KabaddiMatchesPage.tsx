@@ -48,13 +48,13 @@ function MatchCard({ match }: { match: MatchListItem }) {
       </div>
       {match.venue && <div className="mx-venue">{match.venue}</div>}
       <div className="mx-versus">
-        <div className="mx-side">
+        <div className="mx-side" onClick={(e) => { e.stopPropagation(); navigate(`/teams/${match.teamA.name.toLowerCase().replace(/\s+/g, '-')}`) }} style={{ cursor: 'pointer' }}>
           <div className="mx-badge">{match.teamA.shortName}</div>
           <div className="mx-score">{match.teamA.score ?? '-'}</div>
           <div className="mx-name">{match.teamA.name}</div>
         </div>
         <div className="mx-mid">-</div>
-        <div className="mx-side right">
+        <div className="mx-side right" onClick={(e) => { e.stopPropagation(); navigate(`/teams/${match.teamB.name.toLowerCase().replace(/\s+/g, '-')}`) }} style={{ cursor: 'pointer' }}>
           <div className="mx-badge">{match.teamB.shortName}</div>
           <div className="mx-score">{match.teamB.score ?? '-'}</div>
           <div className="mx-name">{match.teamB.name}</div>
@@ -77,9 +77,11 @@ export default function KabaddiMatchesPage() {
   const [active, setActive] = useState<'top'|'live'|'upcoming'|'completed'>('top')
   const [loading, setLoading] = useState(true)
   const matches: MatchListItem[] = useMemo(() => [
-    { id:'m2', tournamentName:'KPL 2026', roundName:'Semi Final', teamA:{id:'sk', name:'SKBC', shortName:'SK', score:18}, teamB:{id:'ra', name:'Rangers', shortName:'RA', score:15}, status:'live', startTime:new Date().toISOString(), venue:'Indoor Stadium', currentHalf:1, raidInfo:'Raid 12' },
-    { id:'m3', tournamentName:'KPL 2026', teamA:{id:'sk', name:'SKBC', shortName:'SK'}, teamB:{id:'ra', name:'Rangers', shortName:'RA'}, status:'upcoming', startTime:new Date(Date.now()+20*3600*1000).toISOString(), venue:'Arena' },
-    { id:'m1', tournamentName:'KPL 2026', teamA:{id:'sk', name:'SKBC', shortName:'SK', score:34}, teamB:{id:'ra', name:'Rangers', shortName:'RA', score:29}, status:'completed', startTime:new Date(Date.now()-86400000).toISOString(), resultText:'SKBC won by 5 points' }
+    { id:'m2', tournamentName:'KPL 2026', roundName:'Semi Final', teamA:{id:'sk', name:'SKBC', shortName:'SK', score:18}, teamB:{id:'ra', name:'Rangers', shortName:'RN', score:15}, status:'live', startTime:new Date().toISOString(), venue:'Indoor Stadium', currentHalf:1, raidInfo:'Raid 12' },
+    { id:'m3', tournamentName:'KPL 2026', teamA:{id:'sk', name:'SKBC', shortName:'SK'}, teamB:{id:'tt', name:'Titans', shortName:'TT'}, status:'upcoming', startTime:new Date(Date.now()+20*3600*1000).toISOString(), venue:'Arena' },
+    { id:'m1', tournamentName:'KPL 2026', teamA:{id:'sk', name:'SKBC', shortName:'SK', score:34}, teamB:{id:'ra', name:'Rangers', shortName:'RN', score:29}, status:'completed', startTime:new Date(Date.now()-86400000).toISOString(), resultText:'SKBC won by 5 points' },
+    { id:'m4', tournamentName:'KPL 2026', teamA:{id:'vv', name:'Vipers', shortName:'VP'}, teamB:{id:'ww', name:'Warriors', shortName:'WR'}, status:'upcoming', startTime:new Date(Date.now()+32*3600*1000).toISOString(), venue:'Sports Complex' },
+    { id:'m5', tournamentName:'KPL 2026', teamA:{id:'ff', name:'Falcons', shortName:'FL'}, teamB:{id:'ss', name:'Spartans', shortName:'SP'}, status:'completed', startTime:new Date(Date.now()-172800000).toISOString(), resultText:'Falcons won by 12 points' }
   ], [])
 
   const filtered = useMemo(() => {
@@ -127,7 +129,16 @@ export default function KabaddiMatchesPage() {
                 <div className="mx-subtle" style={{ background:'var(--bg-elevated)', borderRadius:6, height:12, width:'60%' }} />
               </div>
             ))
-          : filtered.map(m => <MatchCard key={m.id} match={m} />)}
+          : filtered.length > 0 
+            ? filtered.map(m => <MatchCard key={m.id} match={m} />)
+            : (
+              <div className="mx-empty">
+                <div className="mx-empty-icon">📅</div>
+                <div className="mx-empty-title">No {active === 'top' ? 'matches' : active} matches found</div>
+                <div className="mx-empty-text">Check back later for updates or try another tab.</div>
+              </div>
+            )
+        }
       </div>
     </div>
   )

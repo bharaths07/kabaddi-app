@@ -1,34 +1,35 @@
-import React, { useMemo } from 'react'
-import KabaddiLiveScorer, { MatchTeam } from '../components/scorers/KabaddiLiveScorer'
-import { getCurrentMatch } from '../state/matchStore'
-import { getDraft } from '../state/createDraft'
+import React, { useState, useEffect } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
+import KabaddiLiveScorer from '../components/scorers/KabaddiLiveScorer'
+import { getMatchDetails } from '../../shared/services/matchService'
 
 export default function MatchScoringPage() {
-  const data = useMemo(() => {
-    const match = getCurrentMatch()
-    const draft = getDraft()
+  const { id } = useParams()
+  const navigate = useNavigate()
+  const [loading, setLoading] = useState(true)
+  const [matchData, setMatchDetails] = useState<any>(null)
 
-    const home: MatchTeam = {
-      name: draft.teamA?.name || 'Team A',
-      abbr: (draft.teamA?.name || 'T1').slice(0, 2).toUpperCase(),
-      color: '#0ea5e9'
-    }
-    const guest: MatchTeam = {
-      name: draft.teamB?.name || 'Team B',
-      abbr: (draft.teamB?.name || 'T2').slice(0, 2).toUpperCase(),
-      color: '#ef4444'
-    }
+  useEffect(() => {
+    // In a real app, fetch real match data
+    // For now, we use the ID to set up the scorer
+    setMatchDetails({
+      id: id,
+      homeTeam: { name: 'Home Team', short: 'HT', color: '#ef4444' },
+      guestTeam: { name: 'Guest Team', short: 'GT', color: '#0ea5e9' },
+      periodMins: 20
+    })
+    setLoading(false)
+  }, [id])
 
-    return { home, guest, mins: match?.config.halfDurationMinutes || 20, id: match?.id }
-  }, [])
+  if (loading) return <div style={{ padding: 40, color: '#fff', background: '#0c1832', minHeight: '100vh' }}>Loading Scorer...</div>
 
   return (
-    <div style={{ padding: 12 }}>
+    <div style={{ background: '#0c1832', minHeight: '100vh' }}>
       <KabaddiLiveScorer 
-        homeTeam={data.home} 
-        guestTeam={data.guest} 
-        periodMins={data.mins}
-        matchId={data.id}
+        matchId={id}
+        homeTeam={matchData.homeTeam}
+        guestTeam={matchData.guestTeam}
+        periodMins={matchData.periodMins}
       />
     </div>
   )

@@ -57,6 +57,9 @@ export default function CreateTournament() {
       })
       setTid(id)
       setStep(3)
+    } catch (e) {
+      console.error('Failed to save tournament draft to Supabase, using local draft id instead', e)
+      setStep(3)
     } finally {
       setSaving(false)
     }

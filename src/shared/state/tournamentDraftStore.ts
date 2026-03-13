@@ -27,17 +27,27 @@ export type TournamentDraft = {
 }
 
 export async function saveTournamentDraft(patch: Partial<TournamentDraft>): Promise<string> {
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Not authenticated')
+  let userId: string | null = null
+  try {
+    const { data } = await supabase.auth.getUser()
+    userId = data.user?.id ?? null
+  } catch {
+    userId = null
+  }
+
+  const base = {
+    status: 'draft',
+    name: patch.name || 'Untitled',
+    ...mapDraftToRow(patch),
+  } as any
+
+  if (userId) {
+    base.organizer_id = userId
+  }
 
   const { data, error } = await supabase
     .from('tournaments')
-    .upsert({
-      organizer_id: user.id,
-      status: 'draft',
-      name: patch.name || 'Untitled',
-      ...mapDraftToRow(patch),
-    })
+    .upsert(base)
     .select('id')
     .single()
 

@@ -41,6 +41,37 @@ export default function Home() {
     { href: '/me/posters',      label: 'Posters', emoji: '🖼️' },
   ]
 
+  // Mock data for search
+  const ALL_PLAYERS = [
+    { id: 'p1', name: 'Pradeep Narwal', team: 'Wolves' },
+    { id: 'p2', name: 'Maninder Singh', team: 'Rangers' },
+    { id: 'p3', name: 'Fazel Atrachali', team: 'Titans' },
+    { id: 'p4', name: 'Pawan Sehrawat', team: 'Wolves' },
+  ]
+  const ALL_TEAMS = [
+    { id: 't1', name: 'Rangers', short: 'RG' },
+    { id: 't2', name: 'Titans', short: 'TT' },
+    { id: 't3', name: 'Wolves', short: 'WV' },
+  ]
+
+  const searchResults = useMemo(() => {
+    if (!q.trim()) return null
+    const query = q.toLowerCase()
+    return {
+      players: ALL_PLAYERS.filter(p => p.name.toLowerCase().includes(query)),
+      teams: ALL_TEAMS.filter(t => t.name.toLowerCase().includes(query))
+    }
+  }, [q])
+
+  const filteredUpcoming = useMemo(() => {
+    if (!q.trim()) return upcoming;
+    const query = q.toLowerCase();
+    return upcoming.filter(m => 
+      m.home.toLowerCase().includes(query) || 
+      m.guest.toLowerCase().includes(query)
+    );
+  }, [q, upcoming]);
+
   return (
     <div className="home-page">
 
@@ -55,9 +86,45 @@ export default function Home() {
             </div>
           </div>
         </div>
-        <div className="input-wrapper">
+        <div className="input-wrapper" style={{ position: 'relative' }}>
           <span className="input-icon">🔎</span>
           <input value={q} onChange={e=>setQ(e.target.value)} className="input" placeholder="Search teams, players, matches" />
+          
+          {/* Search Dropdown */}
+          {searchResults && (
+            <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: '#fff', borderRadius: 16, marginTop: 8, boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)', zIndex: 100, border: '1px solid #f1f5f9', overflow: 'hidden' }}>
+              {searchResults.players.length > 0 && (
+                <div style={{ padding: '12px 16px' }}>
+                  <div style={{ fontSize: 10, fontWeight: 900, color: '#94a3b8', textTransform: 'uppercase', marginBottom: 8 }}>Players</div>
+                  {searchResults.players.map(p => (
+                    <Link key={p.id} to={`/players/${p.name.toLowerCase().replace(/\s+/g, '-')}`} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', textDecoration: 'none' }}>
+                      <div style={{ width: 32, height: 32, borderRadius: 8, background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12 }}>🏃</div>
+                      <div>
+                        <div style={{ fontSize: 14, fontWeight: 800, color: '#1e293b' }}>{p.name}</div>
+                        <div style={{ fontSize: 11, color: '#64748b' }}>{p.team}</div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
+              {searchResults.teams.length > 0 && (
+                <div style={{ padding: '12px 16px', borderTop: '1px solid #f1f5f9' }}>
+                  <div style={{ fontSize: 10, fontWeight: 900, color: '#94a3b8', textTransform: 'uppercase', marginBottom: 8 }}>Teams</div>
+                  {searchResults.teams.map(t => (
+                    <Link key={t.id} to={`/teams/${t.name.toLowerCase().replace(/\s+/g, '-')}`} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', textDecoration: 'none' }}>
+                      <div style={{ width: 32, height: 32, borderRadius: 8, background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12 }}>🛡️</div>
+                      <div style={{ fontSize: 14, fontWeight: 800, color: '#1e293b' }}>{t.name}</div>
+                    </Link>
+                  ))}
+                </div>
+              )}
+              {searchResults.players.length === 0 && searchResults.teams.length === 0 && (
+                <div style={{ padding: '24px', textAlign: 'center', color: '#94a3b8', fontSize: 14 }}>
+                  No results found for "{q}"
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
@@ -70,11 +137,11 @@ export default function Home() {
               <div className="hero-title">{hero.tournament}</div>
             </div>
             <div className="hero-score">
-              <div className="hero-team">{hero.home}</div>
+              <Link to={`/teams/${hero.home.toLowerCase().replace(/\s+/g, '-')}`} className="hero-team" style={{ textDecoration: 'none', color: 'inherit' }}>{hero.home}</Link>
               <div className="hero-scoreline">
                 {hero.score.h} <span className="hero-sep">-</span> {hero.score.g}
               </div>
-              <div className="hero-team">{hero.guest}</div>
+              <Link to={`/teams/${hero.guest.toLowerCase().replace(/\s+/g, '-')}`} className="hero-team" style={{ textDecoration: 'none', color: 'inherit' }}>{hero.guest}</Link>
             </div>
             <div className="hero-meta">1st Half • {hero.time}</div>
             <Link to={`/matches/${hero.id}`} className="hero-cta">
@@ -160,13 +227,18 @@ export default function Home() {
           <Link to="/matches" className="section-link">See all</Link>
         </div>
         <div className="upcoming-list">
-          {upcoming.map(m => (
+          {filteredUpcoming.map(m => (
             <Link key={m.id} to={`/matches/${m.id}`} className="up-card">
               <div className="up-date">{m.dateLabel}</div>
               <div className="up-versus">{m.home} vs {m.guest}</div>
               <div className="up-time">{m.time}</div>
             </Link>
           ))}
+          {filteredUpcoming.length === 0 && (
+            <div style={{ padding: '20px', textAlign: 'center', color: '#94a3b8', fontSize: 14 }}>
+              No matches found for "{q}"
+            </div>
+          )}
         </div>
       </div>
 

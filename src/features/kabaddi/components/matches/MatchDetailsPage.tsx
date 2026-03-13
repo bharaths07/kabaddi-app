@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams, Link } from 'react-router-dom'
 import './match-details.css'
 import { addEvent as feedAddEvent, addResult as feedAddResult } from '../../../../shared/state/feedStore'
 
@@ -65,10 +65,10 @@ function MatchHeroHeader({ d }: { d: Details }) {
     <div className="md-hero">
       <div className="md-topmeta">{[d.tournament, d.stage, d.venue].filter(Boolean).join(' • ')}</div>
       <div className="md-row">
-        <div className="md-team">
+        <Link to={`/teams/${d.teams.a.name.toLowerCase().replace(/\s+/g, '-')}`} className="md-team" style={{ textDecoration: 'none' }}>
           <div className="md-avatar">{d.teams.a.short}</div>
-          <div className="md-name">{d.teams.a.name}</div>
-        </div>
+          <div className="md-name" style={{ color: '#fff' }}>{d.teams.a.name}</div>
+        </Link>
         <div className="md-score">
           <div className="md-scoreline">{d.score.a} <span className="md-sep">-</span> {d.score.b}</div>
           <div className={`md-status ${d.status}`}>{d.status === 'live' ? 'Live' : d.status === 'completed' ? 'Completed' : 'Upcoming'}</div>
@@ -76,20 +76,21 @@ function MatchHeroHeader({ d }: { d: Details }) {
           {d.status === 'completed' && <div className="md-result">{d.resultText}</div>}
           {d.status === 'upcoming' && <div className="md-result">Starts at {new Date(d.startsAt || '').toLocaleString()}</div>}
         </div>
-        <div className="md-team right">
+        <Link to={`/teams/${d.teams.b.name.toLowerCase().replace(/\s+/g, '-')}`} className="md-team right" style={{ textDecoration: 'none' }}>
           <div className="md-avatar">{d.teams.b.short}</div>
-          <div className="md-name">{d.teams.b.name}</div>
-        </div>
+          <div className="md-name" style={{ color: '#fff' }}>{d.teams.b.name}</div>
+        </Link>
       </div>
     </div>
   )
 }
 
-function Tabs({ active, onChange }: { active: 'info'|'live'|'scorecard'; onChange:(t:any)=>void }) {
+function Tabs({ active, onChange }: { active: 'info'|'live'|'scorecard'|'lineups'; onChange:(t:any)=>void }) {
   const tabs = [
     {k:'info', label:'Info'},
     {k:'live', label:'Live'},
     {k:'scorecard', label:'Scorecard'},
+    {k:'lineups', label:'Lineups'},
   ] as const
   return (
     <div className="md-tabs">
@@ -130,27 +131,71 @@ function Live({ d }: { d: Details }) {
   )
 }
 
+function PlayerLineupCard({ player, teamColor }: { player: any, teamColor: string }) {
+  return (
+    <Link to={`/players/${player.name.toLowerCase().replace(/\s+/g, '-')}`} className="md-lineup-card">
+      <div className="md-lineup-avatar">
+        <div className="md-pavatar sm">{player.name.slice(0,2).toUpperCase()}</div>
+      </div>
+      <div className="md-lineup-info">
+        <div className="md-lineup-name">{player.name}</div>
+        <div className="md-lineup-role">{player.role}</div>
+      </div>
+      <div className="md-lineup-pts">
+        <div className="md-pts-val" style={{ color: teamColor }}>{player.pts}</div>
+        {player.subTime && (
+          <div className="md-sub-status">
+            <span className="md-sub-icon">🔄</span>
+            <span className="md-sub-time">{player.subTime}'</span>
+          </div>
+        )}
+      </div>
+    </Link>
+  )
+}
+
 function Lineups({ d }: { d: Details }) {
   return (
-    <div className="md-lineups">
-      <div className="md-col">
-        <div className="md-subtitle">{d.teams.a.name}</div>
-        <div className="md-list">
-          {d.lineups.startersA.map(p => <div key={p.id} className="md-player"><div className="md-pavatar">{p.name.slice(0,2).toUpperCase()}</div><div className="md-pinfo"><div className="md-pname">{p.name}</div><div className="md-prole">{p.role}</div></div><div className="md-pts">{p.pts}</div></div>)}
+    <div className="md-lineups-container">
+      {/* Team Headers */}
+      <div className="md-lineup-header">
+        <div className="md-lineup-team">
+          <div className="md-team-abbr" style={{ background: d.teams.a.logo || '#1e293b' }}>{d.teams.a.short}</div>
+          <div className="md-team-name">{d.teams.a.name}</div>
         </div>
-        <div className="md-subtle">Substitutes</div>
-        <div className="md-list">
-          {d.lineups.subsA.map(p => <div key={p.id} className="md-player"><div className="md-pavatar">{p.name.slice(0,2).toUpperCase()}</div><div className="md-pinfo"><div className="md-pname">{p.name}</div><div className="md-prole">{p.role}</div></div><div className="md-pts">{p.pts}</div></div>)}
+        <div className="md-lineup-team right">
+          <div className="md-team-name">{d.teams.b.name}</div>
+          <div className="md-team-abbr" style={{ background: d.teams.b.logo || '#1e293b' }}>{d.teams.b.short}</div>
         </div>
       </div>
-      <div className="md-col">
-        <div className="md-subtitle">{d.teams.b.name}</div>
-        <div className="md-list">
-          {d.lineups.startersB.map(p => <div key={p.id} className="md-player"><div className="md-pavatar">{p.name.slice(0,2).toUpperCase()}</div><div className="md-pinfo"><div className="md-pname">{p.name}</div><div className="md-prole">{p.role}</div></div><div className="md-pts">{p.pts}</div></div>)}
+
+      {/* Starters Section */}
+      <div className="md-section-label">Starters</div>
+      <div className="md-lineup-grid">
+        <div className="md-lineup-col">
+          {d.lineups.startersA.map(p => (
+            <PlayerLineupCard key={p.id} player={p} teamColor="#0ea5e9" />
+          ))}
         </div>
-        <div className="md-subtle">Substitutes</div>
-        <div className="md-list">
-          {d.lineups.subsB.map(p => <div key={p.id} className="md-player"><div className="md-pavatar">{p.name.slice(0,2).toUpperCase()}</div><div className="md-pinfo"><div className="md-pname">{p.name}</div><div className="md-prole">{p.role}</div></div><div className="md-pts">{p.pts}</div></div>)}
+        <div className="md-lineup-col">
+          {d.lineups.startersB.map(p => (
+            <PlayerLineupCard key={p.id} player={p} teamColor="#ef4444" />
+          ))}
+        </div>
+      </div>
+
+      {/* Substitutes Section */}
+      <div className="md-section-label">Substitutes</div>
+      <div className="md-lineup-grid">
+        <div className="md-lineup-col">
+          {d.lineups.subsA.map(p => (
+            <PlayerLineupCard key={p.id} player={p} teamColor="#0ea5e9" />
+          ))}
+        </div>
+        <div className="md-lineup-col">
+          {d.lineups.subsB.map(p => (
+            <PlayerLineupCard key={p.id} player={p} teamColor="#ef4444" />
+          ))}
         </div>
       </div>
     </div>
@@ -259,7 +304,15 @@ function Scorecard({ d }: { d: Details }) {
         </div>
         {players.map(p=>(
           <div key={p.name} className="md-tr">
-            <div className="md-td player"><div className="md-pinline"><div className="md-pavatar sm">{p.name.slice(0,2).toUpperCase()}</div><div><div className="md-pname">{p.name}</div><div className="md-prole">{p.team}</div></div></div></div>
+            <div className="md-td player">
+              <Link to={`/players/${p.name.toLowerCase().replace(/\s+/g, '-')}`} className="md-pinline" style={{ textDecoration: 'none', color: 'inherit' }}>
+                <div className="md-pavatar sm">{p.name.slice(0,2).toUpperCase()}</div>
+                <div>
+                  <div className="md-pname">{p.name}</div>
+                  <div className="md-prole">{p.team}</div>
+                </div>
+              </Link>
+            </div>
             <div className="md-td small">{p.raid}</div><div className="md-td small">{p.tackle}</div><div className="md-td small">{p.raid+p.tackle}</div>
           </div>
         ))}
@@ -272,7 +325,7 @@ export default function MatchDetailsPage() {
   const { id } = useParams()
   const d = useMockDetails(id)
   const defaultTab = d.status === 'live' ? 'live' : d.status === 'completed' ? 'scorecard' : 'info'
-  const [tab, setTab] = useState<'info'|'live'|'scorecard'>(defaultTab as any)
+  const [tab, setTab] = useState<'info'|'live'|'scorecard'|'lineups'>(defaultTab as any)
   useEffect(() => { setTab(defaultTab as any) }, [defaultTab])
   return (
     <div className="md-page">
@@ -283,10 +336,10 @@ export default function MatchDetailsPage() {
         {tab === 'scorecard' && (
           <>
             <Stats d={d} />
-            <Lineups d={d} />
             <Scorecard d={d} />
           </>
         )}
+        {tab === 'lineups' && <Lineups d={d} />}
         {tab === 'info' && <Info d={d} />}
       </div>
     </div>

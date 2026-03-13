@@ -150,13 +150,13 @@ function MatchCard({ match, onClick }: { match: any, onClick: (match: any) => vo
       </div>
 
       <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-        <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 10 }}>
+        <Link to={`/teams/${match.team1.toLowerCase().replace(/\s+/g, '-')}`} style={{ flex: 1, display: "flex", alignItems: "center", gap: 10, textDecoration: 'none' }}>
           <TeamBadge abbr={match.t1abbr} color={match.t1color} size={40} />
           <div>
             <div style={{ fontWeight: 800, fontSize: 14, color: "#1e293b" }}>{match.team1}</div>
             {!isUpcoming && <div style={{ fontWeight: 900, fontSize: 22, color: "#1e293b", lineHeight: 1 }}>{match.score1}</div>}
           </div>
-        </div>
+        </Link>
 
         <div style={{ textAlign: "center", padding: "0 4px" }}>
           {isUpcoming ? (
@@ -169,13 +169,13 @@ function MatchCard({ match, onClick }: { match: any, onClick: (match: any) => vo
           )}
         </div>
 
-        <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 10, flexDirection: "row-reverse" }}>
+        <Link to={`/teams/${match.team2.toLowerCase().replace(/\s+/g, '-')}`} style={{ flex: 1, display: "flex", alignItems: "center", gap: 10, flexDirection: "row-reverse", textDecoration: 'none' }}>
           <TeamBadge abbr={match.t2abbr} color={match.t2color} size={40} />
           <div style={{ textAlign: "right" }}>
             <div style={{ fontWeight: 800, fontSize: 14, color: "#1e293b" }}>{match.team2}</div>
             {!isUpcoming && <div style={{ fontWeight: 900, fontSize: 22, color: "#1e293b", lineHeight: 1 }}>{match.score2}</div>}
           </div>
-        </div>
+        </Link>
       </div>
 
       {isLive && (
@@ -203,6 +203,7 @@ function MatchCard({ match, onClick }: { match: any, onClick: (match: any) => vo
 function MatchDetail({ match, onBack }: { match: any, onBack: () => void }) {
   const [tab, setTab] = useState("info");
   const isLive = match.status === "live";
+  const navigate = useNavigate();
 
   const tabs = ["Info", "Live", "Scorecard"];
 
@@ -271,7 +272,16 @@ function MatchDetail({ match, onBack }: { match: any, onBack: () => void }) {
         {/* Tabs */}
         <div style={{ display: "flex", background: "rgba(0,0,0,0.2)" }}>
           {tabs.map(t => (
-            <button key={t} onClick={() => setTab(t.toLowerCase())} style={{
+            <button key={t} onClick={() => {
+              const lowerCaseTab = t.toLowerCase();
+              if (lowerCaseTab === "live" && isLive) {
+                navigate(`/matches/${match.id}/live`);
+              } else if (lowerCaseTab === "scorecard") {
+                navigate(`/matches/${match.id}/summary`);
+              } else {
+                setTab(lowerCaseTab);
+              }
+            }} style={{
               flex: 1, padding: "12px 4px", border: "none",
               background: "none", cursor: "pointer", fontFamily: F,
               fontWeight: 800, fontSize: 13, color: tab === t.toLowerCase() ? "#fff" : "rgba(255,255,255,0.5)",
@@ -316,9 +326,10 @@ function MatchDetail({ match, onBack }: { match: any, onBack: () => void }) {
                     <span style={{ flex: 1, fontSize: 11, color: "#94a3b8", fontWeight: 700, textAlign: "right" }}>PTS</span>
                   </div>
                   {match.raids.map((r: any, i: number) => (
-                    <div key={i} style={{
+                    <Link to={`/players/${r.player.toLowerCase().replace(/\s+/g, '-')}`} key={i} style={{
                       display: "flex", gap: 8, alignItems: "center",
-                      padding: "10px 4px", borderTop: "1px solid #f1f5f9"
+                      padding: "10px 4px", borderTop: "1px solid #f1f5f9",
+                      textDecoration: 'none', color: 'inherit'
                     }}>
                       <div style={{ flex: 3 }}>
                         <div style={{ fontWeight: 800, fontSize: 13, color: "#1e293b" }}>{r.player}</div>
@@ -329,7 +340,7 @@ function MatchDetail({ match, onBack }: { match: any, onBack: () => void }) {
                       <span style={{
                         flex: 1, textAlign: "right", fontWeight: 900, fontSize: 15, color: "#0ea5e9"
                       }}>{r.pts}</span>
-                    </div>
+                    </Link>
                   ))}
                 </div>
 
@@ -341,9 +352,10 @@ function MatchDetail({ match, onBack }: { match: any, onBack: () => void }) {
                     <span style={{ flex: 1, fontSize: 11, color: "#94a3b8", fontWeight: 700, textAlign: "right" }}>PTS</span>
                   </div>
                   {match.tackles.map((t: any, i: number) => (
-                    <div key={i} style={{
+                    <Link to={`/players/${t.player.toLowerCase().replace(/\s+/g, '-')}`} key={i} style={{
                       display: "flex", gap: 8, alignItems: "center",
-                      padding: "10px 4px", borderTop: "1px solid #f1f5f9"
+                      padding: "10px 4px", borderTop: "1px solid #f1f5f9",
+                      textDecoration: 'none', color: 'inherit'
                     }}>
                       <div style={{ flex: 3 }}>
                         <div style={{ fontWeight: 800, fontSize: 13, color: "#1e293b" }}>{t.player}</div>
@@ -351,7 +363,7 @@ function MatchDetail({ match, onBack }: { match: any, onBack: () => void }) {
                       </div>
                       <span style={{ flex: 1, textAlign: "center", fontWeight: 700, fontSize: 13, color: "#475569" }}>{t.tackles}</span>
                       <span style={{ flex: 1, textAlign: "right", fontWeight: 900, fontSize: 15, color: "#10b981" }}>{t.pts}</span>
-                    </div>
+                    </Link>
                   ))}
                 </div>
               </>
