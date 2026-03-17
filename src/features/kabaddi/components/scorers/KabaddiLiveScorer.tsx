@@ -548,6 +548,8 @@ export default function App({ homeTeam, guestTeam, periodMins, matchId }) {
           </div>
         ))}
       </div>
+    </div>
+  );
   // End Match View
   if (S.phase === "completed") return (
     <div style={{minHeight:"100vh",background:"#0c1832",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:24,textAlign:"center",...F2}}>

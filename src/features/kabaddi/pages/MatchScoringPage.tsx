@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import KabaddiLiveScorer from '../components/scorers/KabaddiLiveScorer'
-import { getMatchDetails } from '../../shared/services/matchService'
 
 export default function MatchScoringPage() {
   const { id } = useParams()

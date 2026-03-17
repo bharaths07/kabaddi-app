@@ -13,13 +13,21 @@ import FeedNews          from './pages/feedandnews/FeedNews'
 import ErrorPage         from './pages/ErrorPage'
 import Settings          from './pages/Settings'
 import PlanUpgrade       from './pages/PlanUpgrade'
-import MyStats           from './pages/MyStats'
 import MyPostersPage     from './features/kabaddi/pages/MyPostersPage'
 import PlayerProfilePage from './features/kabaddi/pages/PlayerProfilePage'
-import TeamPage          from './features/kabaddi/pages/TeamPage'
 import TeamDetails       from './pages/TeamDetails'
 import KeyStats          from './pages/KeyStats'
 import AboutProject      from './pages/AboutProject'
+import IntroPage         from './pages/IntroPage'
+import LoginPage         from './pages/auth/LoginPage'
+import SignupPage        from './pages/auth/SignupPage'
+import VerifyOTP         from './pages/auth/VerifyOTP'
+import OnboardingPage    from './pages/auth/OnboardingPage'
+import AuthCallback      from './pages/auth/AuthCallback'
+import { AuthProvider }  from './shared/context/AuthContext'
+import ProfilePage       from './pages/PlayerProfilePage'
+import LogoutPage        from './pages/Logout'
+import EditProfilePage   from './pages/EditProfilePage'
 
 // ── Matches ────────────────────────────────────────────────────
 import KabaddiMatchesPage from './features/kabaddi/components/matches/KabaddiMatchesPage'
@@ -52,6 +60,15 @@ import kabaddiRoutes from './routes/kabaddiRoutes'
 import MatchScoringPage    from './features/kabaddi/pages/MatchScoringPage'
 
 const router = createBrowserRouter([
+  // ── Public intro routes ─────────────────────────────────────────
+  { path: '/intro', element: <IntroPage /> },
+  { path: '/', element: <Navigate to="/intro" replace /> },
+  // ── Public auth routes (short paths) ────────────────────────────
+  { path: '/login', element: <LoginPage /> },
+  { path: '/signup', element: <SignupPage /> },
+  { path: '/verify-otp', element: <VerifyOTP /> },
+  { path: '/onboarding', element: <OnboardingPage /> },
+  { path: '/auth/callback', element: <AuthCallback /> },
   {
     path: '/',
     element: <Layout />,
@@ -60,6 +77,7 @@ const router = createBrowserRouter([
 
       // ── Home ─────────────────────────────────────────────────
       { index: true, element: <Home /> },
+      { path: 'home', element: <Home /> },
       { path: 'about', element: <AboutProject /> },
 
       // ── Leaderboards ──────────────────────────────────────────
@@ -80,9 +98,11 @@ const router = createBrowserRouter([
       { path: 'feed', element: <FeedNews /> },
 
       // ── User ──────────────────────────────────────────────────
-      { path: 'me/stats', element: <MyStats /> },
+      { path: 'profile', element: <ProfilePage /> },
+      { path: 'me/stats', element: <Navigate to="/profile" replace /> },
       { path: 'me/posters', element: <MyPostersPage /> },
       { path: 'players/:id', element: <PlayerProfilePage /> },
+      { path: 'profile/edit', element: <EditProfilePage /> },
       { path: 'teams/:id', element: <TeamDetailLeaderboardPage /> },
       { path: 'settings', element: <Settings /> },
       { path: 'upgrade',  element: <PlanUpgrade /> },
@@ -106,16 +126,26 @@ const router = createBrowserRouter([
       { path: 'tournament/:id/dashboard',    element: <TournamentDashboard /> },
 
       // ── Auth ──────────────────────────────────────────────────
-      { path: 'logout', element: <Navigate to="/" replace /> },
+      { path: 'logout', element: <LogoutPage /> },
+      // Back-compat auth paths
+      { path: 'auth/login', element: <LoginPage /> },
+      { path: 'auth/signup', element: <SignupPage /> },
+      { path: 'auth/verify-otp', element: <VerifyOTP /> },
+      { path: 'auth/onboarding', element: <OnboardingPage /> },
+      { path: 'auth/callback', element: <AuthCallback /> },
 
       // ── Kabaddi feature routes ────────────────────────────────
       ...kabaddiRoutes,
     ]
-  }
+  },
+  // Fallback
+  { path: '*', element: <Navigate to="/intro" replace /> }
 ])
 
 createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <RouterProvider router={router} />
+    <AuthProvider>
+      <RouterProvider router={router} />
+    </AuthProvider>
   </React.StrictMode>
 )

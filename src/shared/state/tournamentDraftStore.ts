@@ -43,6 +43,7 @@ export async function saveTournamentDraft(patch: Partial<TournamentDraft>): Prom
 
   if (userId) {
     base.organizer_id = userId
+    base.created_by = userId
   }
 
   const { data, error } = await supabase

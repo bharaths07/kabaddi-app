@@ -1,5 +1,6 @@
 import type { KabaddiMatchConfig } from '../types/matchConfig'
 import { supabase } from '@shared/lib/supabase'
+import { assignScorer } from '@shared/services/fixturesService'
 
 export type MatchStatus = 'draft' | 'toss_pending' | 'toss_completed' | 'live' | 'completed'
 export type TossDetails = {
@@ -64,10 +65,19 @@ export function setStatus(status: MatchStatus) {
 }
 
 export async function createKabaddiMatch(fixtureId: string, config: KabaddiMatchConfig) {
+  let userId: string | null = null
+  try {
+    const { data } = await supabase.auth.getUser()
+    userId = data.user?.id ?? null
+  } catch {
+    userId = null
+  }
+
   const { data, error } = await supabase
     .from('kabaddi_matches')
     .insert({
       fixture_id: fixtureId,
+      created_by: userId,
       format: config.format,
       half_duration_min: config.halfDurationMinutes,
       break_duration_min: config.breakDurationMinutes,
@@ -88,6 +98,9 @@ export async function createKabaddiMatch(fixtureId: string, config: KabaddiMatch
     .single()
 
   if (error) throw error
+  if (userId) {
+    try { await assignScorer(fixtureId, userId) } catch {}
+  }
   return data
 }
 

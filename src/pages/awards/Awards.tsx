@@ -1,87 +1,275 @@
-import { useMemo, useState } from 'react'
-import './awards.css'
+import { useState } from 'react';
+import './awards.css';
 
-type AwardItem = {
-  id: string
-  title: string
-  subtitle?: string
-  player?: { name: string; team: string; abbr: string; color: string }
-  stat?: string
-  icon: string
-  category: 'match' | 'season' | 'tournament'
+// ── Types ─────────────────────────────────────────────────────────
+interface AwardPlayer {
+  name: string;
+  initials: string;
+  team: string;
+  city: string;
+  avatarColor: string;
+}
+interface AwardStat {
+  value: string;
+  label: string;
+  detail: string;
+}
+interface Award {
+  id: string;
+  icon: string;
+  title: string;
+  subtitle: string;
+  color: string;
+  gradient: string;
+  glowColor: string;
+  borderColor: string;
+  bg: string;
+  player: AwardPlayer;
+  stat: AwardStat;
+  reason: string;
+  tournament: string;
+  season: string;
 }
 
-const SAMPLE: AwardItem[] = [
-  { id: 'a1', title: 'Raider of the Match', player: { name: 'Bharath Gowda', team: 'SKBC', abbr: 'SK', color: '#0ea5e9' }, stat: '17 raid pts', icon: '⚡', category: 'match' },
-  { id: 'a2', title: 'Defender of the Match', player: { name: 'Rohan A', team: 'KBRC', abbr: 'KB', color: '#f59e0b' }, stat: '6 tackle pts', icon: '🛡️', category: 'match' },
-  { id: 'a3', title: 'All-Rounder of the Match', player: { name: 'Vikram S', team: 'RG', abbr: 'RG', color: '#ef4444' }, stat: '9 total pts', icon: '🔥', category: 'match' },
-  { id: 's1', title: 'Top Raider • Season', player: { name: 'Arjun K', team: 'SKBC', abbr: 'SK', color: '#0ea5e9' }, stat: '182 raid pts', icon: '🏆', category: 'season' },
-  { id: 's2', title: 'Top Defender • Season', player: { name: 'Praveen D', team: 'KBRC', abbr: 'KB', color: '#f59e0b' }, stat: '122 tackle pts', icon: '🏆', category: 'season' },
-  { id: 't1', title: 'Tournament MVP', player: { name: 'Kiran M', team: 'RG', abbr: 'RG', color: '#ef4444' }, stat: '264 total pts', icon: '🌟', category: 'tournament' },
-]
+// ── Mock data (replace with Supabase query when connected) ────────
+const AWARDS: Award[] = [
+  {
+    id:'mvp', icon:'⚡', title:'Most Valuable Player', subtitle:'MVP of the Season',
+    color:'#f59e0b', gradient:'linear-gradient(135deg,#92400e,#b45309,#d97706)',
+    glowColor:'rgba(245,158,11,0.25)', borderColor:'rgba(245,158,11,0.4)', bg:'#fffbeb',
+    player:{ name:'Pavan Kumar', initials:'PK', team:'SKBC Varadanayakanahalli', city:'Bengaluru', avatarColor:'#0ea5e9' },
+    stat:{ value:'312', label:'Total Points', detail:'28 matches · Season 2024' },
+    reason:'Dominant across all formats — raids, tackles and bonus points. Led SKBC to the KPL title.',
+    tournament:'KPL 2024', season:'Spring Season',
+  },
+  {
+    id:'raider', icon:'🏉', title:'Best Raider', subtitle:'Raider of the Season',
+    color:'#0ea5e9', gradient:'linear-gradient(135deg,#0c4a6e,#0369a1,#0ea5e9)',
+    glowColor:'rgba(14,165,233,0.25)', borderColor:'rgba(14,165,233,0.4)', bg:'#eff6ff',
+    player:{ name:'Rahul Sharma', initials:'RS', team:'CSE B Rangers', city:'Mysuru', avatarColor:'#7c3aed' },
+    stat:{ value:'248', label:'Raid Points', detail:'74% success rate · 6.8 avg' },
+    reason:'Unmatched raiding technique with consistent bonus points across every match.',
+    tournament:'KPL 2024', season:'Spring Season',
+  },
+  {
+    id:'defender', icon:'🛡️', title:'Best Defender', subtitle:'Defender of the Season',
+    color:'#16a34a', gradient:'linear-gradient(135deg,#14532d,#15803d,#16a34a)',
+    glowColor:'rgba(22,163,74,0.25)', borderColor:'rgba(22,163,74,0.4)', bg:'#f0fdf4',
+    player:{ name:'Suresh Naik', initials:'SN', team:'SKBC Varadanayakanahalli', city:'Bengaluru', avatarColor:'#ea580c' },
+    stat:{ value:'92', label:'Tackle Points', detail:'14 super tackles · 3.8 avg' },
+    reason:'Rock-solid defender with lightning-fast reactions. Made 14 super tackles this season.',
+    tournament:'KPL 2024', season:'Spring Season',
+  },
+  {
+    id:'allrounder', icon:'🎯', title:'Best All-Rounder', subtitle:'Complete Player Award',
+    color:'#7c3aed', gradient:'linear-gradient(135deg,#3b0764,#6d28d9,#7c3aed)',
+    glowColor:'rgba(124,58,237,0.25)', borderColor:'rgba(124,58,237,0.4)', bg:'#f5f3ff',
+    player:{ name:'Kiran Reddy', initials:'KR', team:'Warriors FC', city:'Hubli', avatarColor:'#16a34a' },
+    stat:{ value:'178', label:'Combined Points', detail:'96 raid + 82 tackle pts' },
+    reason:'Equal threat in attack and defence. Only player to score 90+ in both raid and tackle this season.',
+    tournament:'Spring Cup 2024', season:'Spring Season',
+  },
+  {
+    id:'supertackle', icon:'💪', title:'Super Tackle King', subtitle:'Most Super Tackles',
+    color:'#ef4444', gradient:'linear-gradient(135deg,#7f1d1d,#b91c1c,#ef4444)',
+    glowColor:'rgba(239,68,68,0.25)', borderColor:'rgba(239,68,68,0.4)', bg:'#fef2f2',
+    player:{ name:'Dev Patil', initials:'DP', team:'Titans Kabaddi', city:'Dharwad', avatarColor:'#f59e0b' },
+    stat:{ value:'21', label:'Super Tackles', detail:'In 24 matches · +21 bonus pts' },
+    reason:'Fearless under pressure. Consistently performed super tackles with 3 or fewer defenders on court.',
+    tournament:'KPL 2024', season:'Spring Season',
+  },
+  {
+    id:'rising', icon:'🌟', title:'Rising Star', subtitle:'Best New Player',
+    color:'#db2777', gradient:'linear-gradient(135deg,#500724,#9d174d,#db2777)',
+    glowColor:'rgba(219,39,119,0.25)', borderColor:'rgba(219,39,119,0.4)', bg:'#fdf2f8',
+    player:{ name:'Ajay Kumar', initials:'AK', team:'Spartans United', city:'Belgaum', avatarColor:'#0284c7' },
+    stat:{ value:'142', label:'Points (Debut Season)', detail:'First year player · 18 matches' },
+    reason:'Exceptional debut season for a 19-year-old. Already drawing comparisons to senior raiders.',
+    tournament:'KPL 2024', season:'Spring Season',
+  },
+];
 
-function TeamBadge({ abbr, color, size = 32 }: { abbr: string; color: string; size?: number }) {
+const SEASONS = ['KPL 2024', 'Spring Cup 2024', 'Winter Championship 2023'];
+
+// ── Avatar ────────────────────────────────────────────────────────
+function Avatar({ initials, color, size = 52 }: { initials: string; color: string; size?: number }) {
   return (
-    <div className="aw-team-badge" style={{ width: size, height: size, borderRadius: size * 0.28, background: `linear-gradient(135deg, ${color}, ${color}aa)`, fontSize: size * 0.36, boxShadow: `0 2px 8px ${color}44` }}>{abbr}</div>
-  )
+    <div className="award-avatar" style={{
+      width: size, height: size, fontSize: size * 0.3,
+      background: `linear-gradient(135deg,${color},${color}cc)`,
+      boxShadow: `0 3px 12px ${color}44`,
+    }}>
+      {initials}
+    </div>
+  );
 }
 
-export default function Awards() {
-  const [tab, setTab] = useState<'match' | 'season' | 'tournament'>('match')
-  const [season, setSeason] = useState('KPL 2026')
-  const [city, setCity] = useState('All')
-  const [tournament, setTournament] = useState('All')
-  const items = useMemo(() => SAMPLE.filter(i => i.category === tab), [tab])
+// ── Trophy badge ──────────────────────────────────────────────────
+function TrophyBadge({ gradient, icon, color, size = 48 }: { gradient: string; icon: string; color: string; size?: number }) {
   return (
-    <div className="aw-page">
-      <div className="aw-head">
-        <div>
-          <div className="aw-title">Play Kabaddi Awards</div>
-          <div className="aw-sub">Kabaddi honors and highlights</div>
-        </div>
-        <div className="aw-filters">
-          <select className="select" value={season} onChange={e => setSeason(e.target.value)} aria-label="Select Season">
-            {['KPL 2026', 'KPL 2025', 'KPL 2024'].map(s => <option key={s} value={s}>{s}</option>)}
-          </select>
-          <select className="select" value={tournament} onChange={e => setTournament(e.target.value)} aria-label="Select Tournament">
-            {['All', 'KPL', 'Spring Cup', 'Monsoon League'].map(s => <option key={s} value={s}>{s}</option>)}
-          </select>
-          <select className="select" value={city} onChange={e => setCity(e.target.value)} aria-label="Select City">
-            {['All', 'Bengaluru', 'Pune', 'Delhi'].map(s => <option key={s} value={s}>{s}</option>)}
-          </select>
-        </div>
-      </div>
-      <div className="aw-tabs">
-        <button type="button" className={`aw-tab ${tab==='match'?'active':''}`} onClick={() => setTab('match')}>Match Awards</button>
-        <button type="button" className={`aw-tab ${tab==='season'?'active':''}`} onClick={() => setTab('season')}>Season Awards</button>
-        <button type="button" className={`aw-tab ${tab==='tournament'?'active':''}`} onClick={() => setTab('tournament')}>Tournament Awards</button>
-      </div>
-      <div className="aw-grid">
-        {items.map(a => (
-          <div key={a.id} className="aw-card">
-            <div className="aw-card-head">
-              <div className="aw-icon">{a.icon}</div>
-              <div className="aw-card-title">{a.title}</div>
-            </div>
-            {a.player && (
-              <div className="aw-card-body">
-                <div className="aw-row">
-                  <TeamBadge abbr={a.player.abbr} color={a.player.color} size={40} />
-                  <div className="aw-player">
-                    <div className="aw-name">{a.player.name}</div>
-                    <div className="aw-team">{a.player.team}</div>
-                  </div>
-                  <div className="aw-stat">{a.stat}</div>
-                </div>
-              </div>
-            )}
-            <div className="aw-card-foot">
-              <a className="btn btn-outline-sky btn-sm" href="/me/posters">Create Poster</a>
-              <a className="btn btn-purple btn-sm" href="/leaderboards">View Stats</a>
-            </div>
+    <div className="trophy-badge" style={{
+      width: size, height: size, fontSize: size * 0.42,
+      background: gradient,
+      borderRadius: size * 0.28,
+      boxShadow: `0 4px 16px ${color}55`,
+    }}>
+      {icon}
+    </div>
+  );
+}
+
+// ── Hero MVP Card ─────────────────────────────────────────────────
+function HeroAwardCard({ award }: { award: Award }) {
+  const { icon, title, subtitle, color, gradient, glowColor, borderColor, player, stat, reason, tournament, season } = award;
+  return (
+    <div className="hero-award-card" style={{ borderColor, boxShadow: `0 8px 40px ${glowColor}` }}>
+      <div className="hero-award-banner" style={{ background: gradient }}>
+        <div className="hero-award-banner-circles"/>
+        <div className="hero-award-top-row">
+          <TrophyBadge gradient="rgba(255,255,255,0.15)" icon={icon} color={color} size={52}/>
+          <div className="hero-award-title-block">
+            <div className="hero-award-title">{title}</div>
+            <div className="hero-award-subtitle">{subtitle}</div>
           </div>
-        ))}
+          <div className="hero-award-crown-badge">👑 Season Award</div>
+        </div>
+        <div className="hero-award-player-row">
+          <Avatar initials={player.initials} color="rgba(255,255,255,0.25)" size={64}/>
+          <div className="hero-award-player-info">
+            <div className="hero-award-player-name">{player.name}</div>
+            <div className="hero-award-player-team">{player.team}</div>
+            <div className="hero-award-player-city">📍 {player.city}</div>
+          </div>
+          <div className="hero-award-stat-block">
+            <div className="hero-award-stat-value">{stat.value}</div>
+            <div className="hero-award-stat-label">{stat.label}</div>
+            <div className="hero-award-stat-detail">{stat.detail}</div>
+          </div>
+        </div>
+      </div>
+      <div className="hero-award-bottom">
+        <p className="hero-award-reason">"{reason}"</p>
+        <div className="hero-award-meta">
+          <div className="hero-award-tournament" style={{ color }}>{tournament}</div>
+          <div className="hero-award-season">{season}</div>
+        </div>
       </div>
     </div>
-  )
+  );
+}
+
+// ── Regular Award Card ────────────────────────────────────────────
+function AwardCard({ award }: { award: Award }) {
+  const { icon, title, subtitle, color, gradient, glowColor, borderColor, bg, player, stat, reason, tournament } = award;
+  return (
+    <div className="award-card"
+      onMouseEnter={e => {
+        const el = e.currentTarget as HTMLElement;
+        el.style.borderColor = borderColor;
+        el.style.boxShadow = `0 12px 36px ${glowColor}`;
+        el.style.transform = 'translateY(-4px)';
+      }}
+      onMouseLeave={e => {
+        const el = e.currentTarget as HTMLElement;
+        el.style.borderColor = '#e2e8f0';
+        el.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)';
+        el.style.transform = 'translateY(0)';
+      }}
+    >
+      <div className="award-card-top-strip" style={{ background: gradient }}/>
+      <div className="award-card-header">
+        <div className="award-card-title-row">
+          <TrophyBadge gradient={gradient} icon={icon} color={color} size={44}/>
+          <div>
+            <div className="award-card-title">{title}</div>
+            <div className="award-card-subtitle">{subtitle}</div>
+          </div>
+        </div>
+        <div className="award-card-player-row">
+          <Avatar initials={player.initials} color={player.avatarColor} size={48}/>
+          <div className="award-card-player-info">
+            <div className="award-card-player-name">{player.name}</div>
+            <div className="award-card-player-team">{player.team}</div>
+          </div>
+          <div className="award-card-stat">
+            <div className="award-card-stat-value" style={{ color }}>{stat.value}</div>
+            <div className="award-card-stat-label">{stat.label}</div>
+          </div>
+        </div>
+      </div>
+      <div className="award-card-footer">
+        <p className="award-card-reason">"{reason}"</p>
+        <div className="award-card-meta-row">
+          <div className="award-card-detail">{stat.detail}</div>
+          <div className="award-card-tournament-badge" style={{ background: bg, borderColor, color }}>
+            {tournament}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// MAIN
+// ═══════════════════════════════════════════════════════════════════
+export default function AwardsPage() {
+  const [season, setSeason] = useState(SEASONS[0]);
+  const [mvp, ...rest] = AWARDS;
+
+  return (
+    <div className="awards-page">
+      {/* Header */}
+      <div className="awards-header">
+        <div className="awards-header-decoration"/>
+        <div className="awards-header-inner">
+          <div className="awards-header-top">
+            <div className="awards-trophy-icon">🏆</div>
+            <div>
+              <h1 className="awards-title">Play Kabaddi Awards</h1>
+              <p className="awards-subtitle">Recognising the best talent across Karnataka's kabaddi leagues</p>
+            </div>
+          </div>
+          <div className="awards-season-tabs">
+            {SEASONS.map(s => (
+              <button key={s} className={`awards-season-tab ${season === s ? 'awards-season-tab-active' : ''}`}
+                onClick={() => setSeason(s)}>{s}</button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="awards-content">
+        <div className="awards-divider">
+          <div className="awards-divider-line"/>
+          <span className="awards-divider-text">{season} · 6 Awards</span>
+          <div className="awards-divider-line"/>
+        </div>
+
+        {/* MVP hero */}
+        <div className="awards-hero-wrap">
+          <HeroAwardCard award={mvp}/>
+        </div>
+
+        {/* Grid */}
+        <div className="awards-grid">
+          {rest.map(a => <AwardCard key={a.id} award={a}/>)}
+        </div>
+
+        {/* Info note */}
+        <div className="awards-info-note">
+          <div className="awards-info-icon">ℹ️</div>
+          <div>
+            <div className="awards-info-title">How Awards Are Determined</div>
+            <div className="awards-info-body">
+              Awards are calculated automatically from live match data at the end of each season.
+              Stats include all matches within the selected tournament or season.
+              Only players who participated in 5+ matches are eligible.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
