@@ -1,94 +1,104 @@
-import React, { createContext, useContext, useState, useMemo, useEffect } from 'react'
+import React, { createContext, useContext, useEffect, useState, useMemo } from 'react'
 import { supabase } from '@shared/lib/supabase'
-import { getDevAuthUser } from '@shared/lib/auth'
+import { getProfile } from '@shared/lib/auth'
 
-type User = any | null
+export interface Profile {
+  id: string
+  full_name?: string
+  phone?: string
+  email?: string
+  avatar_url?: string
+  city?: string
+  state?: string
+  date_of_birth?: string
+  is_profile_complete?: boolean
+}
+
 type AuthContextValue = {
-  user: User
+  user: any | null
+  profile: Profile | null
   loading: boolean
-  setUser: (u: User) => void
+  profileLoading: boolean
   signOut: () => Promise<void>
   refreshProfile: () => Promise<void>
 }
 
 const Ctx = createContext<AuthContextValue>({
   user: null,
+  profile: null,
   loading: true,
-  setUser: () => {},
+  profileLoading: false,
   signOut: async () => {},
   refreshProfile: async () => {},
 })
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User>(null)
-  const [loading, setLoading] = useState(true)
+  const [user, setUser]               = useState<any | null>(null)
+  const [profile, setProfile]         = useState<Profile | null>(null)
+  const [loading, setLoading]         = useState(true)
+  const [profileLoading, setProfileLoading] = useState(false)
+
+  const loadProfile = async (userId: string) => {
+    setProfileLoading(true)
+    try {
+      const data = await getProfile(userId)
+      setProfile(data ?? null)
+    } catch (e) {
+      console.error('Profile load error:', e)
+      setProfile(null)
+    } finally {
+      setProfileLoading(false)
+    }
+  }
+
+  const refreshProfile = async () => {
+    if (user?.id) await loadProfile(user.id)
+  }
 
   useEffect(() => {
     let mounted = true
 
-    const syncUser = async () => {
-      try {
-        const { data } = await supabase.auth.getSession()
-        const sessionUser = data?.session?.user ?? null
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!mounted) return
+      const u = session?.user ?? null
+      setUser(u)
+      if (u) loadProfile(u.id)
+      else setLoading(false)
+    })
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (_event, session) => {
         if (!mounted) return
-        setUser(sessionUser || getDevAuthUser())
-      } catch {
-        if (!mounted) return
-        setUser(getDevAuthUser())
-      } finally {
-        if (mounted) setLoading(false)
+        const u = session?.user ?? null
+        setUser(u)
+        if (u) {
+          await loadProfile(u.id)
+        } else {
+          setProfile(null)
+        }
+        setLoading(false)
       }
-    }
-
-    void syncUser()
-
-    let authSubscription: { unsubscribe: () => void } | null = null
-    try {
-      const { data } = (supabase as any)?.auth?.onAuthStateChange?.((_event: string, session: any) => {
-        setUser(session?.user ?? getDevAuthUser())
-      }) || {}
-      authSubscription = data?.subscription || null
-    } catch {
-      authSubscription = null
-    }
-
-    const onAuthChanged = () => {
-      setUser(getDevAuthUser())
-    }
-    const onStorage = (e: StorageEvent) => {
-      if (e.key === 'pl.dev.user') setUser(getDevAuthUser())
-    }
-
-    window.addEventListener('auth:changed', onAuthChanged as EventListener)
-    window.addEventListener('storage', onStorage)
+    )
 
     return () => {
       mounted = false
-      authSubscription?.unsubscribe?.()
-      window.removeEventListener('auth:changed', onAuthChanged as EventListener)
-      window.removeEventListener('storage', onStorage)
+      subscription.unsubscribe()
     }
   }, [])
 
   const value = useMemo<AuthContextValue>(() => ({
     user,
+    profile,
     loading,
-    setUser,
+    profileLoading,
     signOut: async () => {
-      try { await (supabase as any)?.auth?.signOut?.() } catch {}
-      try { localStorage.removeItem('pl.dev.user') } catch {}
+      await supabase.auth.signOut()
       setUser(null)
-      try { dispatchEvent(new CustomEvent('auth:changed', { detail: null })) } catch {}
+      setProfile(null)
     },
-    refreshProfile: async () => {
-      try {
-        const { data } = await supabase.auth.getUser()
-        setUser(data?.user ?? getDevAuthUser())
-      } catch {
-        setUser(getDevAuthUser())
-      }
-    },
-  }), [loading, user])
+    refreshProfile,
+  }), [user, profile, loading, profileLoading])
+
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
 }
 

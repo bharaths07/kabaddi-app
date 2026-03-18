@@ -1,100 +1,114 @@
-// Lightweight auth stubs to let the app run during UI development.
-// Replace these with real Supabase auth calls when env is configured.
+import { supabase } from './supabase'
 
-type DevUser = {
-  id: string;
-  email?: string;
-  phone?: string;
-  user_metadata?: {
-    full_name?: string;
-  };
-};
-
-const DEV_AUTH_KEY = 'pl.dev.user';
-
-function readDevUser(): DevUser | null {
-  try {
-    const raw = localStorage.getItem(DEV_AUTH_KEY);
-    return raw ? (JSON.parse(raw) as DevUser) : null;
-  } catch {
-    return null;
+function normalizeAuthError(error: any): never {
+  const message = String(error?.message || '')
+  if (/Database error saving new user/i.test(message)) {
+    throw new Error(
+      'Database setup issue in Supabase Auth trigger. Run the updated src/supabase/schema.sql in Supabase SQL Editor, then retry.'
+    )
   }
+  throw error
 }
 
-function writeDevUser(user: DevUser | null) {
-  try {
-    if (!user) localStorage.removeItem(DEV_AUTH_KEY);
-    else localStorage.setItem(DEV_AUTH_KEY, JSON.stringify(user));
-  } catch {
-    // ignore localStorage errors in constrained environments
-  }
-  try {
-    dispatchEvent(new CustomEvent('auth:changed', { detail: user }));
-  } catch {
-    // no-op
-  }
+// ── Phone OTP ─────────────────────────────────────────────────────
+export async function sendPhoneOTP(phone: string) {
+  const { error } = await supabase.auth.signInWithOtp({ phone })
+  if (error) normalizeAuthError(error)
+  return { ok: true as const }
 }
 
-function mkDevUser(seed: string, data?: Partial<DevUser>): DevUser {
-  const base = seed.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'user';
-  return {
-    id: `dev-${base}-${Date.now()}`,
+export async function verifyPhoneOTP(phone: string, token: string) {
+  const { data, error } = await supabase.auth.verifyOtp({
+    phone, token, type: 'sms',
+  })
+  if (error) throw error
+  return data
+}
+
+// ── Email ─────────────────────────────────────────────────────────
+export async function signUpWithEmail(email: string, password: string) {
+  const { data, error } = await supabase.auth.signUp({ email, password })
+  if (error) normalizeAuthError(error)
+  return data
+}
+
+export async function signInWithEmail(email: string, password: string) {
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+  if (error) throw error
+  return data
+}
+
+export async function sendPasswordReset(email: string) {
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${window.location.origin}/reset-password`,
+  })
+  if (error) throw error
+}
+
+// ── Google ────────────────────────────────────────────────────────
+export async function signInWithGoogle() {
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: `${window.location.origin}/auth/callback` },
+  })
+  if (error) throw error
+  return { ok: true as const }
+}
+
+// ── Sign out ──────────────────────────────────────────────────────
+export async function signOut() {
+  const { error } = await supabase.auth.signOut()
+  if (error) throw error
+}
+
+// ── Profile ───────────────────────────────────────────────────────
+export async function getProfile(userId: string) {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', userId)
+    .single()
+  if (error && error.code !== 'PGRST116') throw error
+  return data
+}
+
+export async function createOrUpdateProfile(userId: string, data: {
+  full_name?: string
+  phone?: string
+  email?: string
+  city?: string
+  state?: string
+  avatar_url?: string
+  date_of_birth?: string
+  is_profile_complete?: boolean
+}) {
+  const { error } = await supabase.from('profiles').upsert({
+    id: userId,
     ...data,
-  };
+    updated_at: new Date().toISOString(),
+  })
+  if (error) throw error
+  return { ok: true as const }
 }
 
-export function getDevAuthUser(): DevUser | null {
-  return readDevUser();
+export async function uploadAvatar(userId: string, file: File): Promise<string> {
+  const ext = file.name.split('.').pop()
+  const path = `${userId}/avatar.${ext}`
+  const { error: uploadError } = await supabase.storage
+    .from('user-avatars')
+    .upload(path, file, { upsert: true })
+  if (uploadError) throw uploadError
+  const { data } = supabase.storage.from('user-avatars').getPublicUrl(path)
+  return data.publicUrl
 }
 
-export async function sendPhoneOTP(_phone: string): Promise<{ ok: true }> {
-  await delay(300);
-  return { ok: true };
+export async function autoAssignScorer(fixtureId: string, userId: string) {
+  const { error } = await supabase.from('fixture_scorers').upsert(
+    { fixture_id: fixtureId, user_id: userId, assigned_at: new Date().toISOString() },
+    { onConflict: 'fixture_id' }
+  )
+  if (error) throw error
 }
 
-export async function verifyPhoneOTP(phone: string, _otp: string): Promise<{ ok: true }> {
-  await delay(300);
-  const existing = readDevUser();
-  writeDevUser(existing || mkDevUser(phone, { phone }));
-  return { ok: true };
-}
-
-export async function signInWithEmail(email: string, _password?: string): Promise<{ ok: true }> {
-  await delay(300);
-  const existing = readDevUser();
-  writeDevUser(existing || mkDevUser(email, { email }));
-  return { ok: true };
-}
-
-export async function signUpWithEmail(email: string, _password?: string): Promise<{ ok: true }> {
-  await delay(300);
-  const existing = readDevUser();
-  writeDevUser(existing || mkDevUser(email, { email }));
-  return { ok: true };
-}
-
-export async function signInWithGoogle(): Promise<{ ok: true; redirectTo?: string }> {
-  await delay(200);
-  const existing = readDevUser();
-  writeDevUser(existing || mkDevUser('google', {
-    email: 'google.user@playlegends.dev',
-    user_metadata: { full_name: 'Google User' },
-  }));
-  return { ok: true, redirectTo: '/auth/callback' };
-}
-
-export async function uploadAvatar(_userId: string, _file: File): Promise<string> {
-  await delay(250);
-  return '';
-}
-
-export async function createOrUpdateProfile(_userId: string, _data: any): Promise<{ ok: true }> {
-  await delay(250);
-  // mark as onboarded in local storage to control flow
-  try { localStorage.setItem('pl.hasOnboarded', '1'); } catch {}
-  return { ok: true };
-}
-
-function delay(ms: number) {
-  return new Promise<void>(res => setTimeout(res, ms));
-}
+// kept for backward compatibility
+export function getDevAuthUser() { return null }
