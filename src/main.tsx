@@ -6,6 +6,7 @@ import './styles/global.css'
 import './styles/components.css'
 import './index.css'
 import Layout from './shared/components/Layout'
+import { RequireAuth, PublicOnlyRoute } from './shared/components/RouteGuards'
 
 // ── Pages ──────────────────────────────────────────────────────
 import Home              from './pages/Home'
@@ -64,14 +65,14 @@ const router = createBrowserRouter([
   { path: '/intro', element: <IntroPage /> },
   { path: '/', element: <Navigate to="/intro" replace /> },
   // ── Public auth routes (short paths) ────────────────────────────
-  { path: '/login', element: <LoginPage /> },
-  { path: '/signup', element: <SignupPage /> },
-  { path: '/verify-otp', element: <VerifyOTP /> },
-  { path: '/onboarding', element: <OnboardingPage /> },
+  { path: '/login', element: <PublicOnlyRoute><LoginPage /></PublicOnlyRoute> },
+  { path: '/signup', element: <PublicOnlyRoute><SignupPage /></PublicOnlyRoute> },
+  { path: '/verify-otp', element: <PublicOnlyRoute><VerifyOTP /></PublicOnlyRoute> },
+  { path: '/onboarding', element: <RequireAuth><OnboardingPage /></RequireAuth> },
   { path: '/auth/callback', element: <AuthCallback /> },
   {
     path: '/',
-    element: <Layout />,
+    element: <RequireAuth><Layout /></RequireAuth>,
     errorElement: <ErrorPage />,
     children: [
 
@@ -128,10 +129,10 @@ const router = createBrowserRouter([
       // ── Auth ──────────────────────────────────────────────────
       { path: 'logout', element: <LogoutPage /> },
       // Back-compat auth paths
-      { path: 'auth/login', element: <LoginPage /> },
-      { path: 'auth/signup', element: <SignupPage /> },
-      { path: 'auth/verify-otp', element: <VerifyOTP /> },
-      { path: 'auth/onboarding', element: <OnboardingPage /> },
+      { path: 'auth/login', element: <PublicOnlyRoute><LoginPage /></PublicOnlyRoute> },
+      { path: 'auth/signup', element: <PublicOnlyRoute><SignupPage /></PublicOnlyRoute> },
+      { path: 'auth/verify-otp', element: <PublicOnlyRoute><VerifyOTP /></PublicOnlyRoute> },
+      { path: 'auth/onboarding', element: <RequireAuth><OnboardingPage /></RequireAuth> },
       { path: 'auth/callback', element: <AuthCallback /> },
 
       // ── Kabaddi feature routes ────────────────────────────────

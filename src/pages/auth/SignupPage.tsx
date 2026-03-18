@@ -40,9 +40,13 @@ export default function SignupPage() {
     setError('');
     setGLoading(true);
     try {
-      await signInWithGoogle();
+      const res = await signInWithGoogle();
+      if ((res as any)?.redirectTo) {
+        navigate((res as any).redirectTo, { replace: true });
+      }
     } catch (err: any) {
       setError(err.message || 'Google sign-in failed.');
+    } finally {
       setGLoading(false);
     }
   };

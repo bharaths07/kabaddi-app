@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../shared/lib/supabase';
+import { getDevAuthUser } from '../../shared/lib/auth';
 
 // Google OAuth lands here after redirect
 // Supabase handles session automatically — we just redirect
@@ -11,7 +12,7 @@ export default function AuthCallback() {
     (async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
+        if (session || getDevAuthUser()) {
           const onboarded = localStorage.getItem('pl.hasOnboarded') === '1';
           navigate(onboarded ? '/home' : '/onboarding', { replace: true });
         } else {
