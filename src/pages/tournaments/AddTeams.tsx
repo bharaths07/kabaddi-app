@@ -1,6 +1,8 @@
-import React, { useMemo, useState } from 'react'
+import React, { useMemo, useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import './add-teams.css'
+import { getTournament, getTournamentTeams, saveTournamentTeams } from '../../shared/services/tournamentService'
+import { Tournament, TournamentTeam } from '../../features/kabaddi/types/kabaddi.types'
 
 type RegisteredUser = { id: string; name: string; phone: string }
 type Player = { id: string; name: string; number: number; isCaptain?: boolean }
@@ -8,17 +10,38 @@ type TeamStatus = 'confirmed' | 'invited' | 'pending'
 type Team = { id: string; name: string; short?: string; jerseyColor?: string; captainId?: string; players: Player[]; status: TeamStatus }
 
 export default function AddTeams() {
-  const { id } = useParams()
+  const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
 
-  const tournament = useMemo(() => {
-    const all = [
-      { id: 'kpl2026', name: 'KPL 2026', teams: 12 },
-      { id: 'skbc2026', name: 'Spring Kabaddi Cup', teams: 8 },
-      { id: 'monsoon2026', name: 'Monsoon League', teams: 12 }
-    ]
-    return all.find(t => t.id === id) || all[0]
+  const [tournament, setTournament] = useState<Tournament | null>(null)
+  const [teams, setTeams] = useState<Team[]>([])
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    if (!id) return
+    (async () => {
+      setLoading(true)
+      const t = await getTournament(id)
+      if (t) {
+        setTournament(t)
+        const dbTeams = await getTournamentTeams(t.id)
+        if (dbTeams.length > 0) {
+          setTeams(dbTeams.map(dt => ({
+            id: dt.id.toString(),
+            name: dt.name,
+            short: dt.name.slice(0, 2).toUpperCase(),
+            jerseyColor: dt.color,
+            players: [], // Backend doesn't provide players yet
+            status: dt.status
+          })))
+        }
+      }
+      setLoading(false)
+    })()
   }, [id])
+
+  const [tab, setTab] = useState<'invite' | 'direct'>('invite')
 
   const registeredUsers = useMemo<RegisteredUser[]>(
     () => [
@@ -30,17 +53,8 @@ export default function AddTeams() {
     []
   )
 
-  const [teams, setTeams] = useState<Team[]>([
-    { id: 't1', name: 'Rangers', short: 'RG', jerseyColor: '#1f77b4', players: [], status: 'confirmed' },
-    { id: 't2', name: 'Titans', short: 'TT', jerseyColor: '#ff7f0e', players: [], status: 'confirmed' },
-    { id: 't3', name: 'Wolves', short: 'WV', jerseyColor: '#2ca02c', players: [], status: 'invited' },
-    { id: 't4', name: 'Falcons', short: 'FC', jerseyColor: '#d62728', players: [], status: 'pending' }
-  ])
-
-  const [tab, setTab] = useState<'invite' | 'direct'>('invite')
-
   const addedCount = teams.length
-  const totalTeams = tournament.teams
+  const totalTeams = tournament?.totalTeams || 0
   const minRequired = 4
   const hasMin = addedCount >= minRequired
 
@@ -96,15 +110,33 @@ export default function AddTeams() {
     setPlayers([])
   }
 
-  const joinCode = useMemo(() => 'ABCD1234', [])
-  const joinLink = useMemo(() => `https://playlegends.app/join?tournament=${tournament.id}&code=${joinCode}`, [tournament.id, joinCode])
+  const joinCode = useMemo(() => tournament?.joinCode || 'ABCD1234', [tournament])
+  const joinLink = useMemo(() => `https://playlegends.app/join?tournament=${tournament?.id}&code=${joinCode}`, [tournament, joinCode])
+
+  const onContinue = async () => {
+    if (!tournament || !hasMin) return
+    setSaving(true)
+    const success = await saveTournamentTeams(tournament.id, teams)
+    setSaving(false)
+    if (success) {
+      navigate(`/tournament/${tournament.id}/add-rounds`)
+    } else {
+      alert('Failed to save teams. Please try again.')
+    }
+  }
+
+  if (loading) return <div className="teams-page">Loading...</div>
+  if (!tournament) return <div className="teams-page">Tournament not found</div>
 
   return (
     <div className="teams-page">
       <div className="teams-head">
-        <div>
-          <div className="teams-title">Add Teams</div>
-          <div className="teams-sub">Tournament: {tournament.name}</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <button onClick={() => navigate(`/tournament/${id}/dashboard`)} style={{ background: 'rgba(0,0,0,0.05)', border: 'none', borderRadius: 8, width: 36, height: 36, display: 'flex', alignItems: 'center', justifyCenter: 'center', cursor: 'pointer', fontSize: 20 }}>←</button>
+          <div>
+            <div className="teams-title">Add Teams</div>
+            <div className="teams-sub">Tournament: {tournament.name}</div>
+          </div>
         </div>
         <div className="teams-progress">Teams Added: {addedCount} / {totalTeams}</div>
       </div>
@@ -242,7 +274,9 @@ export default function AddTeams() {
 
       <div className="teams-foot">
         <button className="teams-outline" onClick={() => navigate(`/tournament/${tournament.id}/dashboard`)}>Back to Dashboard</button>
-        <button className="teams-primary" disabled={!hasMin} onClick={() => navigate(`/tournament/${tournament.id}/add-rounds`)}>Continue</button>
+        <button className="teams-primary" disabled={!hasMin || saving} onClick={onContinue}>
+          {saving ? 'Saving...' : 'Continue'}
+        </button>
       </div>
     </div>
   )

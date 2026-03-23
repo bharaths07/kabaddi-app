@@ -99,8 +99,6 @@
   background: var(--bg-elevated);
   border-bottom: 1px solid var(--bg-border);
   overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
 }
 .tab-bar::-webkit-scrollbar { display: none; }
 
@@ -182,6 +180,11 @@
 .stat-card__value { font-size: 18px; font-weight: 900; color: var(--text-primary); }
 .stat-card__label { font-size: 11px; color: var(--text-muted); }
 
+.progress-value { font-weight: 700; }
+.progress-value--teams { color: #27ae60; }
+.progress-value--matches { color: #e74c3c; }
+.progress-value--scorers { color: #e67e22; }
+
 /* ── Progress Bars ───────────────────────────────── */
 .progress-row           { margin-bottom: 14px; }
 .progress-row:last-child{ margin-bottom: 0; }
@@ -207,6 +210,12 @@
   border-radius: 99px;
   transition: width 0.8s ease;
 }
+.progress-fill--teams { background: #27ae60; }
+.progress-fill--matches { background: #e74c3c; }
+.progress-fill--scorers { background: #e67e22; }
+.progress-fill--low { width: 35%; }
+.progress-fill--medium { width: 65%; }
+.progress-fill--high { width: 90%; }
 
 /* ── Fixture Row (Overview) ──────────────────────── */
 .fixture-row {
@@ -282,7 +291,7 @@
   align-items: center;
   gap: 14px;
   border: 1px solid var(--bg-border);
-  border-left: 4px solid;
+  border-left: 4px solid var(--color-sky);
   box-shadow: var(--shadow-xs);
 }
 
@@ -301,6 +310,8 @@
   color: #fff;
   flex-shrink: 0;
 }
+.team-avatar--lg { width: 38px; height: 38px; font-size: 16px; }
+.team-avatar--sm { width: 28px; height: 28px; font-size: 12px; }
 
 /* ── Add Dashed Button ───────────────────────────── */
 .add-dashed-btn {
@@ -381,6 +392,7 @@
   position: fixed;
   inset: 0;
   background: rgba(15,23,42,0.25);
+  -webkit-backdrop-filter: blur(2px);
   backdrop-filter: blur(2px);
   z-index: 200;
 }
@@ -534,6 +546,7 @@
 
 .stat-player-card__name  { margin: 0 0 3px; font-size: 15px; font-weight: 800; color: var(--text-primary); }
 .stat-player-card__team  { margin: 0; font-size: 12px; color: var(--text-muted); }
+.stat-player-card__info-link { text-decoration: none; color: inherit; }
 
 .stat-player-card__value {
   display: block;
@@ -562,6 +575,17 @@
 .badge--invited    { background: var(--color-gold-subtle);   color: var(--color-gold-dark); border: 1px solid var(--color-gold-border); }
 .badge--pending    { background: var(--color-orange);        color: #fff; }
 .badge--unassigned { background: var(--bg-elevated);         color: var(--text-secondary);  border: 1px solid var(--bg-border); }
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
 
 /* ── Buttons ─────────────────────────────────────── */
 .btn {
@@ -594,6 +618,56 @@
   cursor: pointer;
   padding: 0;
 }
+
+.fixture-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.quick-add-card {
+  margin-bottom: 20px;
+  border: 2px dashed #e2e8f0;
+}
+
+.quick-add-title {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.quick-add-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.quick-add-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.scorer-name { font-weight: 700; }
+.scorer-name--missing { color: #e74c3c; }
+
+.bottom-sheet__invite-btn { margin-top: 12px; }
+
+.team-card__link {
+  margin-top: 6px;
+  display: block;
+  text-decoration: none;
+}
+.team-card__link:hover { text-decoration: underline; }
+
+.dashboard-message {
+  padding: 20px;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+.dashboard-message--error { color: var(--color-orange); }
 
 /* ── Responsive ──────────────────────────────────── */
 @media (max-width: 480px) {

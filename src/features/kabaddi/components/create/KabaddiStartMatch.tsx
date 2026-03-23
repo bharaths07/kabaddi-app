@@ -31,8 +31,7 @@ export default function KabaddiStartMatch() {
   }, [])
 
   const goBack = () => {
-    if (window.history.length > 1) navigate(-1)
-    else navigate('/kabaddi/create')
+    navigate('/kabaddi/create/select-team/b')
   }
 
   useEffect(() => {
@@ -85,19 +84,19 @@ export default function KabaddiStartMatch() {
 
       <div className="sm-section sm-grid-2">
         <div className="sm-field">
-          <label className="sm-label">Half Duration (mins) *</label>
-          <input className="sm-input" type="number" min={1} value={config.halfDurationMinutes} onChange={e=>setField('halfDurationMinutes', Number(e.target.value))}/>
+          <label className="sm-label" htmlFor="half-duration">Half Duration (mins) *</label>
+          <input id="half-duration" className="sm-input" type="number" min={1} value={config.halfDurationMinutes} onChange={e=>setField('halfDurationMinutes', Number(e.target.value))} placeholder="20"/>
         </div>
         <div className="sm-field">
-          <label className="sm-label">Break Duration (mins)</label>
-          <input className="sm-input" type="number" min={0} value={config.breakDurationMinutes} onChange={e=>setField('breakDurationMinutes', Number(e.target.value))}/>
+          <label className="sm-label" htmlFor="break-duration">Break Duration (mins)</label>
+          <input id="break-duration" className="sm-input" type="number" min={0} value={config.breakDurationMinutes} onChange={e=>setField('breakDurationMinutes', Number(e.target.value))} placeholder="5"/>
         </div>
       </div>
 
       <div className="sm-section sm-grid-2">
         <div className="sm-field">
-          <label className="sm-label">Raid Timer (sec)</label>
-          <input className="sm-input" type="number" min={10} value={config.raidTimeSeconds} onChange={e=>setField('raidTimeSeconds', Number(e.target.value))}/>
+          <label className="sm-label" htmlFor="raid-timer">Raid Timer (sec)</label>
+          <input id="raid-timer" className="sm-input" type="number" min={10} value={config.raidTimeSeconds} onChange={e=>setField('raidTimeSeconds', Number(e.target.value))} placeholder="30"/>
         </div>
         <div className="sm-toggles">
           <label className="sm-toggle"><input type="checkbox" checked={config.bonusLineEnabled} onChange={e=>setField('bonusLineEnabled', e.target.checked)}/> <span>Bonus Line</span></label>
@@ -108,16 +107,16 @@ export default function KabaddiStartMatch() {
 
       <div className="sm-section sm-grid-3">
         <div className="sm-field">
-          <label className="sm-label">All Out Points</label>
-          <input className="sm-input" type="number" min={0} value={config.allOutPoints} onChange={e=>setField('allOutPoints', Number(e.target.value))}/>
+          <label className="sm-label" htmlFor="all-out-points">All Out Points</label>
+          <input id="all-out-points" className="sm-input" type="number" min={0} value={config.allOutPoints} onChange={e=>setField('allOutPoints', Number(e.target.value))} placeholder="2"/>
         </div>
         <div className="sm-field">
           <label className="sm-label">Golden Raid</label>
           <label className="sm-toggle"><input type="checkbox" checked={config.goldenRaidEnabled} onChange={e=>setField('goldenRaidEnabled', e.target.checked)}/> <span>Enable</span></label>
         </div>
         <div className="sm-field">
-          <label className="sm-label">Tie Break Mode</label>
-          <select className="sm-input" value={config.tieBreakerMode} onChange={e=>setField('tieBreakerMode', e.target.value as any)}>
+          <label className="sm-label" htmlFor="tie-break-mode">Tie Break Mode</label>
+          <select id="tie-break-mode" className="sm-input" value={config.tieBreakerMode} onChange={e=>setField('tieBreakerMode', e.target.value as any)} title="Select tie break mode">
             <option value="extra_time">Extra Time</option>
             <option value="golden_raid">Golden Raid</option>
           </select>
@@ -151,20 +150,20 @@ export default function KabaddiStartMatch() {
 
       <div className="sm-section sm-grid-4">
         <div className="sm-field">
-          <label className="sm-label">Referee</label>
-          <input className="sm-input" value={config.officials.referee||''} onChange={e=>setOfficials('referee', e.target.value)}/>
+          <label className="sm-label" htmlFor="referee">Referee</label>
+          <input id="referee" className="sm-input" value={config.officials.referee||''} onChange={e=>setOfficials('referee', e.target.value)} placeholder="Referee name"/>
         </div>
         <div className="sm-field">
-          <label className="sm-label">Umpire</label>
-          <input className="sm-input" value={config.officials.umpire||''} onChange={e=>setOfficials('umpire', e.target.value)}/>
+          <label className="sm-label" htmlFor="umpire">Umpire</label>
+          <input id="umpire" className="sm-input" value={config.officials.umpire||''} onChange={e=>setOfficials('umpire', e.target.value)} placeholder="Umpire name"/>
         </div>
         <div className="sm-field">
-          <label className="sm-label">Scorer</label>
-          <input className="sm-input" value={config.officials.scorer||''} onChange={e=>setOfficials('scorer', e.target.value)}/>
+          <label className="sm-label" htmlFor="scorer">Scorer</label>
+          <input id="scorer" className="sm-input" value={config.officials.scorer||''} onChange={e=>setOfficials('scorer', e.target.value)} placeholder="Scorer name"/>
         </div>
         <div className="sm-field">
-          <label className="sm-label">Technical Official</label>
-          <input className="sm-input" value={config.officials.technicalOfficial||''} onChange={e=>setOfficials('technicalOfficial', e.target.value)}/>
+          <label className="sm-label" htmlFor="technical-official">Technical Official</label>
+          <input id="technical-official" className="sm-input" value={config.officials.technicalOfficial||''} onChange={e=>setOfficials('technicalOfficial', e.target.value)} placeholder="Official name"/>
         </div>
       </div>
 

@@ -57,14 +57,11 @@ export async function saveTournamentDraft(patch: Partial<TournamentDraft>): Prom
 }
 
 function mapDraftToRow(draft: Partial<TournamentDraft>) {
-  return {
+  const row: any = {
     level: draft.level,
     format: draft.format,
     entry_fee: draft.entryFee,
     prize: draft.prize,
-    registration_deadline: draft.registrationDeadline,
-    start_date: draft.startDate,
-    end_date: draft.endDate,
     venue_name: draft.venueName,
     city_state: draft.cityState,
     maps_link: draft.mapsLink,
@@ -78,6 +75,13 @@ function mapDraftToRow(draft: Partial<TournamentDraft>) {
     scoring_notes: draft.scoringNotes,
     contact: draft.contact,
   }
+
+  // Only add dates if they are non-empty strings
+  if (draft.registrationDeadline) row.registration_deadline = draft.registrationDeadline;
+  if (draft.startDate) row.start_date = draft.startDate;
+  if (draft.endDate) row.end_date = draft.endDate;
+
+  return row;
 }
 
 const KEY = 'gl.tournament.draft'

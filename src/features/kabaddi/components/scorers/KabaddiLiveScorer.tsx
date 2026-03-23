@@ -1,5 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { notificationService } from "../../../../shared/services/notificationService";
+import { kabaddiScoringService } from "../../../../shared/services/kabaddiScoringService";
+import { useAuth } from "../../../../shared/context/AuthContext";
 
 const HOME_SQUAD = [
   { id:"h1", name:"Pavan Kumar",   jerseyNumber:7,  role:"raider" },
@@ -90,21 +93,36 @@ function makeInit(home, guest, mins) {
 function RaiderStrip({ squad, onCourt, color, selectedId, onSelect }) {
   const available = squad.filter(p => onCourt.has(p.id));
   return (
-    <div style={{ background:"rgba(0,0,0,0.30)", borderBottom:"1px solid rgba(255,255,255,0.07)", padding:"8px 12px", flexShrink:0 }}>
-      <div style={{ fontSize:9, fontWeight:800, letterSpacing:"0.12em", color:"rgba(255,255,255,0.35)", marginBottom:6, fontFamily:"Nunito,sans-serif", textTransform:"uppercase" }}>
+    <div className="kls-raider-strip">
+      <div className="kls-raider-strip__label">
         👤 Who's Raiding?
       </div>
-      <div style={{ display:"flex", gap:7, overflowX:"auto", paddingBottom:2, scrollbarWidth:"none" }}>
-        <button onClick={() => onSelect(null)} style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:3, background:selectedId===null?"rgba(255,255,255,0.14)":"rgba(255,255,255,0.04)", border:`1.5px solid ${selectedId===null?"rgba(255,255,255,0.5)":"rgba(255,255,255,0.08)"}`, borderRadius:10, padding:"6px 10px", minWidth:46, flexShrink:0, cursor:"pointer" }}>
-          <span style={{ width:26, height:26, borderRadius:7, background:"rgba(255,255,255,0.10)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:14, color:"rgba(255,255,255,0.4)", fontFamily:"Rajdhani,sans-serif", fontWeight:900 }}>?</span>
-          <span style={{ fontSize:9, fontWeight:700, color:"rgba(255,255,255,0.4)", fontFamily:"Nunito,sans-serif" }}>Skip</span>
+      <div className="kls-raider-strip__list">
+        <button 
+          onClick={() => onSelect(null)} 
+          className="kls-raider-strip__item"
+          style={{ 
+            background: selectedId === null ? "rgba(255,255,255,0.14)" : "rgba(255,255,255,0.04)", 
+            border: `1.5px solid ${selectedId === null ? "rgba(255,255,255,0.5)" : "rgba(255,255,255,0.08)"}` 
+          }}
+        >
+          <span className="kls-raider-strip__num-box" style={{ background: "rgba(255,255,255,0.10)", fontSize: 14, color: "rgba(255,255,255,0.4)", fontWeight: 900 }}>?</span>
+          <span className="kls-raider-strip__name" style={{ fontWeight: 700, color: "rgba(255,255,255,0.4)" }}>Skip</span>
         </button>
         {available.map(p => {
           const on = selectedId === p.id;
           return (
-            <button key={p.id} onClick={() => onSelect(p)} style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:3, background:on?`${color}1a`:"rgba(255,255,255,0.04)", border:`1.5px solid ${on?color:"rgba(255,255,255,0.08)"}`, borderRadius:10, padding:"6px 10px", minWidth:46, flexShrink:0, cursor:"pointer", transition:"all 0.15s" }}>
-              <span style={{ width:26, height:26, borderRadius:7, background:on?color:"rgba(255,255,255,0.10)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:13, fontWeight:900, color:on?"#fff":"rgba(255,255,255,0.7)", fontFamily:"Rajdhani,sans-serif" }}>{p.jerseyNumber}</span>
-              <span style={{ fontSize:9, fontWeight:on?800:700, color:on?"rgba(255,255,255,0.9)":"rgba(255,255,255,0.4)", fontFamily:"Nunito,sans-serif", maxWidth:44, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{p.name.split(" ")[0]}</span>
+            <button 
+              key={p.id} 
+              onClick={() => onSelect(p)} 
+              className="kls-raider-strip__item"
+              style={{ 
+                background: on ? `${color}1a` : "rgba(255,255,255,0.04)", 
+                border: `1.5px solid ${on ? color : "rgba(255,255,255,0.08)"}` 
+              }}
+            >
+              <span className="kls-raider-strip__num-box" style={{ background: on ? color : "rgba(255,255,255,0.10)", fontSize: 13, fontWeight: 900, color: on ? "#fff" : "rgba(255,255,255,0.7)" }}>{p.jerseyNumber}</span>
+              <span className="kls-raider-strip__name" style={{ fontWeight: on ? 800 : 700, color: on ? "rgba(255,255,255,0.9)" : "rgba(255,255,255,0.4)" }}>{p.name.split(" ")[0]}</span>
             </button>
           );
         })}
@@ -119,33 +137,41 @@ function DefenderPicker({ squad, onCourt, color, pts, isSuperTackle, onConfirm, 
   const tog = id => setSel(p => { const n = new Set(p); n.has(id)?n.delete(id):n.add(id); return n; });
   const available = squad.filter(p => onCourt.has(p.id));
   return (
-    <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.88)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:700, padding:20 }}>
-      <div style={{ background:isSuperTackle?"#2d1a1a":"#1a2744", borderRadius:22, padding:"22px 18px 18px", maxWidth:340, width:"100%", border:`1px solid ${isSuperTackle?"rgba(239,68,68,0.4)":"rgba(255,255,255,0.10)"}` }}>
+    <div className="kls-overlay">
+      <div className={`kls-modal ${isSuperTackle ? 'kls-modal--super' : 'kls-modal--def'}`}>
         {isSuperTackle && (
-          <div style={{ background:"rgba(249,115,22,0.2)", border:"1px solid rgba(249,115,22,0.5)", borderRadius:12, padding:"8px 12px", marginBottom:12, textAlign:"center" }}>
+          <div className="kls-super-badge">
             <div style={{ color:"#f97316", fontWeight:900, fontSize:15, fontFamily:"Rajdhani,sans-serif" }}>💪 SUPER TACKLE ZONE!</div>
             <div style={{ color:"rgba(249,115,22,0.8)", fontSize:11, fontFamily:"Nunito,sans-serif" }}>+1 bonus point added automatically</div>
           </div>
         )}
-        <div style={{ color:"#fff", fontWeight:900, fontSize:18, fontFamily:"Rajdhani,sans-serif", textAlign:"center", marginBottom:4 }}>🛡️ Who made the tackle?</div>
-        <div style={{ color:"rgba(255,255,255,0.40)", fontSize:12, fontFamily:"Nunito,sans-serif", textAlign:"center", marginBottom:16 }}>
+        <div className="kls-modal-title">🛡️ Who made the tackle?</div>
+        <div className="kls-modal-sub">
           Tackle +{pts}{isSuperTackle?` +1 super = ${pts+1} total`:""} — tap all defenders
         </div>
-        <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:8, marginBottom:18, maxHeight:230, overflowY:"auto" }}>
+        <div className="kls-grid-picker">
           {available.map(p => {
             const on = sel.has(p.id);
             return (
-              <button key={p.id} onClick={() => tog(p.id)} style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:5, background:on?`${color}1a`:"rgba(255,255,255,0.05)", border:`1.5px solid ${on?color:"rgba(255,255,255,0.08)"}`, borderRadius:12, padding:"10px 6px 8px", cursor:"pointer", position:"relative" }}>
-                <div style={{ width:32, height:32, borderRadius:9, background:on?color:"rgba(255,255,255,0.10)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:15, fontWeight:900, color:"#fff", fontFamily:"Rajdhani,sans-serif" }}>{p.jerseyNumber}</div>
-                <div style={{ fontSize:9, fontWeight:on?800:700, color:on?"rgba(255,255,255,0.85)":"rgba(255,255,255,0.40)", fontFamily:"Nunito,sans-serif", textAlign:"center", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", maxWidth:52 }}>{p.name.split(" ")[0]}</div>
-                {on && <div style={{ position:"absolute", top:3, right:3, width:14, height:14, background:"#22c55e", borderRadius:"50%", fontSize:9, display:"flex", alignItems:"center", justifyContent:"center", color:"#fff", fontWeight:900 }}>✓</div>}
+              <button 
+                key={p.id} 
+                onClick={() => tog(p.id)} 
+                className="kls-picker-item"
+                style={{ 
+                  background: on ? `${color}1a` : "rgba(255,255,255,0.05)", 
+                  border: `1.5px solid ${on ? color : "rgba(255,255,255,0.08)"}` 
+                }}
+              >
+                <div className="kls-picker-item__num" style={{ background: on ? color : "rgba(255,255,255,0.10)" }}>{p.jerseyNumber}</div>
+                <div className="kls-picker-item__name" style={{ fontWeight: on ? 800 : 700, color: on ? "rgba(255,255,255,0.85)" : "rgba(255,255,255,0.40)" }}>{p.name.split(" ")[0]}</div>
+                {on && <div className="kls-picker-item__check">✓</div>}
               </button>
             );
           })}
         </div>
-        <div style={{ display:"flex", gap:10 }}>
-          <button onClick={() => onConfirm([])} style={{ flex:"0 0 auto", padding:"12px 16px", borderRadius:13, border:"1px solid rgba(255,255,255,0.15)", background:"transparent", color:"rgba(255,255,255,0.55)", fontWeight:800, fontSize:14, cursor:"pointer", fontFamily:"Nunito,sans-serif" }}>Skip</button>
-          <button onClick={() => onConfirm([...sel])} style={{ flex:1, padding:12, borderRadius:13, border:"none", background:color, color:"#fff", fontWeight:900, fontSize:15, cursor:"pointer", fontFamily:"Nunito,sans-serif" }}>
+        <div className="kls-modal-actions">
+          <button onClick={() => onConfirm([])} className="kls-btn kls-btn--outline">Skip</button>
+          <button onClick={() => onConfirm([...sel])} className="kls-btn kls-btn--primary" style={{ background: color }}>
             Confirm {sel.size>0?`(${sel.size})`:""}
           </button>
         </div>
@@ -161,29 +187,46 @@ function SubPanel({ homeSquad, guestSquad, homeOnCourt, guestOnCourt, onSub, onC
   const onCourt  = side==="home" ? homeOnCourt : guestOnCourt;
   const color    = side==="home" ? HOME.color  : GUEST.color;
   return (
-    <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.90)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:750 }}>
-      <div style={{ background:"#1a2744", borderRadius:"22px 22px 0 0", padding:"22px 18px 32px", width:"100%", maxWidth:480, border:"1px solid rgba(255,255,255,0.10)", maxHeight:"80vh", overflowY:"auto" }}>
-        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:16 }}>
-          <div style={{ color:"#fff", fontWeight:900, fontSize:20, fontFamily:"Rajdhani,sans-serif" }}>🔄 Substitution</div>
-          <button onClick={onClose} style={{ background:"rgba(255,255,255,0.10)", border:"none", borderRadius:10, padding:"7px 14px", color:"#fff", fontWeight:800, cursor:"pointer", fontFamily:"Nunito,sans-serif" }}>Done</button>
+    <div className="kls-panel-overlay">
+      <div className="kls-panel">
+        <div className="kls-panel-header">
+          <div className="kls-panel-title">🔄 Substitution</div>
+          <button onClick={onClose} className="kls-panel-close">Done</button>
         </div>
-        <div style={{ display:"flex", gap:8, marginBottom:18 }}>
+        <div className="kls-tabs">
           {["home","guest"].map(s => (
-            <button key={s} onClick={()=>setSide(s)} style={{ flex:1, padding:"10px", borderRadius:12, border:`1.5px solid ${side===s?(s==="home"?HOME.color:GUEST.color):"rgba(255,255,255,0.12)"}`, background:side===s?`${s==="home"?HOME.color:GUEST.color}20`:"transparent", color:side===s?(s==="home"?HOME.color:GUEST.color):"rgba(255,255,255,0.5)", fontWeight:800, fontSize:13, cursor:"pointer", fontFamily:"Nunito,sans-serif" }}>
+            <button 
+              key={s} 
+              onClick={()=>setSide(s)} 
+              className="kls-tab"
+              style={{ 
+                border: `1.5px solid ${side === s ? (s === "home" ? HOME.color : GUEST.color) : "rgba(255,255,255,0.12)"}`, 
+                background: side === s ? `${s === "home" ? HOME.color : GUEST.color}20` : "transparent", 
+                color: side === s ? (s === "home" ? HOME.color : GUEST.color) : "rgba(255,255,255,0.5)" 
+              }}
+            >
               {s==="home"?HOME.name:GUEST.name}
             </button>
           ))}
         </div>
-        <div style={{ color:"rgba(255,255,255,0.4)", fontSize:10, fontWeight:800, letterSpacing:"0.1em", marginBottom:10, fontFamily:"Nunito,sans-serif" }}>TAP TO TOGGLE — GREEN = ON COURT</div>
-        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8 }}>
+        <div className="kls-panel-hint">TAP TO TOGGLE — GREEN = ON COURT</div>
+        <div className="kls-grid-2">
           {squad.map(p => {
             const active = onCourt.has(p.id);
             return (
-              <button key={p.id} onClick={()=>onSub(side,p.id)} style={{ display:"flex", alignItems:"center", gap:10, background:active?`${color}18`:"rgba(255,255,255,0.04)", border:`1.5px solid ${active?color:"rgba(255,255,255,0.08)"}`, borderRadius:12, padding:"12px 14px", cursor:"pointer", transition:"all 0.15s" }}>
-                <div style={{ width:36, height:36, borderRadius:9, background:active?color:"rgba(255,255,255,0.10)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:16, fontWeight:900, color:"#fff", fontFamily:"Rajdhani,sans-serif", flexShrink:0 }}>{p.jerseyNumber}</div>
+              <button 
+                key={p.id} 
+                onClick={()=>onSub(side,p.id)} 
+                className="kls-item-row"
+                style={{ 
+                  background: active ? `${color}18` : "rgba(255,255,255,0.04)", 
+                  border: `1.5px solid ${active ? color : "rgba(255,255,255,0.08)"}` 
+                }}
+              >
+                <div className="kls-item-num" style={{ background: active ? color : "rgba(255,255,255,0.10)" }}>{p.jerseyNumber}</div>
                 <div style={{ textAlign:"left" }}>
-                  <div style={{ color:active?"#fff":"rgba(255,255,255,0.45)", fontWeight:800, fontSize:12, fontFamily:"Nunito,sans-serif" }}>{p.name}</div>
-                  <div style={{ color:active?"rgba(255,255,255,0.6)":"rgba(255,255,255,0.25)", fontSize:10, fontFamily:"Nunito,sans-serif", marginTop:1 }}>{active?"● ON COURT":"○ BENCH"}</div>
+                  <div className="kls-item-name" style={{ color: active ? "#fff" : "rgba(255,255,255,0.45)" }}>{p.name}</div>
+                  <div className="kls-item-status" style={{ color: active ? "rgba(255,255,255,0.6)" : "rgba(255,255,255,0.25)" }}>{active?"● ON COURT":"○ BENCH"}</div>
                 </div>
               </button>
             );
@@ -201,44 +244,44 @@ function StatsPanel({ stats, onClose }) {
   const defenders = all.filter(p=>p.tackles>0).sort((a,b)=>b.tacklePts-a.tacklePts);
   const color = p => p.side==="home" ? HOME.color : GUEST.color;
   return (
-    <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.94)", zIndex:800, overflowY:"auto" }}>
-      <div style={{ maxWidth:420, margin:"0 auto", padding:"20px 16px" }}>
-        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:20 }}>
-          <div style={{ color:"#fff", fontWeight:900, fontSize:22, fontFamily:"Rajdhani,sans-serif" }}>📊 Player Stats</div>
-          <button onClick={onClose} style={{ background:"rgba(255,255,255,0.10)", border:"none", borderRadius:10, padding:"8px 14px", color:"#fff", fontWeight:800, cursor:"pointer", fontFamily:"Nunito,sans-serif" }}>✕ Close</button>
+    <div className="kls-stats-overlay">
+      <div className="kls-stats-container">
+        <div className="kls-panel-header">
+          <div className="kls-panel-title">📊 Player Stats</div>
+          <button onClick={onClose} className="kls-panel-close">✕ Close</button>
         </div>
         {raiders.length===0&&defenders.length===0 ? (
           <div style={{ color:"rgba(255,255,255,0.35)", textAlign:"center", fontFamily:"Nunito,sans-serif", marginTop:80, fontSize:14, lineHeight:1.8 }}>No stats yet.<br/>Select a player before recording events.</div>
         ) : <>
           {raiders.length>0 && <>
-            <div style={{ color:"rgba(255,255,255,0.4)", fontSize:10, fontWeight:800, letterSpacing:"0.1em", marginBottom:8, fontFamily:"Nunito,sans-serif" }}>⚡ RAID LEADERS</div>
+            <div className="kls-stats-section-title">⚡ RAID LEADERS</div>
             {raiders.map(p=>(
-              <div key={p.id} style={{ display:"flex", alignItems:"center", gap:12, padding:"12px 0", borderBottom:"1px solid rgba(255,255,255,0.06)" }}>
-                <div style={{ width:36, height:36, borderRadius:9, background:color(p), display:"flex", alignItems:"center", justifyContent:"center", fontSize:15, fontWeight:900, color:"#fff", fontFamily:"Rajdhani,sans-serif", flexShrink:0 }}>{p.num}</div>
+              <div key={p.id} className="kls-stats-row">
+                <div className="kls-item-num" style={{ background: color(p) }}>{p.num}</div>
                 <div style={{ flex:1 }}>
-                  <div style={{ color:"#fff", fontWeight:800, fontSize:14, fontFamily:"Nunito,sans-serif" }}>{p.name}</div>
-                  <div style={{ color:"rgba(255,255,255,0.4)", fontSize:11, fontFamily:"Nunito,sans-serif" }}>{p.raids} raids · {p.successRaids} ✓ · {p.emptyRaids} empty</div>
+                  <div className="kls-stats-name">{p.name}</div>
+                  <div className="kls-stats-desc">{p.raids} raids · {p.successRaids} ✓ · {p.emptyRaids} empty</div>
                 </div>
                 <div style={{ textAlign:"right" }}>
-                  <div style={{ color:color(p), fontWeight:900, fontSize:22, fontFamily:"Rajdhani,sans-serif", lineHeight:1 }}>{p.raidPts}</div>
-                  <div style={{ color:"rgba(255,255,255,0.3)", fontSize:10, fontFamily:"Nunito,sans-serif" }}>raid pts</div>
+                  <div className="kls-stats-pts" style={{ color: color(p) }}>{p.raidPts}</div>
+                  <div className="kls-stats-pts-label">raid pts</div>
                 </div>
               </div>
             ))}
             <div style={{ height:16 }}/>
           </>}
           {defenders.length>0 && <>
-            <div style={{ color:"rgba(255,255,255,0.4)", fontSize:10, fontWeight:800, letterSpacing:"0.1em", marginBottom:8, fontFamily:"Nunito,sans-serif" }}>🛡️ TACKLE LEADERS</div>
+            <div className="kls-stats-section-title">🛡️ TACKLE LEADERS</div>
             {defenders.map(p=>(
-              <div key={p.id} style={{ display:"flex", alignItems:"center", gap:12, padding:"12px 0", borderBottom:"1px solid rgba(255,255,255,0.06)" }}>
-                <div style={{ width:36, height:36, borderRadius:9, background:color(p), display:"flex", alignItems:"center", justifyContent:"center", fontSize:15, fontWeight:900, color:"#fff", fontFamily:"Rajdhani,sans-serif", flexShrink:0 }}>{p.num}</div>
+              <div key={p.id} className="kls-stats-row">
+                <div className="kls-item-num" style={{ background: color(p) }}>{p.num}</div>
                 <div style={{ flex:1 }}>
-                  <div style={{ color:"#fff", fontWeight:800, fontSize:14, fontFamily:"Nunito,sans-serif" }}>{p.name}</div>
-                  <div style={{ color:"rgba(255,255,255,0.4)", fontSize:11, fontFamily:"Nunito,sans-serif" }}>{p.tackles} tackles</div>
+                  <div className="kls-stats-name">{p.name}</div>
+                  <div className="kls-stats-desc">{p.tackles} tackles</div>
                 </div>
                 <div style={{ textAlign:"right" }}>
-                  <div style={{ color:color(p), fontWeight:900, fontSize:22, fontFamily:"Rajdhani,sans-serif", lineHeight:1 }}>{p.tacklePts}</div>
-                  <div style={{ color:"rgba(255,255,255,0.3)", fontSize:10, fontFamily:"Nunito,sans-serif" }}>tackle pts</div>
+                  <div className="kls-stats-pts" style={{ color: color(p) }}>{p.tacklePts}</div>
+                  <div className="kls-stats-pts-label">tackle pts</div>
                 </div>
               </div>
             ))}
@@ -306,6 +349,7 @@ function AllOutFlash({ team, raidPts, onDone }) {
 
 // ── Main ──────────────────────────────────────────────────────────
 export default function App({ homeTeam, guestTeam, periodMins, matchId }) {
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [S, setS]            = useState(() => makeInit(homeTeam, guestTeam, periodMins));
   const [selRaider, setSR]   = useState("unset");
@@ -315,11 +359,32 @@ export default function App({ homeTeam, guestTeam, periodMins, matchId }) {
   const [showStats, setSStats] = useState(false);
   const [showSub,   setSSub]   = useState(false);
   const [showLog,   setSLog]   = useState(false);
+  const [showExitConfirm, setShowExitConfirm] = useState(false);
   const [allOutFlash, setAOF]  = useState(null); // { team, raidPts }
   const [homeOnCourt, setHOC]  = useState(() => new Set(HOME_SQUAD.map(p=>p.id)));
   const [guestOnCourt, setGOC] = useState(() => new Set(GUEST_SQUAD.map(p=>p.id)));
   const timerRef = useRef(null);
   const prevSide = useRef("home");
+  const matchStartedRef = useRef(false);
+
+  const handleBack = () => {
+    if (S.phase === 'playing' || S.raidCount > 1) {
+      setShowExitConfirm(true);
+    } else {
+      navigate('/matches');
+    }
+  };
+
+  const postNoti = (title, body, type = 'match') => {
+    notificationService.createNotification({
+      user_id: user?.id,
+      type,
+      title,
+      body,
+      href: `/matches/${matchId || 'm1'}/live`,
+      metadata: { matchId }
+    });
+  };
 
   const showT = useCallback((msg, clr="#0ea5e9") => {
     setToast({msg,clr}); setTimeout(()=>setToast(null), 2400);
@@ -347,11 +412,14 @@ export default function App({ homeTeam, guestTeam, periodMins, matchId }) {
         if (team.active <= 0) {
           team.active = 7; // ✅ Revival — all 7 players back
           next[scoringKey].score += 2; // ✅ +2 lona bonus only
+          const totalPts = raidPtsThisRaid + 2;
+          const msg = `💥 ALL OUT! ${team.name} — +${raidPtsThisRaid} raid +2 lona = +${totalPts} total to ${next[scoringKey].name}`;
           next.eventLog.push({
             id: Date.now()+Math.random(), raidNo: next.raidCount, type:"ALLOUT",
-            label: `💥 ALL OUT! ${team.name} — +${raidPtsThisRaid} raid +2 lona = +${raidPtsThisRaid+2} total to ${next[scoringKey].name}`,
+            label: msg,
             pts: 2, score:`${next.home.score}-${next.guest.score}`, time: now
           });
+          postNoti("💥 ALL OUT!", msg);
           setTimeout(() => { playSound("allout"); setAOF({ team: team.name, raidPts: raidPtsThisRaid }); }, 80);
         }
       };
@@ -376,6 +444,24 @@ export default function App({ homeTeam, guestTeam, periodMins, matchId }) {
       const raiderName = action.rid && next.stats[action.rid] ? next.stats[action.rid].name.split(" ")[0] : null;
       const defNames   = (action.dids||[]).map(id => next.stats[id]?.name.split(" ")[0]).filter(Boolean);
 
+      // Persist to Supabase
+      if (matchId) {
+        const isRaidSuccess = action.type === "RAID" || action.type === "BONUS";
+        const points = action.pts || (action.type === "BONUS" ? 1 : 0);
+        
+        kabaddiScoringService.recordRaid(matchId, {
+          raidNumber: next.raidCount,
+          raiderId: action.rid || 'unknown',
+          team: rs,
+          pointsScored: points,
+          touchPoints: action.type === "RAID" ? action.pts : 0,
+          success: isRaidSuccess
+        }).catch(err => console.error("Failed to record raid:", err));
+
+        kabaddiScoringService.updateMatchScore(matchId, next.home.score, next.guest.score)
+          .catch(err => console.error("Failed to update score:", err));
+      }
+
       switch (action.type) {
 
         case "RAID": {
@@ -385,10 +471,14 @@ export default function App({ homeTeam, guestTeam, periodMins, matchId }) {
           dT.active = dT.active - Math.min(pts, dT.active);
           rT.consEmpty = 0; next.doOrDie = false;
           if (action.rid) addRS(action.rid, pts, true);
+          const msg = `⚡ ${raiderName||rT.name} tagged ${pts} defender${pts>1?"s":""}`;
           next.eventLog.push({ id:Date.now(), raidNo:next.raidCount, type:"RAID",
-            label:`⚡ ${raiderName||rT.name} tagged ${pts} defender${pts>1?"s":""}`,
+            label: msg,
             pts, score:`${next.home.score}-${next.guest.score}`, time:now });
           playSound("point");
+          if (pts >= 3) {
+            postNoti("🔥 SUPER RAID!", `${raiderName||rT.name} scored ${pts} points for ${rT.name}!`);
+          }
           // ✅ Check all-out AFTER awarding raid pts, pass raid pts for display
           checkAllOut(dT, rs, pts);
           endRaid(); break;
@@ -405,12 +495,16 @@ export default function App({ homeTeam, guestTeam, periodMins, matchId }) {
           if (action.rid) addRS(action.rid, 0, false);
           if (action.dids?.length) addDS(action.dids, total);
           const evType = st ? "SUPER" : "TACKLE";
+          const msg = st
+            ? `💪 SUPER TACKLE! ${defNames.join(", ")||dT.name} — +${total}`
+            : `🛡️ ${defNames.join(", ")||dT.name} tackle — +${total}`;
           next.eventLog.push({ id:Date.now(), raidNo:next.raidCount, type:evType,
-            label: st
-              ? `💪 SUPER TACKLE! ${defNames.join(", ")||dT.name} — +${total}`
-              : `🛡️ ${defNames.join(", ")||dT.name} tackle — +${total}`,
+            label: msg,
             pts: total, score:`${next.home.score}-${next.guest.score}`, time:now });
           playSound("point");
+          if (st) {
+            postNoti("💪 SUPER TACKLE!", msg);
+          }
           // Check if raider going out caused an all-out on raiding team
           checkAllOut(rT, ds, 0);
           endRaid(); break;
@@ -468,9 +562,36 @@ export default function App({ homeTeam, guestTeam, periodMins, matchId }) {
 
   useEffect(() => {
     if (S.running && S.phase==="playing") {
+      if (!matchStartedRef.current) {
+        matchStartedRef.current = true;
+        postNoti("Match Started! ⚡", `${S.home.name} vs ${S.guest.name} is now LIVE.`);
+      }
       timerRef.current = setInterval(() => {
         setS(p => {
-          if (p.clock<=0) { clearInterval(timerRef.current); return {...p, running:false, phase:p.period===1?"halftime":"fulltime", clock:0}; }
+          if (p.clock<=0) { 
+            clearInterval(timerRef.current); 
+            const isHalf = p.period === 1;
+            if (isHalf) {
+              postNoti("Half Time ⏱️", `Score: ${p.home.name} ${p.home.score} - ${p.guest.score} ${p.guest.name}`);
+            } else {
+              postNoti("Full Time 🏆", `Final: ${p.home.name} ${p.home.score} - ${p.guest.score} ${p.guest.name}`);
+              
+              // ✅ Auto-post to Feed
+              const resultMsg = `${p.home.name} ${p.home.score} - ${p.guest.score} ${p.guest.name}`;
+              const winner = p.home.score > p.guest.score ? p.home.name : p.guest.score > p.home.score ? p.guest.name : "Draw";
+              const caption = `🏁 Match Ended! ${resultMsg}. ${winner !== "Draw" ? `Congratulations ${winner}! 🏆` : "It's a draw!"}`;
+              
+              supabase.from('feed_posts').insert({
+                user_id: user?.id,
+                type: 'result',
+                caption,
+                tournament_id: p.tournamentId,
+                match_id: matchId,
+                likes_count: 0
+              }).catch(err => console.error("Failed to post match result to feed:", err));
+            }
+            return {...p, running:false, phase:isHalf?"halftime":"fulltime", clock:0}; 
+          }
           return {...p, clock:p.clock-1};
         });
       }, 1000);
@@ -638,12 +759,28 @@ export default function App({ homeTeam, guestTeam, periodMins, matchId }) {
         </div>
       )}
       {showStats && <StatsPanel stats={S.stats} onClose={()=>setSStats(false)}/>}
+      {showExitConfirm && (
+        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.85)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:1000,padding:24}}>
+          <div style={{background:"#1e293b",borderRadius:20,padding:"28px 22px",maxWidth:300,width:"100%",textAlign:"center",border:"1px solid rgba(255,255,255,0.1)",...F2}}>
+            <div style={{fontSize:36,marginBottom:10}}>🏁</div>
+            <div style={{color:"#fff",fontWeight:900,fontSize:20,...F1,marginBottom:8}}>End Match?</div>
+            <div style={{color:"rgba(255,255,255,0.45)",fontSize:13,marginBottom:22}}>Are you sure you want to exit the scorer? The match progress is saved.</div>
+            <div style={{display:"flex",gap:10}}>
+              <button onClick={()=>setShowExitConfirm(false)} style={{flex:1,padding:12,borderRadius:11,border:"1px solid rgba(255,255,255,0.15)",background:"transparent",color:"#fff",fontWeight:800,cursor:"pointer"}}>Keep Scoring</button>
+              <button onClick={() => navigate('/matches')} style={{flex:1,padding:12,borderRadius:11,border:"none",background:"#ef4444",color:"#fff",fontWeight:900,cursor:"pointer"}}>Exit Match</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Top Bar */}
       <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"12px 16px",borderBottom:"1px solid rgba(255,255,255,0.08)",flexShrink:0}}>
-        <div>
-          <div style={{color:"rgba(255,255,255,0.4)",fontSize:10,fontWeight:700,letterSpacing:2,...F2}}>PERIOD</div>
-          <div style={{color:"#fff",fontWeight:700,fontSize:24,...F1,lineHeight:1}}>{S.period}</div>
+        <div style={{display:"flex",alignItems:"center",gap:12}}>
+          <button onClick={handleBack} style={{background:"rgba(255,255,255,0.1)",border:"none",borderRadius:8,width:32,height:32,color:"#fff",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",fontSize:18}}>←</button>
+          <div>
+            <div style={{color:"rgba(255,255,255,0.4)",fontSize:10,fontWeight:700,letterSpacing:2,...F2}}>PERIOD</div>
+            <div style={{color:"#fff",fontWeight:700,fontSize:24,...F1,lineHeight:1}}>{S.period}</div>
+          </div>
         </div>
         <button onClick={()=>setS(p=>({...p,running:!p.running}))} style={{background:"none",border:"none",cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",padding:0}}>
           <span style={{fontSize:42,fontWeight:700,...F1,lineHeight:1,letterSpacing:3,color:S.running?"#f59e0b":"#fff",textShadow:S.running?"0 0 24px rgba(245,158,11,0.55)":"none"}}>{fmt(S.clock)}</span>

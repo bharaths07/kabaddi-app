@@ -93,6 +93,7 @@ for each row execute function public.handle_new_user();
 
 create table if not exists tournaments (
   id uuid primary key default gen_random_uuid(),
+  slug text unique,
   name text not null,
   start_date date,
   end_date date,

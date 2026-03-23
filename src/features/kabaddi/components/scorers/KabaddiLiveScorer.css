@@ -612,16 +612,11 @@
   cursor: pointer;
   font-family: 'Nunito', sans-serif;
 }
-/* ═══════════════════════════════════════════════════════════════════════════
-   ADD THIS TO THE BOTTOM OF KabaddiLiveScorer.css
-   New styles for: RaiderStrip + DefenderPicker
-   ═══════════════════════════════════════════════════════════════════════════ */
+.kls-team__dot--out { background: transparent; border: 1.5px solid rgba(255, 255, 255, 0.1); }
 
-/* ─── RAIDER STRIP ───────────────────────────────────────────────────────── */
-/* The horizontal "WHO'S RAIDING?" player selector below the raid bar         */
-
+/* ─── RAIDER STRIP ──────────────────────────────────────────────────────── */
 .kls-raider-strip {
-  background: rgba(0, 0, 0, 0.25);
+  background: rgba(0, 0, 0, 0.30);
   border-bottom: 1px solid rgba(255, 255, 255, 0.07);
   padding: 8px 12px;
   flex-shrink: 0;
@@ -632,119 +627,84 @@
   font-weight: 800;
   letter-spacing: 0.12em;
   color: rgba(255, 255, 255, 0.35);
+  margin-bottom: 6px;
   font-family: 'Nunito', sans-serif;
-  margin-bottom: 7px;
   text-transform: uppercase;
 }
 
-.kls-raider-strip__scroll {
+.kls-raider-strip__list {
   display: flex;
   gap: 7px;
   overflow-x: auto;
   padding-bottom: 2px;
-  /* hide scrollbar on mobile */
-  -ms-overflow-style: none;
   scrollbar-width: none;
 }
-.kls-raider-strip__scroll::-webkit-scrollbar { display: none; }
 
-/* Each player pill */
-.kls-raider-pill {
+.kls-raider-strip__item {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 3px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1.5px solid rgba(255, 255, 255, 0.10);
   border-radius: 10px;
   padding: 6px 10px;
   min-width: 46px;
   flex-shrink: 0;
   cursor: pointer;
-  transition: all 0.15s ease;
-  font-family: 'Nunito', sans-serif;
+  transition: all 0.15s;
 }
 
-.kls-raider-pill:active { transform: scale(0.92); }
-
-/* Jersey number badge */
-.kls-raider-pill__num {
+.kls-raider-strip__num-box {
   width: 26px;
   height: 26px;
   border-radius: 7px;
-  background: rgba(255, 255, 255, 0.12);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 13px;
-  font-weight: 900;
-  color: rgba(255, 255, 255, 0.8);
   font-family: 'Rajdhani', sans-serif;
-  transition: background 0.15s, color 0.15s;
 }
 
-/* First name below number */
-.kls-raider-pill__name {
+.kls-raider-strip__name {
   font-size: 9px;
-  font-weight: 700;
-  color: rgba(255, 255, 255, 0.45);
+  font-family: 'Nunito', sans-serif;
   max-width: 44px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  text-align: center;
 }
 
-/* ACTIVE pill (player selected) */
-.kls-raider-pill--active {
-  border-color: currentColor; /* set via inline style */
+/* ─── MODALS / PANELS ───────────────────────────────────────────────────── */
+.kls-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.88);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 700;
+  padding: 20px;
 }
 
-.kls-raider-pill--active .kls-raider-pill__name {
-  color: rgba(255, 255, 255, 0.85);
-  font-weight: 800;
-}
-
-/* Skip / Unknown pill */
-.kls-raider-pill--skip {
-  border-color: rgba(255, 255, 255, 0.08);
-}
-
-.kls-raider-pill--skip .kls-raider-pill__num {
-  background: rgba(255, 255, 255, 0.08);
-  color: rgba(255, 255, 255, 0.3);
-  font-size: 16px;
-}
-
-.kls-raider-pill--skip-active {
-  border-color: rgba(255, 255, 255, 0.35);
-  background: rgba(255, 255, 255, 0.10);
-}
-
-.kls-raider-pill--skip-active .kls-raider-pill__num {
-  background: rgba(255, 255, 255, 0.25);
-  color: #fff;
-}
-
-.kls-raider-pill--skip .kls-raider-pill__name,
-.kls-raider-pill--skip-active .kls-raider-pill__name {
-  color: rgba(255, 255, 255, 0.5);
-}
-
-/* ─── DEFENDER PICKER MODAL ──────────────────────────────────────────────── */
-/* Pops up after pressing Tackle +1 or +2 button                              */
-
-.kls-defender-picker {
-  background: #1a2744;
+.kls-modal {
   border-radius: 22px;
   padding: 22px 18px 18px;
   max-width: 340px;
   width: 100%;
   border: 1px solid rgba(255, 255, 255, 0.10);
-  animation: kls-fadeUp 0.22s ease;
 }
 
-.kls-defender-picker__title {
+.kls-modal--super { background: #2d1a1a; border-color: rgba(239, 68, 68, 0.4); }
+.kls-modal--def   { background: #1a2744; }
+
+.kls-super-badge {
+  background: rgba(249, 115, 22, 0.2);
+  border: 1px solid rgba(249, 115, 22, 0.5);
+  border-radius: 12px;
+  padding: 8px 12px;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.kls-modal-title {
   color: #fff;
   font-weight: 900;
   font-size: 18px;
@@ -753,82 +713,51 @@
   margin-bottom: 4px;
 }
 
-.kls-defender-picker__sub {
+.kls-modal-sub {
   color: rgba(255, 255, 255, 0.40);
   font-size: 12px;
   font-family: 'Nunito', sans-serif;
   text-align: center;
-  margin-bottom: 18px;
+  margin-bottom: 16px;
 }
 
-/* Grid of player cards */
-.kls-defender-picker__grid {
+.kls-grid-picker {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 8px;
   margin-bottom: 18px;
-  max-height: 240px;
+  max-height: 230px;
   overflow-y: auto;
 }
 
-.kls-defender-card {
+.kls-picker-item {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 5px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1.5px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
   padding: 10px 6px 8px;
   cursor: pointer;
-  transition: all 0.15s ease;
   position: relative;
-  font-family: 'Nunito', sans-serif;
 }
 
-.kls-defender-card:active { transform: scale(0.91); }
-
-.kls-defender-card__num {
+.kls-picker-item__num {
   width: 32px;
   height: 32px;
   border-radius: 9px;
-  background: rgba(255, 255, 255, 0.10);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 15px;
   font-weight: 900;
-  color: rgba(255, 255, 255, 0.75);
-  font-family: 'Rajdhani', sans-serif;
-  transition: background 0.15s, color 0.15s;
-}
-
-/* When selected, num background = team color (set inline) */
-.kls-defender-card--on .kls-defender-card__num {
   color: #fff;
+  font-family: 'Rajdhani', sans-serif;
 }
 
-.kls-defender-card__name {
-  font-size: 9px;
-  font-weight: 700;
-  color: rgba(255, 255, 255, 0.40);
-  text-align: center;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  max-width: 52px;
-}
-
-.kls-defender-card--on .kls-defender-card__name {
-  color: rgba(255, 255, 255, 0.85);
-  font-weight: 800;
-}
-
-/* Green tick shown on selected card */
-.kls-defender-card__check {
+.kls-picker-item__check {
   position: absolute;
-  top: 4px;
-  right: 4px;
+  top: 3px;
+  right: 3px;
   width: 14px;
   height: 14px;
   background: #22c55e;
@@ -841,44 +770,203 @@
   font-weight: 900;
 }
 
-/* Action buttons */
-.kls-defender-picker__actions {
+.kls-modal-actions {
   display: flex;
   gap: 10px;
 }
 
-.kls-defender-picker__skip {
-  flex: 0 0 auto;
-  padding: 13px 18px;
+.kls-btn {
+  padding: 12px;
   border-radius: 13px;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  background: transparent;
-  color: rgba(255, 255, 255, 0.55);
+  font-family: 'Nunito', sans-serif;
   font-weight: 800;
   font-size: 14px;
   cursor: pointer;
-  font-family: 'Nunito', sans-serif;
-  transition: all 0.15s;
-}
-
-.kls-defender-picker__skip:hover {
-  background: rgba(255, 255, 255, 0.07);
-}
-
-.kls-defender-picker__confirm {
-  flex: 1;
-  padding: 13px;
-  border-radius: 13px;
   border: none;
+}
+
+.kls-btn--outline {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.kls-btn--primary {
   color: #fff;
   font-weight: 900;
   font-size: 15px;
-  cursor: pointer;
-  font-family: 'Nunito', sans-serif;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
-  transition: opacity 0.15s, transform 0.15s;
 }
 
-.kls-defender-picker__confirm:active {
-  transform: scale(0.96);
+/* ─── SUB PANEL ─────────────────────────────────────────────────────────── */
+.kls-panel-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.90);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 750;
+}
+
+.kls-panel {
+  background: #1a2744;
+  border-radius: 22px 22px 0 0;
+  padding: 22px 18px 32px;
+  width: 100%;
+  maxWidth: 480px;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.kls-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.kls-panel-title {
+  color: #fff;
+  font-weight: 900;
+  font-size: 20px;
+  font-family: 'Rajdhani', sans-serif;
+}
+
+.kls-panel-close {
+  background: rgba(255, 255, 255, 0.10);
+  border: none;
+  border-radius: 10px;
+  padding: 7px 14px;
+  color: #fff;
+  font-weight: 800;
+  cursor: pointer;
+  font-family: 'Nunito', sans-serif;
+}
+
+.kls-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.kls-tab {
+  flex: 1;
+  padding: 10px;
+  border-radius: 12px;
+  font-weight: 800;
+  font-size: 13px;
+  cursor: pointer;
+  font-family: 'Nunito', sans-serif;
+  background: transparent;
+  transition: all 0.2s;
+}
+
+.kls-panel-hint {
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  margin-bottom: 10px;
+  font-family: 'Nunito', sans-serif;
+}
+
+.kls-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.kls-item-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-radius: 12px;
+  padding: 12px 14px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.kls-item-num {
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 900;
+  color: #fff;
+  font-family: 'Rajdhani', sans-serif;
+  flex-shrink: 0;
+}
+
+.kls-item-name {
+  font-weight: 800;
+  font-size: 12px;
+  font-family: 'Nunito', sans-serif;
+}
+
+.kls-item-status {
+  font-size: 10px;
+  font-family: 'Nunito', sans-serif;
+  margin-top: 1px;
+}
+
+/* ─── STATS PANEL ───────────────────────────────────────────────────────── */
+.kls-stats-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.94);
+  z-index: 800;
+  overflow-y: auto;
+}
+
+.kls-stats-container {
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 20px 16px;
+}
+
+.kls-stats-section-title {
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  margin-bottom: 8px;
+  font-family: 'Nunito', sans-serif;
+}
+
+.kls-stats-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.kls-stats-name {
+  color: #fff;
+  font-weight: 800;
+  font-size: 14px;
+  font-family: 'Nunito', sans-serif;
+}
+
+.kls-stats-desc {
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 11px;
+  font-family: 'Nunito', sans-serif;
+}
+
+.kls-stats-pts {
+  font-weight: 900;
+  font-size: 22px;
+  font-family: 'Rajdhani', sans-serif;
+  line-height: 1;
+}
+
+.kls-stats-pts-label {
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 10px;
+  font-family: 'Nunito', sans-serif;
 }

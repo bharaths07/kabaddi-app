@@ -1,277 +1,388 @@
-import React, { useMemo, useState } from 'react'
+import { useState, useEffect } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { supabase } from '../shared/lib/supabase'
+import { useAuth } from '../shared/context/AuthContext'
 import './home.css'
-import { Link } from 'react-router-dom'
 
+// ── Types ─────────────────────────────────────────────────────────
+interface LiveMatch {
+  id: string
+  home: string; homeShort: string; homeScore: number
+  guest: string; guestShort: string; guestScore: number
+  period: number; tournament: string
+}
+interface UpcomingMatch {
+  id: string
+  home: string; homeShort: string
+  guest: string; guestShort: string
+  scheduledAt: string; tournament: string
+}
+interface FeedPost {
+  id: string
+  type: 'photo' | 'announcement' | 'achievement' | 'result'
+  caption: string
+  image_url?: string
+  author: string; authorInitials: string; authorColor: string
+  createdAt: string; likes: number; liked: boolean
+  tournament?: string
+}
+interface Stats { tournaments: number; teams: number; players: number; matches: number }
+
+// ── Mock feed data (until feed_posts table is created) ────────────
+const MOCK_FEED: FeedPost[] = [
+  { id:'f1', type:'achievement', caption:'🏆 SKBC Varadanayakanahalli won the district championship! Pavan Kumar scored 18 raid points in the final match. Incredible performance from the whole squad!', author:'Pavan Kumar', authorInitials:'PK', authorColor:'#0ea5e9', createdAt: new Date(Date.now()-3600*1000).toISOString(), likes:42, liked:false, tournament:'KPL 2026' },
+  { id:'f2', type:'announcement', caption:'📢 Registrations are now OPEN for the Spring Kabaddi Cup 2026! 8 slots available. Entry fee ₹2000 per team. Contact 9876543210 to register. Last date: March 30th.', author:'Suresh Organizer', authorInitials:'SO', authorColor:'#ea580c', createdAt: new Date(Date.now()-7200*1000).toISOString(), likes:28, liked:false },
+  { id:'f3', type:'result', caption:'⚡ Super Raid Alert! Rahul Sharma completed a Super 10 today in the Warriors Cup semi-final. What a performance — 3 defenders out in a single raid! 🔥', author:'Warriors FC', authorInitials:'WF', authorColor:'#16a34a', createdAt: new Date(Date.now()-86400*1000).toISOString(), likes:76, liked:false, tournament:'Warriors Cup' },
+  { id:'f4', type:'announcement', caption:'📅 Schedule update: KPL 2026 Quarter Finals will be held on April 5th at Indoor Stadium Bengaluru. All 8 teams confirmed. Come support your team!', author:'KPL Admin', authorInitials:'KA', authorColor:'#7c3aed', createdAt: new Date(Date.now()-2*86400*1000).toISOString(), likes:53, liked:false, tournament:'KPL 2026' },
+]
+
+function timeAgo(iso: string) {
+  const diff = Date.now() - new Date(iso).getTime()
+  const mins = Math.floor(diff / 60000)
+  if (mins < 1) return 'just now'
+  if (mins < 60) return `${mins}m ago`
+  const hrs = Math.floor(mins / 60)
+  if (hrs < 24) return `${hrs}h ago`
+  return `${Math.floor(hrs / 24)}d ago`
+}
+
+const TYPE_CONFIG = {
+  photo:        { emoji:'📸', label:'Photo',        bg:'#eff6ff', color:'#0ea5e9' },
+  announcement: { emoji:'📢', label:'Announcement', bg:'#fff7ed', color:'#ea580c' },
+  achievement:  { emoji:'🏆', label:'Achievement',  bg:'#fefce8', color:'#d97706' },
+  result:       { emoji:'⚡', label:'Result',        bg:'#f0fdf4', color:'#16a34a' },
+}
+
+// ── Feed Post Card ────────────────────────────────────────────────
+function FeedCard({ post, onLike }: { post: FeedPost; onLike: (id: string) => void }) {
+  const cfg = TYPE_CONFIG[post.type]
+  return (
+    <div className="feed-card">
+      <div className="feed-card-header">
+        <div className="feed-avatar" style={{ background: `linear-gradient(135deg,${post.authorColor},${post.authorColor}bb)` }}>
+          {post.authorInitials}
+        </div>
+        <div className="feed-meta">
+          <div className="feed-author">{post.author}</div>
+          <div className="feed-time">
+            {post.tournament && <span className="feed-tournament">🏉 {post.tournament} · </span>}
+            {timeAgo(post.createdAt)}
+          </div>
+        </div>
+        <div className="feed-type-badge" style={{ background: cfg.bg, color: cfg.color }}>
+          {cfg.emoji} {cfg.label}
+        </div>
+      </div>
+      {post.image_url && (
+        <div className="feed-image-wrap">
+          <img src={post.image_url} alt="" className="feed-image"/>
+        </div>
+      )}
+      <p className="feed-caption">{post.caption}</p>
+      <div className="feed-actions">
+        <button className={`feed-like-btn ${post.liked ? 'liked' : ''}`} onClick={() => onLike(post.id)}>
+          {post.liked ? '❤️' : '🤍'} <span>{post.likes}</span>
+        </button>
+        <button className="feed-comment-btn">💬 Comment</button>
+        <button className="feed-share-btn">↗ Share</button>
+      </div>
+    </div>
+  )
+}
+
+// ── Live Match Card ───────────────────────────────────────────────
+function LiveCard({ match }: { match: LiveMatch }) {
+  const navigate = useNavigate()
+  return (
+    <div className="live-match-card" onClick={() => navigate(`/matches/${match.id}/live`)}>
+      <div className="live-pulse-row">
+        <span className="live-dot"/>
+        <span className="live-label">LIVE</span>
+        <span className="live-period">Period {match.period}</span>
+        {match.tournament && <span className="live-tourn">{match.tournament}</span>}
+      </div>
+      <div className="live-score-row">
+        <div className="live-team">
+          <div className="live-team-badge">{match.homeShort}</div>
+          <div className="live-team-name">{match.home}</div>
+        </div>
+        <div className="live-scoreline">
+          <span className="live-score-num">{match.homeScore}</span>
+          <span className="live-score-sep">-</span>
+          <span className="live-score-num">{match.guestScore}</span>
+        </div>
+        <div className="live-team right">
+          <div className="live-team-badge">{match.guestShort}</div>
+          <div className="live-team-name">{match.guest}</div>
+        </div>
+      </div>
+      <div className="live-view-btn">View Live →</div>
+    </div>
+  )
+}
+
+// ── Upcoming Match Strip ──────────────────────────────────────────
+function UpcomingStrip({ match }: { match: UpcomingMatch }) {
+  const d = new Date(match.scheduledAt)
+  const timeStr = d.toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit' })
+  const dateStr = d.toLocaleDateString('en-IN', { day:'numeric', month:'short' })
+  return (
+    <Link to={`/matches/${match.id}`} className="upcoming-strip">
+      <div className="upcoming-date-block">
+        <div className="upcoming-time">{timeStr}</div>
+        <div className="upcoming-date">{dateStr}</div>
+      </div>
+      <div className="upcoming-teams">
+        <span className="upcoming-badge">{match.homeShort}</span>
+        <span className="upcoming-vs">vs</span>
+        <span className="upcoming-badge">{match.guestShort}</span>
+      </div>
+      <div className="upcoming-names">
+        {match.home} vs {match.guest}
+      </div>
+      {match.tournament && (
+        <div className="upcoming-tourn">{match.tournament}</div>
+      )}
+      <div className="upcoming-arrow">›</div>
+    </Link>
+  )
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// MAIN HOME PAGE
+// ═══════════════════════════════════════════════════════════════════
 export default function Home() {
-  const live = useMemo(() => [
-    { id: 'm2', tournament: 'SKBC', home: 'SKBC', guest: 'Rangers', score: { h: 18, g: 15 }, half: 1, time: '05:21', raid: 7, dateLabel: 'Today' },
-    { id: 'm3', tournament: 'Warriors Cup', home: 'Warriors', guest: 'Titans', score: { h: 12, g: 10 }, half: 1, time: '03:02', raid: 3, dateLabel: 'Today' },
-  ], [])
+  const { user, profile } = useAuth()
+  const [feedTab, setFeedTab]           = useState<'all'|'my-team'|'tournaments'>('all')
+  const [liveMatches, setLiveMatches]   = useState<LiveMatch[]>([])
+  const [upcoming, setUpcoming]         = useState<UpcomingMatch[]>([])
+  const [stats, setStats]               = useState<Stats>({ tournaments:0, teams:0, players:0, matches:0 })
+  const [feed, setFeed]                 = useState<FeedPost[]>(MOCK_FEED)
+  const [tournaments, setTournaments]   = useState<any[]>([])
+  const [loading, setLoading]           = useState(true)
 
-  const upcoming = useMemo(() => [
-    { id: 'u1', dateLabel: 'Today',    time: '7:00 PM', home: 'SKBC',   guest: 'Rangers', tournament: 'SKBC', score: { h: 0, g: 0 }  },
-    { id: 'u2', dateLabel: 'Tomorrow', time: '6:00 PM', home: 'Falcons', guest: 'Spartans', tournament: 'Warriors Cup', score: { h: 0, g: 0 } },
-    { id: 'u3', dateLabel: 'Feb 28',   time: '5:30 PM', home: 'Wolves', guest: 'Titans', tournament: 'Warriors Cup', score: { h: 0, g: 0 }   },
-  ], [])
+  const firstName = profile?.full_name?.split(' ')[0]
+    || user?.user_metadata?.full_name?.split(' ')[0]
+    || user?.phone?.slice(-4)
+    || 'Player'
 
-  const feed = useMemo(() => [
-    { id: 'f1', title: 'SKBC defeated Rangers (34–29)',   date: 'Feb 10, 2026', sub: 'Ashu Malik scored 12 raid points.' },
-    { id: 'f2', title: 'Super Raid!',                     date: 'Feb 12, 2026', sub: 'Ajay scored 3 points in a single raid.' },
-    { id: 'f3', title: 'Tournament Announcement',         date: 'Feb 15, 2026', sub: 'Spring Kabaddi Cup starts Mar 1.' },
-  ], [])
+  useEffect(() => { fetchAll() }, [])
 
-  const [featuredLive, ...otherLive] = live
-  const hasLive = live.length > 0
-  const hero = hasLive ? featuredLive : upcoming[0]
-  const [q, setQ] = useState('')
-  const stats = useMemo(() => ([
-    { label: 'Tournaments', value: 12, sub: 'Active this season', tone: 'sky' },
-    { label: 'Teams',       value: 38, sub: 'Across tournaments', tone: 'green' },
-    { label: 'Players',     value: 524, sub: 'Registered',        tone: 'gold' },
-  ]), [])
-  const trending = useMemo(() => [
-    { id: 'tm1', home: 'Titans', guest: 'Wolves', score: '34–32', tag: 'Completed' },
-    { id: 'tm2', home: 'SKBC', guest: 'Rangers', score: '29–27', tag: 'Completed' },
-    { id: 'tm3', home: 'Falcons', guest: 'Spartans', score: 'Live', tag: 'Live' },
-  ], [])
-  const shortcuts = [
-    { href: '/matches', label: 'Matches', emoji: '📅' },
-    { href: '/leaderboards',    label: 'Leaderboards', emoji: '🏆' },
-    { href: '/tournaments',     label: 'Tournaments', emoji: '🎟️' },
-    { href: '/me/posters',      label: 'Posters', emoji: '🖼️' },
-  ]
+  async function fetchAll() {
+    setLoading(true)
+    try {
+      const [matchRes, statsRes, tournRes] = await Promise.allSettled([
+        // Live + upcoming matches
+        supabase.from('kabaddi_matches')
+          .select(`id,status,home_score,guest_score,period,created_at,
+            home_team:teams!team_home_id(id,name,short),
+            guest_team:teams!team_guest_id(id,name,short)`)
+          .in('status', ['live','toss_pending','toss_completed'])
+          .order('created_at', { ascending:false })
+          .limit(10),
 
-  // Mock data for search
-  const ALL_PLAYERS = [
-    { id: 'p1', name: 'Pradeep Narwal', team: 'Wolves' },
-    { id: 'p2', name: 'Maninder Singh', team: 'Rangers' },
-    { id: 'p3', name: 'Fazel Atrachali', team: 'Titans' },
-    { id: 'p4', name: 'Pawan Sehrawat', team: 'Wolves' },
-  ]
-  const ALL_TEAMS = [
-    { id: 't1', name: 'Rangers', short: 'RG' },
-    { id: 't2', name: 'Titans', short: 'TT' },
-    { id: 't3', name: 'Wolves', short: 'WV' },
-  ]
+        // Counts
+        Promise.allSettled([
+          supabase.from('tournaments').select('*', { count:'exact', head:true }),
+          supabase.from('teams').select('*', { count:'exact', head:true }),
+          supabase.from('players').select('*', { count:'exact', head:true }),
+          supabase.from('kabaddi_matches').select('*', { count:'exact', head:true }),
+        ]),
 
-  const searchResults = useMemo(() => {
-    if (!q.trim()) return null
-    const query = q.toLowerCase()
-    return {
-      players: ALL_PLAYERS.filter(p => p.name.toLowerCase().includes(query)),
-      teams: ALL_TEAMS.filter(t => t.name.toLowerCase().includes(query))
+        // Recent tournaments
+        supabase.from('tournaments')
+          .select('id,name,status,level,start_date')
+          .order('created_at', { ascending:false })
+          .limit(5),
+      ])
+
+      // Matches
+      if (matchRes.status === 'fulfilled' && !matchRes.value.error) {
+        const data = matchRes.value.data as any[]
+        const live: LiveMatch[] = []
+        const upcom: UpcomingMatch[] = []
+        data.forEach(m => {
+          const hName = m.home_team?.name || 'Home'
+          const gName = m.guest_team?.name || 'Guest'
+          const hShort = m.home_team?.short || hName.slice(0,2).toUpperCase()
+          const gShort = m.guest_team?.short || gName.slice(0,2).toUpperCase()
+          if (m.status === 'live') {
+            live.push({ id:m.id, home:hName, homeShort:hShort, homeScore:m.home_score||0, guest:gName, guestShort:gShort, guestScore:m.guest_score||0, period:m.period||1, tournament:'' })
+          } else {
+            upcom.push({ id:m.id, home:hName, homeShort:hShort, guest:gName, guestShort:gShort, scheduledAt:m.created_at, tournament:'' })
+          }
+        })
+        setLiveMatches(live)
+        setUpcoming(upcom)
+      } else if (matchRes.status === 'fulfilled' && matchRes.value.error) {
+        console.warn('Matches fetch aborted or failed:', matchRes.value.error.message)
+      }
+
+      // Stats
+      if (statsRes.status === 'fulfilled') {
+        const results = statsRes.value as any[]
+        const getCount = (res: any) => (res.status === 'fulfilled' && !res.value.error) ? (res.value.count || 0) : 0
+        setStats({ 
+          tournaments: getCount(results[0]), 
+          teams: getCount(results[1]), 
+          players: getCount(results[2]), 
+          matches: getCount(results[3]) 
+        })
+      }
+
+      // Tournaments
+      if (tournRes.status === 'fulfilled' && !tournRes.value.error) {
+        setTournaments(tournRes.value.data || [])
+      } else if (tournRes.status === 'fulfilled' && tournRes.value.error) {
+        console.warn('Tournaments fetch aborted or failed:', tournRes.value.error.message)
+      }
+
+    } catch (e) {
+      console.error('Home fetch error:', e)
+    } finally {
+      setLoading(false)
     }
-  }, [q])
+  }
 
-  const filteredUpcoming = useMemo(() => {
-    if (!q.trim()) return upcoming;
-    const query = q.toLowerCase();
-    return upcoming.filter(m => 
-      m.home.toLowerCase().includes(query) || 
-      m.guest.toLowerCase().includes(query)
-    );
-  }, [q, upcoming]);
+  function toggleLike(id: string) {
+    setFeed(prev => prev.map(p => p.id === id
+      ? { ...p, liked:!p.liked, likes: p.liked ? p.likes-1 : p.likes+1 }
+      : p
+    ))
+  }
 
   return (
-    <div className="home-page">
+    <div className="hp-page">
 
       {/* ── TOP BAR ── */}
-      <div className="home-section" style={{ gap: 10 }}>
-        <div className="section-header" style={{ justifyContent: 'space-between', alignItems: 'center', display: 'flex' }}>
-          <div className="section-title">Dashboard</div>
-          <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-            <div style={{ position:'relative' }}>
-              <Link to="/notifications" className="btn btn-ghost btn-sm">🔔</Link>
-              <span style={{ position:'absolute', right:-6, top:-6, background:'#ef4444', color:'#fff', borderRadius:999, fontSize:10, fontWeight:900, padding:'2px 6px' }}>3</span>
-            </div>
-          </div>
+      <div className="hp-topbar">
+        <div className="hp-greeting">
+          Hey {firstName} 👋
         </div>
-        <div className="input-wrapper" style={{ position: 'relative' }}>
-          <span className="input-icon">🔎</span>
-          <input value={q} onChange={e=>setQ(e.target.value)} className="input" placeholder="Search teams, players, matches" />
-          
-          {/* Search Dropdown */}
-          {searchResults && (
-            <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: '#fff', borderRadius: 16, marginTop: 8, boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)', zIndex: 100, border: '1px solid #f1f5f9', overflow: 'hidden' }}>
-              {searchResults.players.length > 0 && (
-                <div style={{ padding: '12px 16px' }}>
-                  <div style={{ fontSize: 10, fontWeight: 900, color: '#94a3b8', textTransform: 'uppercase', marginBottom: 8 }}>Players</div>
-                  {searchResults.players.map(p => (
-                    <Link key={p.id} to={`/players/${p.name.toLowerCase().replace(/\s+/g, '-')}`} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', textDecoration: 'none' }}>
-                      <div style={{ width: 32, height: 32, borderRadius: 8, background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12 }}>🏃</div>
-                      <div>
-                        <div style={{ fontSize: 14, fontWeight: 800, color: '#1e293b' }}>{p.name}</div>
-                        <div style={{ fontSize: 11, color: '#64748b' }}>{p.team}</div>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              )}
-              {searchResults.teams.length > 0 && (
-                <div style={{ padding: '12px 16px', borderTop: '1px solid #f1f5f9' }}>
-                  <div style={{ fontSize: 10, fontWeight: 900, color: '#94a3b8', textTransform: 'uppercase', marginBottom: 8 }}>Teams</div>
-                  {searchResults.teams.map(t => (
-                    <Link key={t.id} to={`/teams/${t.name.toLowerCase().replace(/\s+/g, '-')}`} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', textDecoration: 'none' }}>
-                      <div style={{ width: 32, height: 32, borderRadius: 8, background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12 }}>🛡️</div>
-                      <div style={{ fontSize: 14, fontWeight: 800, color: '#1e293b' }}>{t.name}</div>
-                    </Link>
-                  ))}
-                </div>
-              )}
-              {searchResults.players.length === 0 && searchResults.teams.length === 0 && (
-                <div style={{ padding: '24px', textAlign: 'center', color: '#94a3b8', fontSize: 14 }}>
-                  No results found for "{q}"
-                </div>
-              )}
-            </div>
-          )}
+        <div className="hp-topbar-actions">
+          <Link to="/notifications" className="hp-notif-btn">
+            🔔
+            <span className="hp-notif-dot"/>
+          </Link>
         </div>
       </div>
 
-      {/* ── HERO ── */}
-      <div className="home-hero">
-        {hasLive ? (
-          <div className="hero-card live">
-            <div className="hero-top">
-              <div className="hero-badge">LIVE NOW</div>
-              <div className="hero-title">{hero.tournament}</div>
+      {/* ── LIVE MATCHES ── */}
+      {liveMatches.length > 0 && (
+        <div className="hp-section">
+          <div className="hp-section-header">
+            <div className="hp-section-title">
+              <span className="hp-live-indicator"/>
+              Live Now
             </div>
-            <div className="hero-score">
-              <Link to={`/teams/${hero.home.toLowerCase().replace(/\s+/g, '-')}`} className="hero-team" style={{ textDecoration: 'none', color: 'inherit' }}>{hero.home}</Link>
-              <div className="hero-scoreline">
-                {hero.score.h} <span className="hero-sep">-</span> {hero.score.g}
-              </div>
-              <Link to={`/teams/${hero.guest.toLowerCase().replace(/\s+/g, '-')}`} className="hero-team" style={{ textDecoration: 'none', color: 'inherit' }}>{hero.guest}</Link>
-            </div>
-            <div className="hero-meta">1st Half • {hero.time}</div>
-            <Link to={`/matches/${hero.id}`} className="hero-cta">
-              View Live
-            </Link>
+            <Link to="/matches" className="hp-see-all">See all →</Link>
           </div>
-        ) : (
-          <div className="hero-card upcoming">
-            <div className="hero-top">
-              <div className="hero-badge upcoming">Next Match</div>
-            </div>
-            <div className="hero-versus">
-              <div className="hero-team">{hero.home}</div>
-              <div className="hero-vs">vs</div>
-              <div className="hero-team">{hero.guest}</div>
-            </div>
-            <div className="hero-meta">{hero.dateLabel} • {hero.time}</div>
-            <Link to={`/matches/${hero.id}`} className="hero-cta">
-              View Match
-            </Link>
-          </div>
-        )}
-      </div>
-
-      {/* ── QUICK STATS ── */}
-      <div className="home-section">
-        <div className="section-label sky">Quick Stats</div>
-        <div className="stats-row">
-          {stats.map(s => (
-            <div key={s.label} className={`stat-card ${s.tone}`}>
-              <div className="stat-label">{s.label}</div>
-              <div className="stat-value">{s.value}</div>
-              <div className="stat-sub">{s.sub}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* ── OTHER LIVE MATCHES ── */}
-      {otherLive.length > 0 && (
-        <div className="home-section">
-          <div className="section-header">
-            <div className="section-title">Live Matches</div>
-            <Link to="/kabaddi/matches" className="section-link">See all</Link>
-          </div>
-          <div className="live-cards">
-            {otherLive.map(m => (
-              <Link key={m.id} to={`/matches/${m.id}`} className="live-card">
-                <div className="live-left">
-                  {m.home} <span className="live-sep">-</span> {m.guest}
-                </div>
-                <div className="live-right">
-                  <div className="live-meta">Half {m.half} • Raid {m.raid}</div>
-                  <div className="live-score">{m.score.h}–{m.score.g}</div>
-                </div>
-              </Link>
-            ))}
+          <div className="hp-live-scroll">
+            {liveMatches.map(m => <LiveCard key={m.id} match={m}/>)}
           </div>
         </div>
       )}
 
-      {/* ── TRENDING MATCHES ── */}
-      <div className="home-section">
-        <div className="section-header">
-          <div className="section-title">Trending Matches</div>
-          <Link to="/matches" className="section-link">See all</Link>
+      {/* ── STATS STRIP ── */}
+      <div className="hp-stats-strip">
+        {[
+          { label:'Tournaments', value: loading?'—':stats.tournaments, color:'#0ea5e9', emoji:'🏆' },
+          { label:'Teams',       value: loading?'—':stats.teams,       color:'#16a34a', emoji:'👥' },
+          { label:'Matches',     value: loading?'—':stats.matches,     color:'#ea580c', emoji:'🏉' },
+          { label:'Players',     value: loading?'—':stats.players,     color:'#7c3aed', emoji:'⚡' },
+        ].map(s => (
+          <div key={s.label} className="hp-stat-pill">
+            <div className="hp-stat-emoji">{s.emoji}</div>
+            <div className="hp-stat-value" style={{ color:s.color }}>{s.value}</div>
+            <div className="hp-stat-label">{s.label}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* ── FEED ── */}
+      <div className="hp-section">
+        <div className="hp-section-header">
+          <div className="hp-section-title">📸 Feed</div>
+          <Link to="/feed" className="hp-see-all">See all →</Link>
         </div>
-        <div style={{ display:'flex', gap:12, overflowX:'auto', paddingBottom: 4 }}>
-          {trending.map(t => (
-            <Link key={t.id} to={`/matches/${t.id}`} style={{ flex:'0 0 auto', minWidth: 220, background:'var(--bg-surface)', border:'1px solid var(--bg-border)', borderRadius:12, padding:'12px 14px', textDecoration:'none', boxShadow:'var(--shadow-xs)' }}>
-              <div style={{ fontWeight:800, color:'var(--text-primary)' }}>{t.home} vs {t.guest}</div>
-              <div style={{ fontSize:12, color:'var(--text-secondary)', fontWeight:700 }}>{t.tag}</div>
-              <div style={{ fontFamily:'var(--font-display)', fontWeight:900, color:'var(--color-orange)', marginTop:6 }}>{t.score}</div>
-            </Link>
+
+        {/* Feed tabs */}
+        <div className="hp-feed-tabs">
+          {(['all','my-team','tournaments'] as const).map(t => (
+            <button key={t} className={`hp-feed-tab ${feedTab===t?'active':''}`} onClick={() => setFeedTab(t)}>
+              {t === 'all' ? '🌍 All' : t === 'my-team' ? '👥 My Team' : '🏆 Tournaments'}
+            </button>
           ))}
+        </div>
+
+        {/* Post button */}
+        <Link to="/feed/create" className="hp-create-post-btn">
+          <div className="hp-create-post-avatar" style={{ background: profile?.avatar_url ? `url(${profile.avatar_url})` : 'linear-gradient(135deg,#0ea5e9,#0284c7)' }}>
+            {!profile?.avatar_url && (firstName[0] || 'P')}
+          </div>
+          <div className="hp-create-post-placeholder">Share a winning moment, result or announcement...</div>
+          <div className="hp-create-post-icon">📸</div>
+        </Link>
+
+        {/* Feed posts */}
+        <div className="hp-feed-list">
+          {feed.map(post => <FeedCard key={post.id} post={post} onLike={toggleLike}/>)}
         </div>
       </div>
 
-      {/* ── UPCOMING ── */}
-      <div className="home-section">
-        <div className="section-header">
-          <div className="section-title">Upcoming Matches</div>
-          <Link to="/matches" className="section-link">See all</Link>
+      {/* ── UPCOMING MATCHES ── */}
+      <div className="hp-section">
+        <div className="hp-section-header">
+          <div className="hp-section-title">📅 Upcoming Matches</div>
+          <Link to="/matches" className="hp-see-all">See all →</Link>
         </div>
-        <div className="upcoming-list">
-          {filteredUpcoming.map(m => (
-            <Link key={m.id} to={`/matches/${m.id}`} className="up-card">
-              <div className="up-date">{m.dateLabel}</div>
-              <div className="up-versus">{m.home} vs {m.guest}</div>
-              <div className="up-time">{m.time}</div>
-            </Link>
-          ))}
-          {filteredUpcoming.length === 0 && (
-            <div style={{ padding: '20px', textAlign: 'center', color: '#94a3b8', fontSize: 14 }}>
-              No matches found for "{q}"
-            </div>
-          )}
-        </div>
+
+        {loading ? (
+          <div className="hp-loading-strip">Loading...</div>
+        ) : upcoming.length === 0 ? (
+          <div className="hp-empty-state">
+            <div className="hp-empty-icon">📅</div>
+            <div className="hp-empty-text">No upcoming matches</div>
+            <Link to="/kabaddi/create" className="hp-empty-link">Start a match →</Link>
+          </div>
+        ) : (
+          <div className="hp-upcoming-list">
+            {upcoming.slice(0,5).map(m => <UpcomingStrip key={m.id} match={m}/>)}
+          </div>
+        )}
       </div>
 
-      {/* ── SHORTCUTS ── */}
-      <div className="home-section">
-        <div className="section-header">
-          <div className="section-title">Quick Access</div>
+      {/* ── MY TOURNAMENTS ── */}
+      <div className="hp-section">
+        <div className="hp-section-header">
+          <div className="hp-section-title">🏆 My Tournaments</div>
+          <Link to="/tournaments" className="hp-see-all">See all →</Link>
         </div>
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(170px,1fr))', gap:10 }}>
-          {shortcuts.map(s => (
-            <Link key={s.href} to={s.href} className="btn btn-ghost" style={{ display:'flex', justifyContent:'space-between' }}>
-              <span style={{ fontWeight:900 }}>{s.label}</span>
-              <span>{s.emoji}</span>
-            </Link>
-          ))}
-        </div>
-      </div>
 
-      {/* ── NEWS ── */}
-      <div className="home-section">
-        <div className="section-header">
-          <div className="section-title">News & Updates</div>
-          <Link to="/feed" className="section-link">See all</Link>
-        </div>
-        <div className="feed-list">
-          {feed.map(f => (
-            <div key={f.id} className="feed-card">
-              <div className="feed-title">{f.title}</div>
-              <div className="feed-date">{f.date}</div>
-              <div className="feed-sub">{f.sub}</div>
-            </div>
-          ))}
-        </div>
+        {loading ? (
+          <div className="hp-loading-strip">Loading...</div>
+        ) : tournaments.length === 0 ? (
+          <div className="hp-empty-state">
+            <div className="hp-empty-icon">🏆</div>
+            <div className="hp-empty-text">No tournaments yet</div>
+            <Link to="/tournament/create" className="hp-empty-link">Create one →</Link>
+          </div>
+        ) : (
+          <div className="hp-tourn-list">
+            {tournaments.map(t => (
+              <Link key={t.id} to={`/tournament/${t.id}/dashboard`} className="hp-tourn-row">
+                <div className="hp-tourn-icon">{t.name.charAt(0).toUpperCase()}</div>
+                <div className="hp-tourn-info">
+                  <div className="hp-tourn-name">{t.name}</div>
+                  <div className="hp-tourn-meta">{t.level || 'Local'}{t.start_date ? ` · ${new Date(t.start_date).toLocaleDateString('en-IN',{day:'numeric',month:'short'})}` : ''}</div>
+                </div>
+                <div className={`hp-tourn-status hp-status-${(t.status||'draft').toLowerCase()}`}>
+                  {t.status || 'draft'}
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
       </div>
 
     </div>

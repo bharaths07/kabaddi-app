@@ -155,6 +155,19 @@ export default function OnboardingPage() {
           })}
         </div>
 
+        {step === 1 && (
+          <button
+            onClick={() => navigate('/login')}
+            style={{
+              background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)',
+              fontSize: 13, cursor: 'pointer', fontFamily: 'Nunito,sans-serif',
+              fontWeight: 700, padding: '0 0 16px', display: 'flex', alignItems: 'center', gap: 6,
+            }}
+          >
+            ← Back to Login
+          </button>
+        )}
+
         {error && <div className="auth-error"><span>⚠️</span> {error}</div>}
 
         {/* ── Step 1: Basic Info ── */}

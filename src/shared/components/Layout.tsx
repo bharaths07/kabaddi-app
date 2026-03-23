@@ -48,9 +48,17 @@ function Shell() {
     avatar_url: profile?.avatar_url || null,
   }
 
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && sidebarOpen) toggleSidebar()
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [sidebarOpen, toggleSidebar])
+
   return (
     <div className={`gl-app ${sidebarOpen ? 'gl-drawer-open' : ''}`}>
-      {sidebarOpen && <div className="gl-overlay" onClick={toggleSidebar} />}
+      <div className="gl-overlay" onClick={toggleSidebar} />
       <TopNav />
       <div className="gl-body">
         <main className="gl-content">

@@ -1,6 +1,8 @@
-import React, { useMemo, useState } from 'react'
+import React, { useMemo, useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import './add-rounds.css'
+import { getTournament, getTournamentTeams, saveTournamentFixtures } from '../../shared/services/tournamentService'
+import { Tournament, TournamentTeam } from '../../features/kabaddi/types/kabaddi.types'
 
 type StructureType = 'league' | 'knockout' | 'hybrid'
 type DrawType = 'manual' | 'random' | 'seeded'
@@ -10,26 +12,31 @@ type Group = { id: string; name: string; teamIds: string[] }
 type Team = { id: string; name: string }
 
 export default function AddRoundsGroups() {
-  const { id } = useParams()
+  const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
 
-  const tournament = useMemo(() => {
-    const all = [
-      { id: 'kpl2026', name: 'KPL 2026', teams: 12 },
-      { id: 'skbc2026', name: 'Spring Kabaddi Cup', teams: 8 },
-      { id: 'monsoon2026', name: 'Monsoon League', teams: 12 }
-    ]
-    return all.find(t => t.id === id) || all[0]
-  }, [id])
+  const [tournament, setTournament] = useState<Tournament | null>(null)
+  const [baseTeams, setBaseTeams] = useState<Team[]>([])
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
 
-  const baseTeams = useMemo<Team[]>(() => {
-    const names = ['Rangers', 'Titans', 'Wolves', 'Falcons', 'Spartans', 'Knights', 'Warriors', 'Lions', 'Panthers', 'Eagles', 'Royals', 'Pirates']
-    return names.slice(0, tournament.teams).map((n, i) => ({ id: `t${i + 1}`, name: n }))
-  }, [tournament.teams])
+  useEffect(() => {
+    if (!id) return
+    (async () => {
+      setLoading(true)
+      const t = await getTournament(id)
+      if (t) {
+        setTournament(t)
+        const teamsData = await getTournamentTeams(t.id)
+        setBaseTeams(teamsData.map(dt => ({ id: dt.id.toString(), name: dt.name })))
+      }
+      setLoading(false)
+    })()
+  }, [id])
 
   const [type, setType] = useState<StructureType>('league')
 
-  const defaultRounds = useMemo(() => Math.max(1, tournament.teams - 1), [tournament.teams])
+  const defaultRounds = useMemo(() => Math.max(1, baseTeams.length - 1), [baseTeams.length])
   const [rounds, setRounds] = useState<number>(defaultRounds)
   const [pWin, setPWin] = useState<number>(2)
   const [pDraw, setPDraw] = useState<number>(1)
@@ -44,7 +51,7 @@ export default function AddRoundsGroups() {
     { id: 'g1', name: 'Group A', teamIds: [] },
     { id: 'g2', name: 'Group B', teamIds: [] }
   ])
-  const [teamsPerGroup, setTeamsPerGroup] = useState<number>(Math.max(2, Math.floor(tournament.teams / 2)))
+  const [teamsPerGroup, setTeamsPerGroup] = useState<number>(Math.max(2, Math.floor(baseTeams.length / 2)))
   const [qualifyPerGroup, setQualifyPerGroup] = useState<number>(2)
 
   const assignedIds = useMemo(() => new Set(groups.flatMap(g => g.teamIds)), [groups])
@@ -98,16 +105,78 @@ export default function AddRoundsGroups() {
     return true
   }, [groups])
 
-  const onSave = () => {
-    navigate(`/tournament/${tournament.id}/add-schedule`)
+  const onSave = async () => {
+    if (!tournament) return
+    setSaving(true)
+
+    let fixtures: any[] = []
+
+    if (type === 'league') {
+      // Simple round robin generator
+      // For MVP, we just create a few matches between available teams if not already existing
+      for (let r = 1; r <= rounds; r++) {
+        for (let i = 0; i < baseTeams.length; i++) {
+          for (let j = i + 1; j < baseTeams.length; j++) {
+            fixtures.push({
+              round: r,
+              team_home_id: baseTeams[i].id,
+              team_guest_id: baseTeams[j].id,
+              status: 'scheduled'
+            })
+          }
+        }
+      }
+    } else if (type === 'knockout') {
+      // Simple knockout - just pair them up for Round 1
+      const shuffled = [...baseTeams].sort(() => Math.random() - 0.5)
+      for (let i = 0; i < shuffled.length; i += 2) {
+        if (shuffled[i + 1]) {
+          fixtures.push({
+            round: 1,
+            team_home_id: shuffled[i].id,
+            team_guest_id: shuffled[i + 1].id,
+            status: 'scheduled'
+          })
+        }
+      }
+    } else if (type === 'hybrid') {
+      // Pairs within groups
+      groups.forEach(g => {
+        for (let i = 0; i < g.teamIds.length; i++) {
+          for (let j = i + 1; j < g.teamIds.length; j++) {
+            fixtures.push({
+              round: 1,
+              team_home_id: g.teamIds[i],
+              team_guest_id: g.teamIds[j],
+              status: 'scheduled'
+            })
+          }
+        }
+      })
+    }
+
+    const success = await saveTournamentFixtures(tournament.id, fixtures)
+    setSaving(false)
+
+    if (success) {
+      navigate(`/tournament/${tournament.id}/add-schedule`)
+    } else {
+      alert('Failed to save rounds. Please try again.')
+    }
   }
+
+  if (loading) return <div className="ar-page">Loading...</div>
+  if (!tournament) return <div className="ar-page">Tournament not found</div>
 
   return (
     <div className="ar-page">
       <div className="ar-head">
-        <div>
-          <div className="ar-title">Add Rounds / Groups</div>
-          <div className="ar-sub">Tournament: {tournament.name}</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <button onClick={() => navigate(`/tournament/${id}/add-teams`)} style={{ background: 'rgba(0,0,0,0.05)', border: 'none', borderRadius: 8, width: 36, height: 36, display: 'flex', alignItems: 'center', justifyCenter: 'center', cursor: 'pointer', fontSize: 20 }}>←</button>
+          <div>
+            <div className="ar-title">Add Rounds / Groups</div>
+            <div className="ar-sub">Tournament: {tournament.name}</div>
+          </div>
         </div>
         <div className="ar-tip">Rounds will be auto-generated after you save</div>
       </div>
@@ -326,7 +395,9 @@ export default function AddRoundsGroups() {
 
       <div className="ar-foot">
         <button className="ar-outline" onClick={() => navigate(`/tournament/${tournament.id}/add-teams`)}>Back to Add Teams</button>
-        <button className="ar-primary" onClick={onSave} disabled={type === 'hybrid' && !isGroupsValid}>Save & Continue</button>
+        <button className="ar-primary" onClick={onSave} disabled={(type === 'hybrid' && !isGroupsValid) || saving}>
+          {saving ? 'Generating Rounds...' : 'Save & Continue'}
+        </button>
       </div>
     </div>
   )

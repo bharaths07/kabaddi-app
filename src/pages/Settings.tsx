@@ -1,21 +1,51 @@
 import React, { useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import './settings.css'
-import { getSettings, updateSettings } from '../shared/state/settingsStore'
+import { getSettings, updateSettings, syncSettingsToSupabase } from '../shared/state/settingsStore'
+import { useAuth } from '../shared/context/AuthContext'
 
 type Tab = 'general' | 'account' | 'privacy' | 'notifications' | 'about'
 
 export default function Settings() {
+  const { user, profile, signOut } = useAuth()
+  const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState<Tab>('general')
   const initial = useMemo(() => getSettings(), [])
   const [theme, setTheme] = useState(initial.theme)
   const [newsRefreshMs, setNewsRefreshMs] = useState(initial.newsRefreshMs)
   const [showLiveHints, setShowLiveHints] = useState(initial.showLiveHints)
   const [notifications, setNotifications] = useState(initial.notifications)
+  const [privacy, setPrivacy] = useState(initial.privacy || { publicProfile: true, showHistory: true })
 
-  useEffect(() => { updateSettings({ theme }) }, [theme])
-  useEffect(() => { updateSettings({ newsRefreshMs }) }, [newsRefreshMs])
-  useEffect(() => { updateSettings({ showLiveHints }) }, [showLiveHints])
-  useEffect(() => { updateSettings({ notifications }) }, [notifications])
+  useEffect(() => { 
+    updateSettings({ theme })
+    if (user?.id) syncSettingsToSupabase(user.id)
+  }, [theme, user?.id])
+
+  useEffect(() => { 
+    updateSettings({ newsRefreshMs })
+    if (user?.id) syncSettingsToSupabase(user.id)
+  }, [newsRefreshMs, user?.id])
+
+  useEffect(() => { 
+    updateSettings({ showLiveHints })
+    if (user?.id) syncSettingsToSupabase(user.id)
+  }, [showLiveHints, user?.id])
+
+  useEffect(() => { 
+    updateSettings({ notifications })
+    if (user?.id) syncSettingsToSupabase(user.id)
+  }, [notifications, user?.id])
+
+  useEffect(() => { 
+    updateSettings({ privacy })
+    if (user?.id) syncSettingsToSupabase(user.id)
+  }, [privacy, user?.id])
+
+  const handleLogout = async () => {
+    await signOut()
+    navigate('/login')
+  }
 
   const renderTabContent = () => {
     switch (activeTab) {
@@ -54,19 +84,21 @@ export default function Settings() {
             <div className="st-section">
               <div className="st-section-title">Profile Information</div>
               <div className="st-profile-row">
-                <div className="st-avatar-large">P</div>
+                <div className="st-avatar-large">
+                  {profile?.avatar_url ? <img src={profile.avatar_url} alt="Avatar" className="st-avatar-img" /> : (profile?.full_name?.[0] || 'U')}
+                </div>
                 <div className="st-profile-info">
-                  <div className="st-profile-name">Pro Scorer</div>
-                  <div className="st-profile-email">scorer@gamelegends.com</div>
+                  <div className="st-profile-name">{profile?.full_name || 'Anonymous User'}</div>
+                  <div className="st-profile-email">{profile?.email || user?.email || 'No email provided'}</div>
                   <span className="st-badge">Organizer</span>
                 </div>
               </div>
-              <button className="st-btn-outline">Edit Profile</button>
+              <button className="st-btn-outline" onClick={() => navigate('/profile/edit')}>Edit Profile</button>
             </div>
             <div className="st-section">
               <div className="st-section-title">Account Security</div>
-              <button className="st-btn-outline">Change Password</button>
-              <button className="st-btn-danger">Deactivate Account</button>
+              <button className="st-btn-outline" onClick={() => navigate('/settings/security')}>Change Password</button>
+              <button className="st-btn-danger" onClick={handleLogout}>Log Out</button>
             </div>
           </div>
         )
@@ -77,13 +109,13 @@ export default function Settings() {
               <div className="st-section-title">Privacy Settings</div>
               <div className="st-field">
                 <label className="st-toggle">
-                  <input type="checkbox" defaultChecked />
+                  <input type="checkbox" checked={privacy.publicProfile} onChange={e => setPrivacy(p => ({ ...p, publicProfile: e.target.checked }))} />
                   <span className="st-toggle-text">Make my profile public</span>
                 </label>
               </div>
               <div className="st-field">
                 <label className="st-toggle">
-                  <input type="checkbox" defaultChecked />
+                  <input type="checkbox" checked={privacy.showHistory} onChange={e => setPrivacy(p => ({ ...p, showHistory: e.target.checked }))} />
                   <span className="st-toggle-text">Show my scoring history</span>
                 </label>
               </div>
@@ -120,7 +152,7 @@ export default function Settings() {
         return (
           <div className="st-content">
             <div className="st-section">
-              <div className="st-section-title">About Game Legends</div>
+              <div className="st-section-title">About Play Legends</div>
               <div className="st-about-row">
                 <span className="st-label">Version</span>
                 <span className="st-value">1.2.4 (Beta)</span>

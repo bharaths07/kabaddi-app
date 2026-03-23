@@ -11,24 +11,9 @@ import {
 import { getTournament, getTournamentTeams, getTournamentFixtures } from "../../shared/services/tournamentService";
 
 // ─────────────────────────────────────────────────────────────
-// MOCK DATA — replace with your API / useTournament(id) hook
+// MOCK DATA — keep as fallback or reference
 // ─────────────────────────────────────────────────────────────
-const TOURNAMENT: Tournament = {
-  id: "kpl2026",
-  name: "Zilla Kabaddi Cup 2025",
-  venue: "Nehru Stadium, Pune",
-  level: "District",
-  status: "Registration Open",
-  startDate: "Mar 10, 2025",
-  endDate: "Mar 15, 2025",
-  totalTeams: 8,
-  confirmedTeams: 5,
-  totalMatches: 14,
-  completedMatches: 2,
-  joinCode: "KAB2025",
-};
-
-const TEAMS: Team[] = [
+const MOCK_TEAMS: Team[] = [
   { id: 1, name: "Pune Warriors",   color: "#e74c3c", captain: "Arjun Patil",  players: 12, status: "confirmed" },
   { id: 2, name: "Mumbai Titans",   color: "#2980b9", captain: "Rohit Sharma", players: 11, status: "confirmed" },
   { id: 3, name: "Delhi Kings",     color: "#27ae60", captain: "Suresh Kumar", players: 12, status: "confirmed" },
@@ -39,7 +24,7 @@ const TEAMS: Team[] = [
   { id: 8, name: "Bengaluru Force", color: "#c0392b", captain: "—",            players: 0,  status: "pending"   },
 ];
 
-const FIXTURES: Fixture[] = [
+const MOCK_FIXTURES: Fixture[] = [
   { id: 1, round: "Round 1", teamA: "Pune Warriors",  teamB: "Delhi Kings",     date: "Mar 9",  time: "10:00 AM", court: "Court 1", scorer: "Rahul S.",  scorerStatus: "confirmed",  status: "completed", result: "38 – 22" },
   { id: 2, round: "Round 1", teamA: "Mumbai Titans",  teamB: "Chennai Bulls",   date: "Mar 9",  time: "12:00 PM", court: "Court 2", scorer: "Vikram P.", scorerStatus: "confirmed",  status: "completed", result: "29 – 25" },
   { id: 3, round: "Round 2", teamA: "Delhi Kings",    teamB: "Chennai Bulls",   date: "Mar 10", time: "12:00 PM", court: "Court 2", scorer: "Rahul S.",  scorerStatus: "confirmed",  status: "scheduled" },
@@ -86,11 +71,9 @@ function Badge({ label }: { label: string }) {
 }
 
 function TeamAvatar({ name, color, size = 38 }: { name: string; color: string; size?: number }) {
+  const sizeClass = size === 28 ? "team-avatar--sm" : "team-avatar--lg";
   return (
-    <div
-      className="team-avatar"
-      style={{ background: color, width: size, height: size, fontSize: size * 0.42 }}
-    >
+    <div className={`team-avatar ${sizeClass}`}>
       {name[0]}
     </div>
   );
@@ -99,23 +82,28 @@ function TeamAvatar({ name, color, size = 38 }: { name: string; color: string; s
 // ─────────────────────────────────────────────────────────────
 // OVERVIEW TAB
 // ─────────────────────────────────────────────────────────────
-function OverviewTab({ onTabChange, fixtures }: { onTabChange: (tab: string) => void, fixtures: Fixture[] }) {
-  const teamPct  = Math.round((TOURNAMENT.confirmedTeams   / TOURNAMENT.totalTeams)   * 100);
-  const matchPct = Math.round((TOURNAMENT.completedMatches / TOURNAMENT.totalMatches)  * 100);
+function OverviewTab({ onTabChange, tournament, fixtures }: { onTabChange: (tab: string) => void, tournament: Tournament, fixtures: Fixture[] }) {
+  const teamPct  = Math.round((tournament.confirmedTeams   / tournament.totalTeams)   * 100);
+  const matchPct = Math.round((tournament.completedMatches / tournament.totalMatches)  * 100);
   
-  // Use fixtures from state if available, else fallback to mock
-  const displayFixtures = fixtures.length > 0 ? fixtures : FIXTURES;
+  // Use real fixtures from props, fallback to mock if empty
+  const displayFixtures = fixtures.length > 0 ? fixtures : MOCK_FIXTURES;
   const upcoming = displayFixtures.filter(f => f.status === "scheduled").slice(0, 3);
+
+  const progressConfigs = [
+    { id: "teams",    label: "Teams Confirmed",  pct: teamPct },
+    { id: "matches",  label: "Matches Played",   pct: matchPct },
+    { id: "scorers",  label: "Scorers Assigned", pct: 57 },
+  ];
 
   return (
     <div className="tab-content">
 
-      {/* Stat Cards */}
       <div className="stat-cards">
         {[
-          { label: "Teams",   value: `${TOURNAMENT.confirmedTeams}/${TOURNAMENT.totalTeams}`,    icon: "👥" },
-          { label: "Matches", value: `${TOURNAMENT.completedMatches}/${TOURNAMENT.totalMatches}`, icon: "🎯" },
-          { label: "Status",  value: "Open",                                                      icon: "✅" },
+          { label: "Teams",   value: `${tournament.confirmedTeams}/${tournament.totalTeams}`,    icon: "👥" },
+          { label: "Matches", value: `${tournament.completedMatches}/${tournament.totalMatches}`, icon: "🎯" },
+          { label: "Status",  value: tournament.status.replace("Registration ", ""),               icon: "✅" },
         ].map(s => (
           <div className="stat-card" key={s.label}>
             <span className="stat-card__icon">{s.icon}</span>
@@ -125,24 +113,22 @@ function OverviewTab({ onTabChange, fixtures }: { onTabChange: (tab: string) => 
         ))}
       </div>
 
-      {/* Progress */}
       <div className="section-card">
         <h3 className="section-title">Tournament Progress</h3>
-        {[
-          { label: "Teams Confirmed",  pct: teamPct,  color: "#27ae60" },
-          { label: "Matches Played",   pct: matchPct, color: "#e74c3c" },
-          { label: "Scorers Assigned", pct: 57,       color: "#e67e22" },
-        ].map(p => (
-          <div className="progress-row" key={p.label}>
-            <div className="progress-row__labels">
-              <span>{p.label}</span>
-              <span style={{ color: p.color, fontWeight: 700 }}>{p.pct}%</span>
+        {progressConfigs.map(p => {
+          const level = p.pct >= 80 ? "high" : p.pct >= 50 ? "medium" : "low";
+          return (
+            <div className="progress-row" key={p.label}>
+              <div className="progress-row__labels">
+                <span>{p.label}</span>
+                <span className={`progress-value progress-value--${p.id}`}>{p.pct}%</span>
+              </div>
+              <div className="progress-track">
+                <div className={`progress-fill progress-fill--${p.id} progress-fill--${level}`} />
+              </div>
             </div>
-            <div className="progress-track">
-              <div className="progress-fill" style={{ width: `${p.pct}%`, background: p.color }} />
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Upcoming Matches */}
@@ -167,12 +153,12 @@ function OverviewTab({ onTabChange, fixtures }: { onTabChange: (tab: string) => 
       {/* Join Code */}
       <div className="join-code-card">
         <p className="join-code-card__label">🔗 Tournament Join Code</p>
-        <p className="join-code-card__code">{TOURNAMENT.joinCode}</p>
+        <p className="join-code-card__code">{tournament.joinCode}</p>
         <p className="join-code-card__sub">Share this code so teams can self-register</p>
         <div className="join-code-card__actions">
           <button
             className="btn btn--outline-white"
-            onClick={() => navigator.clipboard.writeText(TOURNAMENT.joinCode)}
+            onClick={() => navigator.clipboard.writeText(tournament.joinCode)}
           >
             📋 Copy Code
           </button>
@@ -205,15 +191,18 @@ function OverviewTab({ onTabChange, fixtures }: { onTabChange: (tab: string) => 
 // ─────────────────────────────────────────────────────────────
 // TEAMS TAB
 // ─────────────────────────────────────────────────────────────
-function TeamsTab() {
+function TeamsTab({ teams }: { teams: Team[] }) {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [filter, setFilter] = useState<"all" | "confirmed" | "invited" | "pending">("all");
 
-  const filtered = filter === "all" ? TEAMS : TEAMS.filter(t => t.status === filter);
+  // Use real teams from props
+  const displayTeams = teams.length > 0 ? teams : MOCK_TEAMS;
+  const filtered = filter === "all" ? displayTeams : displayTeams.filter(t => t.status === filter);
 
   return (
     <div className="tab-content">
+
 
       <div className="filter-pills">
         {(["all", "confirmed", "invited", "pending"] as const).map(f => (
@@ -228,7 +217,7 @@ function TeamsTab() {
       </div>
 
       {filtered.map(team => (
-        <div className="team-card" key={team.id} style={{ borderLeftColor: team.color }}>
+        <div className="team-card" key={team.id}>
           <TeamAvatar name={team.name} color={team.color} />
           <div className="team-card__info">
             <p className="team-card__name">{team.name}</p>
@@ -238,7 +227,12 @@ function TeamsTab() {
           </div>
           <div className="team-card__right">
             <Badge label={team.status.charAt(0).toUpperCase() + team.status.slice(1)} />
-            <Link to={`/teams/${team.name.toLowerCase().replace(/\s+/g, '-')}`} className="link-btn" style={{ marginTop: 6, display: "block", textDecoration: 'none' }}>View ›</Link>
+            <Link
+              to={`/teams/${team.name.toLowerCase().replace(/\s+/g, '-')}`}
+              className="link-btn team-card__link"
+            >
+              View ›
+            </Link>
           </div>
         </div>
       ))}
@@ -269,13 +263,14 @@ function FixturesTab({ fixtures, setFixtures }: { fixtures: Fixture[], setFixtur
     teamA: "", teamB: "", date: "", time: "", round: "Round 1", court: "Court 1"
   });
 
+  const displayFixtures = fixtures.length > 0 ? fixtures : MOCK_FIXTURES;
+  const rounds = [...new Set(displayFixtures.map(f => f.round))];
+
   const SUGGESTED = [
     { name: "Rahul Sharma", phone: "+91 9876543210" },
     { name: "Vikram Patil", phone: "+91 9823456789" },
     { name: "Ankit Mehta",  phone: "+91 9811234567" },
   ];
-
-  const rounds = [...new Set(fixtures.map(f => f.round))];
 
   const onAddSingle = () => {
     if (!newMatch.teamA || !newMatch.teamB) return;
@@ -289,7 +284,8 @@ function FixturesTab({ fixtures, setFixtures }: { fixtures: Fixture[], setFixtur
       court: newMatch.court,
       scorer: null,
       scorerStatus: "unassigned",
-      status: "scheduled"
+      status: "scheduled",
+      result: ""
     };
     setFixtures([...fixtures, f]);
     setShowAddSingle(false);
@@ -297,33 +293,38 @@ function FixturesTab({ fixtures, setFixtures }: { fixtures: Fixture[], setFixtur
 
   return (
     <div className="tab-content">
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16, gap: 12 }}>
+      <div className="fixture-toolbar">
         <button 
           className="btn btn--outline" 
           onClick={() => setShowAddSingle(true)}
-          style={{ padding: '10px 20px', fontSize: 14 }}
         >
           + Quick Add
         </button>
         <button 
           className="btn btn--primary" 
           onClick={() => navigate(`/tournament/${tournamentId}/add-schedule`)}
-          style={{ padding: '10px 20px', fontSize: 14 }}
         >
           📅 Schedule Wizard
         </button>
       </div>
 
       {showAddSingle && (
-        <div className="section-card" style={{ marginBottom: 20, border: '2px dashed #e2e8f0' }}>
-          <h4 style={{ margin: '0 0 12px 0' }}>Quick Schedule Single Match</h4>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-            <input className="input" placeholder="Team A" value={newMatch.teamA} onChange={e=>setNewMatch({...newMatch, teamA: e.target.value})} />
-            <input className="input" placeholder="Team B" value={newMatch.teamB} onChange={e=>setNewMatch({...newMatch, teamB: e.target.value})} />
-            <input className="input" type="date" value={newMatch.date} onChange={e=>setNewMatch({...newMatch, date: e.target.value})} />
-            <input className="input" type="time" value={newMatch.time} onChange={e=>setNewMatch({...newMatch, time: e.target.value})} />
+        <div className="section-card quick-add-card">
+          <h4 className="quick-add-title">Quick Schedule Single Match</h4>
+          <div className="quick-add-grid">
+            <label className="visually-hidden" htmlFor="teamA">Team A</label>
+            <input id="teamA" className="input" placeholder="Team A" value={newMatch.teamA} onChange={e=>setNewMatch({...newMatch, teamA: e.target.value})} />
+            
+            <label className="visually-hidden" htmlFor="teamB">Team B</label>
+            <input id="teamB" className="input" placeholder="Team B" value={newMatch.teamB} onChange={e=>setNewMatch({...newMatch, teamB: e.target.value})} />
+            
+            <label className="visually-hidden" htmlFor="matchDate">Match Date</label>
+            <input id="matchDate" className="input" type="date" value={newMatch.date} onChange={e=>setNewMatch({...newMatch, date: e.target.value})} />
+            
+            <label className="visually-hidden" htmlFor="matchTime">Match Time</label>
+            <input id="matchTime" className="input" type="time" value={newMatch.time} onChange={e=>setNewMatch({...newMatch, time: e.target.value})} />
           </div>
-          <div style={{ display: 'flex', gap: 10, marginTop: 12 }}>
+          <div className="quick-add-actions">
             <button className="btn btn--primary btn--sm" onClick={onAddSingle}>Add to Schedule</button>
             <button className="btn btn--ghost btn--sm" onClick={() => setShowAddSingle(false)}>Cancel</button>
           </div>
@@ -333,7 +334,7 @@ function FixturesTab({ fixtures, setFixtures }: { fixtures: Fixture[], setFixtur
       {rounds.map(round => (
         <div key={round}>
           <p className="round-label">{round}</p>
-          {fixtures.filter(f => f.round === round).map(fixture => (
+          {displayFixtures.filter(f => f.round === round).map(fixture => (
             <div
               key={fixture.id}
               className={`fixture-card ${fixture.status === "completed" ? "fixture-card--done" : ""}`}
@@ -359,7 +360,7 @@ function FixturesTab({ fixtures, setFixtures }: { fixtures: Fixture[], setFixtur
                 <div className="fixture-card__scorer-row">
                   <span>
                     👤 Scorer:&nbsp;
-                    <strong style={{ color: fixture.scorer ? "inherit" : "#e74c3c" }}>
+                    <strong className={`scorer-name ${fixture.scorer ? "" : "scorer-name--missing"}`}>
                       {fixture.scorer ?? "Not Assigned"}
                     </strong>
                   </span>
@@ -387,8 +388,10 @@ function FixturesTab({ fixtures, setFixtures }: { fixtures: Fixture[], setFixtur
               {assigningMatch.teamA} vs {assigningMatch.teamB}
             </p>
             <div className="search-box">
+              <label className="visually-hidden" htmlFor="scorerSearch">Search Scorer</label>
               <span>🔍</span>
               <input
+                id="scorerSearch"
                 type="text"
                 className="search-box__input"
                 placeholder="Search by name or phone"
@@ -414,7 +417,7 @@ function FixturesTab({ fixtures, setFixtures }: { fixtures: Fixture[], setFixtur
                 </button>
               </div>
             ))}
-            <button className="btn btn--outline btn--full" style={{ marginTop: 12 }}>
+            <button className="btn btn--outline btn--full bottom-sheet__invite-btn">
               + Invite New Scorer
             </button>
           </div>
@@ -497,7 +500,10 @@ function StatsTab() {
           <span className="stat-player-card__medal">
             {["🥇", "🥈", "🥉"][i]}
           </span>
-          <Link to={`/players/${player.name.toLowerCase().replace(/\s+/g, '-')}`} className="stat-player-card__info" style={{ textDecoration: 'none', color: 'inherit' }}>
+          <Link
+            to={`/players/${player.name.toLowerCase().replace(/\s+/g, '-')}`}
+            className="stat-player-card__info stat-player-card__info-link"
+          >
             <p className="stat-player-card__name">{player.name}</p>
             <p className="stat-player-card__team">{player.team}</p>
           </Link>
@@ -533,21 +539,42 @@ export default function TournamentDashboard() {
   const [tournament, setTournament] = useState<Tournament | null>(null);
   const [teams, setTeams] = useState<Team[]>([]);
   const [fixtures, setFixtures] = useState<Fixture[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (id) {
-      getTournament(id).then(setTournament);
-      getTournamentTeams(id).then(setTeams);
-      getTournamentFixtures(id).then(setFixtures);
-    }
+    if (!id) return;
+    (async () => {
+      setLoading(true);
+      try {
+        const t = await getTournament(id);
+        if (t) {
+          setTournament(t);
+          const [teamsData, fixturesData] = await Promise.all([
+            getTournamentTeams(t.id),
+            getTournamentFixtures(t.id),
+          ]);
+          setTeams(teamsData);
+          setFixtures(fixturesData);
+        } else {
+          setTournament(null);
+        }
+      } catch (err) {
+        console.error('Error in dashboard initialization:', err);
+        setTournament(null);
+      } finally {
+        setLoading(false);
+      }
+    })();
   }, [id]);
 
-  if (!tournament) return <div style={{ padding: 20 }}>Loading...</div>;
+  if (loading) return <div className="dashboard-message">Loading...</div>;
+
+  if (!tournament) return <div className="dashboard-message dashboard-message--error">Tournament not found</div>;
 
   const renderTab = () => {
     switch (activeTab) {
-      case "overview":  return <OverviewTab onTabChange={setActiveTab} fixtures={fixtures} />;
-      case "teams":     return <TeamsTab />;
+      case "overview":  return <OverviewTab onTabChange={setActiveTab} tournament={tournament} fixtures={fixtures} />;
+      case "teams":     return <TeamsTab teams={teams} />;
       case "fixtures":  return <FixturesTab fixtures={fixtures} setFixtures={setFixtures} />;
       case "standings": return <StandingsTab />;
       case "stats":     return <StatsTab />;

@@ -1,35 +1,70 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { supabase } from '../shared/lib/supabase'
 import './tournaments.css'
 
+interface Tournament {
+  id: string
+  name: string
+  start_date: string | null
+  end_date: string | null
+  status: string | null
+  level: string | null
+  venue_name: string | null
+  city_state: string | null
+  teamCount?: number
+}
+
+function getStatus(t: Tournament, now: Date): 'upcoming' | 'ongoing' | 'completed' {
+  if (t.status === 'completed') return 'completed'
+  if (!t.start_date) return 'upcoming'
+  const s = new Date(t.start_date)
+  const e = t.end_date ? new Date(t.end_date) : null
+  if (s > now) return 'upcoming'
+  if (e && e < now) return 'completed'
+  return 'ongoing'
+}
+
 export default function Tournaments() {
-  const now = useMemo(() => new Date(), [])
-  const [tab, setTab] = useState<'all'|'ongoing'|'upcoming'|'completed'>('all')
-  const [loading, setLoading] = useState(true)
-
-  const tournaments = useMemo(() => [
-    { id: 'kpl2026', name: 'KPL 2026', start: '2026-01-10', end: '2026-02-20', teams: 12, matches: 48, poster: 'KPL' },
-    { id: 'skbc2026', name: 'Spring Kabaddi Cup', start: '2026-03-01', end: '2026-03-05', teams: 8, matches: 16, poster: 'SKBC' },
-    { id: 'monsoon2026', name: 'Monsoon League', start: '2026-02-01', end: '2026-02-28', teams: 12, matches: 24, poster: 'ML' },
-    { id: 'winter2025', name: 'Winter Championship', start: '2025-12-10', end: '2025-12-20', teams: 10, matches: 20, poster: 'WC' }
-  ], [])
-
-  const withStatus = useMemo(() => {
-    return tournaments.map(t => {
-      const s = new Date(t.start)
-      const e = new Date(t.end)
-      const status = s > now ? 'upcoming' : (e < now ? 'completed' : 'ongoing')
-      return { ...t, status }
-    })
-  }, [tournaments, now])
-
-  const featured = useMemo(() => withStatus.slice(0, 6), [withStatus])
-  const filtered = useMemo(() => withStatus.filter(t => tab === 'all' ? true : t.status === tab), [withStatus, tab])
+  const now = new Date()
+  const [tab, setTab]               = useState<'all'|'ongoing'|'upcoming'|'completed'>('all')
+  const [tournaments, setTournaments] = useState<Tournament[]>([])
+  const [loading, setLoading]       = useState(true)
+  const [error, setError]           = useState('')
 
   useEffect(() => {
-    const t = setTimeout(() => setLoading(false), 300)
-    return () => clearTimeout(t)
+    fetchTournaments()
   }, [])
+
+  async function fetchTournaments() {
+    setLoading(true)
+    try {
+      const { data, error } = await supabase
+        .from('tournaments')
+        .select('id, name, start_date, end_date, status, level, venue_name, city_state')
+        .order('created_at', { ascending: false })
+
+      if (error) throw error
+      setTournaments(data || [])
+    } catch (e: any) {
+      setError(e.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const withStatus = tournaments.map(t => ({
+    ...t,
+    computedStatus: getStatus(t, now),
+  }))
+
+  const featured  = withStatus.slice(0, 6)
+  const filtered  = withStatus.filter(t =>
+    tab === 'all' ? true : t.computedStatus === tab
+  )
+
+  const posterText = (name: string) =>
+    name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 3)
 
   return (
     <div className="t-page">
@@ -38,73 +73,115 @@ export default function Tournaments() {
           <h1 className="t-title">Tournaments</h1>
           <div className="t-subtitle">Explore ongoing and upcoming competitions</div>
         </div>
+        <Link to="/tournament/create" className="t-create-btn">
+          + Create Tournament
+        </Link>
       </div>
 
+      {error && (
+        <div className="t-error">
+          ⚠️ {error}
+        </div>
+      )}
+
+      {/* Featured scroll */}
       <div className="t-featured">
         <div className="t-featured-scroll">
           {loading
             ? Array.from({ length: 3 }).map((_, i) => (
                 <div key={i} className="t-fcard">
-                  <div className="t-fposter" />
-                  <div className="t-fname" style={{ background:'var(--bg-elevated)', borderRadius:6, height:14, marginTop:8 }} />
-                  <div className="t-fmeta" style={{ background:'var(--bg-elevated)', borderRadius:6, height:12, width:'70%', marginTop:6 }} />
+                  <div className="t-fposter t-skeleton-poster" />
+                  <div className="t-skeleton-line t-skeleton-line--primary" />
+                  <div className="t-skeleton-line t-skeleton-line--secondary" />
                 </div>
               ))
-            : featured.map(t => (
-                <Link key={t.id} to={`/tournaments/${t.id}`} className="t-fcard">
-                  <div className="t-fposter">{t.poster}</div>
-                  <div className="t-fname">{t.name}</div>
-                  <div className="t-fmeta">{new Date(t.start).toLocaleDateString()} – {new Date(t.end).toLocaleDateString()}</div>
-                  <span className={`t-badge t-${t.status}`}>{t.status}</span>
-                </Link>
-              ))}
+            : featured.length === 0
+              ? (
+                <div className="t-featured-empty">
+                  No tournaments yet.{" "}
+                  <Link to="/tournament/create" className="t-link-primary">
+                    Create one →
+                  </Link>
+                </div>
+              )
+              : featured.map(t => (
+                  <Link key={t.id} to={`/tournament/${t.id}/dashboard`} className="t-fcard">
+                    <div className="t-fposter">{posterText(t.name)}</div>
+                    <div className="t-fname">{t.name}</div>
+                    <div className="t-fmeta">
+                      {t.start_date ? new Date(t.start_date).toLocaleDateString() : 'TBD'}
+                      {t.end_date ? ` – ${new Date(t.end_date).toLocaleDateString()}` : ''}
+                    </div>
+                    <span className={`t-badge t-${t.computedStatus}`}>{t.computedStatus}</span>
+                  </Link>
+                ))
+          }
         </div>
       </div>
 
+      {/* Tabs */}
       <div className="t-tabs">
-        {['all','ongoing','upcoming','completed'].map(k => (
-          <button key={k} className={`t-tab ${tab===k?'active':''}`} onClick={()=>setTab(k as any)}>
-            {k.charAt(0).toUpperCase()+k.slice(1)}
+        {(['all', 'ongoing', 'upcoming', 'completed'] as const).map(k => (
+          <button
+            key={k}
+            className={`t-tab ${tab === k ? 'active' : ''}`}
+            onClick={() => setTab(k)}
+          >
+            {k.charAt(0).toUpperCase() + k.slice(1)}
           </button>
         ))}
       </div>
 
+      {/* Grid */}
       {loading ? (
         <div className="t-grid">
           {Array.from({ length: 4 }).map((_, i) => (
             <div key={i} className="t-card">
-              <div className="t-card-head">
-                <div className="t-card-title" style={{ background:'var(--bg-elevated)', borderRadius:6, height:16, width:'60%' }} />
-                <span className="t-badge" style={{ background:'var(--bg-elevated)', borderRadius:12, height:14, width:60, color:'transparent' }}>.</span>
-              </div>
-              <div className="t-meta" style={{ background:'var(--bg-elevated)', borderRadius:6, height:12, width:'70%', marginTop:8 }} />
-              <div className="t-stats">
-                <span style={{ background:'var(--bg-elevated)', borderRadius:6, height:12, width:80 }} />
-                <span style={{ background:'var(--bg-elevated)', borderRadius:6, height:12, width:80 }} />
-              </div>
-              <div className="t-actions">
-                <span className="t-secondary" style={{ background:'var(--bg-elevated)', borderRadius:8, height:32, width:80, display:'inline-block' }} />
-              </div>
+              <div className="t-skeleton-line t-skeleton-card-title" />
+              <div className="t-skeleton-line t-skeleton-card-sub" />
             </div>
           ))}
         </div>
       ) : filtered.length === 0 ? (
-        <div className="t-empty"><div>No tournaments found.</div></div>
+        <div className="t-empty">
+          <div>
+            {tab === 'all'
+              ? (
+                <>
+                  No tournaments yet.{" "}
+                  <Link to="/tournament/create" className="t-link-primary">
+                    Create your first one →
+                  </Link>
+                </>
+              )
+              : `No ${tab} tournaments.`
+            }
+          </div>
+        </div>
       ) : (
         <div className="t-grid">
           {filtered.map(t => (
             <div key={t.id} className="t-card">
               <div className="t-card-head">
                 <div className="t-card-title">{t.name}</div>
-                <span className={`t-badge t-${t.status}`}>{t.status}</span>
+                <span className={`t-badge t-${t.computedStatus}`}>{t.computedStatus}</span>
+              </div>        
+              <div className="t-meta">
+                {t.start_date ? new Date(t.start_date).toLocaleDateString() : 'TBD'}
+                {t.end_date ? ` – ${new Date(t.end_date).toLocaleDateString()}` : ''}
               </div>
-              <div className="t-meta">{new Date(t.start).toLocaleDateString()} – {new Date(t.end).toLocaleDateString()}</div>
-              <div className="t-stats">
-                <span>{t.teams} Teams</span>
-                <span>{t.matches} Matches</span>
-              </div>
+              {(t.venue_name || t.city_state) && (
+                <div className="t-meta t-meta--location">
+                  📍 {[t.venue_name, t.city_state].filter(Boolean).join(', ')}
+                </div>
+              )}
+              {t.level && (
+                <div className="t-stats">
+                  <span>{t.level}</span>
+                </div>
+              )}
               <div className="t-actions">
-                <Link to={`/tournaments/${t.id}`} className="t-secondary">View</Link>
+                <Link to={`/tournament/${t.id}/dashboard`} className="t-secondary">View</Link>
               </div>
             </div>
           ))}

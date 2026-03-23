@@ -1,6 +1,7 @@
 import { supabase } from '../lib/supabase'
+import { notificationService } from './notificationService'
 
-type AssignedFixture = {
+export type AssignedFixture = {
   id: string
   home: string
   guest: string
@@ -11,47 +12,91 @@ type AssignedFixture = {
 }
 
 export async function getAssignedFixturesFor(userId: string): Promise<AssignedFixture[]> {
-  const mock: AssignedFixture[] = [
-    { id:'m1', home:'SKBC', guest:'Rangers', startsAt:new Date().toISOString(), court:'Court 1', status:'upcoming', scorerStatus:'assigned' },
-    { id:'m2', home:'Warriors', guest:'Titans', startsAt:new Date(Date.now()+3600e3).toISOString(), court:'Court 2', status:'live', scorerStatus:'accepted' },
-    { id:'m3', home:'Rangers', guest:'Warriors', startsAt:new Date(Date.now()-86400e3).toISOString(), court:'Court 1', status:'completed', scorerStatus:'accepted' }
-  ]
-  return mock
-}
+  const { data, error } = await supabase
+    .from('fixture_scorers')
+    .select(`
+      fixture_id,
+      status,
+      fixtures (
+        id, status, scheduled_at, court,
+        home: teams!team_home_id (name),
+        guest: teams!team_guest_id (name)
+      )
+    `)
+    .eq('user_id', userId)
 
-// Local storage keys for demo persistence
-const K_ASSIGNMENTS = 'mock-fixture-assignments'
+  if (error) {
+    console.error('Error fetching assigned fixtures:', error)
+    return []
+  }
 
-type AssignmentRecord = { fixtureId: string; userId: string; status: 'assigned' | 'accepted' | 'declined' | 'scoring' }
-
-function readAssignments(): AssignmentRecord[] {
-  try {
-    const raw = localStorage.getItem(K_ASSIGNMENTS)
-    return raw ? JSON.parse(raw) : []
-  } catch { return [] }
-}
-function writeAssignments(rows: AssignmentRecord[]) {
-  localStorage.setItem(K_ASSIGNMENTS, JSON.stringify(rows))
+  return (data || []).map((row: any) => ({
+    id: row.fixture_id,
+    home: row.fixtures?.home?.name || 'Home Team',
+    guest: row.fixtures?.guest?.name || 'Guest Team',
+    startsAt: row.fixtures?.scheduled_at || new Date().toISOString(),
+    court: row.fixtures?.court || 'Court 1',
+    status: row.fixtures?.status || 'upcoming',
+    scorerStatus: row.status || 'assigned',
+  }))
 }
 
 export async function assignScorer(fixtureId: string, userId: string) {
-  const rows = readAssignments().filter(r => !(r.fixtureId === fixtureId))
-  rows.push({ fixtureId, userId, status: 'assigned' })
-  writeAssignments(rows)
+  const { error } = await supabase
+    .from('fixture_scorers')
+    .upsert({ fixture_id: fixtureId, user_id: userId, assigned_at: new Date().toISOString() })
+  if (error) throw error
+  
+  // Post notification to the assigned user
+  await notificationService.createNotification({
+    user_id: userId,
+    type: 'match',
+    title: 'New Scorer Assignment 📋',
+    body: `You have been assigned as a scorer for match #${fixtureId}.`,
+    href: `/matches/assigned`
+  });
+
   return { ok: true }
 }
 
-export async function updateScorerStatus(fixtureId: string, userId: string, status: AssignmentRecord['status']) {
-  const rows = readAssignments()
-  const idx = rows.findIndex(r => r.fixtureId === fixtureId && r.userId === userId)
-  if (idx >= 0) rows[idx].status = status
-  else rows.push({ fixtureId, userId, status })
-  writeAssignments(rows)
+export async function assignMatchScorer(matchId: string, userId: string) {
+  const { error } = await supabase
+    .from('match_scorers')
+    .upsert({ match_id: matchId, user_id: userId, assigned_at: new Date().toISOString() })
+  if (error) throw error
+
+  // Post notification to the assigned user
+  await notificationService.createNotification({
+    user_id: userId,
+    type: 'match',
+    title: 'Match Assignment 📋',
+    body: `You have been assigned as a scorer for match #${matchId}.`,
+    href: `/matches/assigned`
+  });
+
+  return { ok: true }
+}
+
+export async function updateScorerStatus(
+  fixtureId: string,
+  userId: string,
+  status: 'assigned' | 'accepted' | 'declined' | 'scoring'
+) {
+  const { error } = await supabase
+    .from('fixture_scorers')
+    .update({ status })
+    .eq('fixture_id', fixtureId)
+    .eq('user_id', userId)
+  if (error) throw error
   return { ok: true }
 }
 
 export async function canScoreFixture(fixtureId: string, userId: string): Promise<boolean> {
-  const rows = readAssignments()
-  const r = rows.find(x => x.fixtureId === fixtureId && x.userId === userId)
-  return !!r && (r.status === 'accepted' || r.status === 'scoring')
+  const { data } = await supabase
+    .from('fixture_scorers')
+    .select('status')
+    .eq('fixture_id', fixtureId)
+    .eq('user_id', userId)
+    .single()
+  return !!data && (data.status === 'accepted' || data.status === 'scoring')
 }

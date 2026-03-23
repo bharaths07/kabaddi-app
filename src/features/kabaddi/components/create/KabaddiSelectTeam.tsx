@@ -1,8 +1,9 @@
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Search, QrCode } from 'lucide-react'
 import './select-team.css'
 import { setTeam } from '../../state/createDraft'
+import { supabase } from '@shared/lib/supabase'
 
 type Team = { id: string; name: string; location: string; captain: string; avatar?: string }
 
@@ -10,22 +11,54 @@ export default function KabaddiSelectTeam() {
   const { slot } = useParams()
   const navigate = useNavigate()
   const goBack = () => {
-    if (window.history.length > 1) navigate(-1)
-    else navigate('/kabaddi/create')
+    if (slot === 'b') {
+      navigate('/kabaddi/create/select-team/a')
+    } else {
+      navigate('/kabaddi/create')
+    }
   }
   const [tab, setTab] = useState<'your' | 'opponents' | 'add'>('your')
   const [q, setQ] = useState('')
+
   const [yourTeams, setYourTeams] = useState<Team[]>([
     { id: 't1', name: 'SKBC Varadanayakanahalli', location: 'Bengaluru (Bangalore)', captain: 'Govi V G' },
     { id: 't2', name: 'SKBC VN Halli', location: 'Bengaluru (Bangalore)', captain: 'Shankar' },
     { id: 't3', name: 'CSE A', location: 'Bengaluru (Bangalore)', captain: 'Praveen Kumar' },
     { id: 't4', name: 'CSE B', location: 'Bengaluru (Bangalore)', captain: 'Chandan' }
   ])
+
   const [opponents] = useState<Team[]>([
     { id: 'o1', name: 'Rangers', location: 'Nelmangala', captain: 'Narasimha' },
     { id: 'o2', name: 'Ananthapura Royals', location: 'Nelmangala', captain: 'Chandra' },
     { id: 'o3', name: 'Falcons', location: 'Bengaluru', captain: 'Babu' }
   ])
+
+  useEffect(() => {
+    let cancelled = false
+    const fetchTeams = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('teams')
+          .select('id, name, short, status')
+        if (error || !data || cancelled) return
+        const mapped: Team[] = data.map((t: any) => ({
+          id: t.id,
+          name: t.name,
+          location: '',
+          captain: t.status || '—',
+        }))
+        if (!cancelled && mapped.length > 0) {
+          setYourTeams(mapped)
+        }
+      } catch (e) {
+        console.error('Team fetch error:', e)
+      }
+    }
+    fetchTeams()
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const list = tab === 'your' ? yourTeams : opponents
   const filtered = list.filter(t => t.name.toLowerCase().includes(q.toLowerCase()))

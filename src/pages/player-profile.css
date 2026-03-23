@@ -140,6 +140,7 @@
   align-items: center;
   gap: 7px;
   transition: all 0.2s;
+  -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
   white-space: nowrap;
 }
@@ -267,7 +268,7 @@
 }
 .profile-big-stat {
   background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 10%, transparent), var(--bg));
-  border: 1.5px solid color-mix(in srgb, var(--accent) 25%, transparent);
+  border: 1.5px solid rgba(148,163,184,0.35);
   border-radius: 16px;
   padding: 20px 14px;
   display: flex;

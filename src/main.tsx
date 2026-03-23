@@ -6,11 +6,11 @@ import './styles/global.css'
 import './styles/components.css'
 import './index.css'
 import Layout from './shared/components/Layout'
-import { RequireAuth, PublicOnlyRoute } from './shared/components/RouteGuards'
+import { PublicOnlyRoute, ProtectedRoute } from './shared/components/RouteGuards'
 
 // ── Pages ──────────────────────────────────────────────────────
 import Home              from './pages/Home'
-import FeedNews          from './pages/feedandnews/FeedNews'
+import FeedPage          from './pages/feedandnews/FeedPage'
 import ErrorPage         from './pages/ErrorPage'
 import Settings          from './pages/Settings'
 import PlanUpgrade       from './pages/PlanUpgrade'
@@ -43,7 +43,6 @@ import TeamDetailLeaderboardPage from './pages/leaderboards/TeamDetailLeaderboar
 // ── Tournaments ────────────────────────────────────────────────
 import Tournaments         from './pages/Tournaments'
 import CreateTournament    from './pages/tournaments/CreateTournament'
-import TournamentDetails   from './pages/tournaments/TournamentDetails'
 import TournamentDashboard from './pages/tournaments/TournamentDashboard'
 import AddTeams            from './pages/tournaments/AddTeams'
 import AddRoundsGroups     from './pages/tournaments/AddRoundsGroups'
@@ -68,11 +67,11 @@ const router = createBrowserRouter([
   { path: '/login', element: <PublicOnlyRoute><LoginPage /></PublicOnlyRoute> },
   { path: '/signup', element: <PublicOnlyRoute><SignupPage /></PublicOnlyRoute> },
   { path: '/verify-otp', element: <PublicOnlyRoute><VerifyOTP /></PublicOnlyRoute> },
-  { path: '/onboarding', element: <RequireAuth><OnboardingPage /></RequireAuth> },
+  { path: '/onboarding', element: <ProtectedRoute><OnboardingPage /></ProtectedRoute> },
   { path: '/auth/callback', element: <AuthCallback /> },
   {
     path: '/',
-    element: <RequireAuth><Layout /></RequireAuth>,
+    element: <ProtectedRoute><Layout /></ProtectedRoute>,
     errorElement: <ErrorPage />,
     children: [
 
@@ -94,9 +93,10 @@ const router = createBrowserRouter([
       { path: 'awards', element: <Awards /> },
       { path: 'notifications', element: <Notifications /> },
 
-      // ── News / Feed (both paths → same page) ──────────────────
-      { path: 'news', element: <FeedNews /> },
-      { path: 'feed', element: <FeedNews /> },
+      // ── News / Feed ──────────────────────────────────────────
+      { path: 'news', element: <FeedPage /> },
+      { path: 'feed', element: <FeedPage /> },
+      { path: 'feed/create', element: <FeedPage /> },
 
       // ── User ──────────────────────────────────────────────────
       { path: 'profile', element: <ProfilePage /> },
@@ -117,7 +117,7 @@ const router = createBrowserRouter([
       // ── Tournaments ───────────────────────────────────────────
       { path: 'tournaments',                   element: <Tournaments /> },
       { path: 'tournament/create',             element: <CreateTournament /> },
-      { path: 'tournaments/:id',               element: <TournamentDetails /> },
+      { path: 'tournaments/:id',               element: <TournamentDashboard /> },
       { path: 'tournaments/:id/teams/:teamId', element: <TeamDetailLeaderboardPage /> },
 
       // Tournament wizard (singular /tournament/:id/...)
@@ -132,7 +132,7 @@ const router = createBrowserRouter([
       { path: 'auth/login', element: <PublicOnlyRoute><LoginPage /></PublicOnlyRoute> },
       { path: 'auth/signup', element: <PublicOnlyRoute><SignupPage /></PublicOnlyRoute> },
       { path: 'auth/verify-otp', element: <PublicOnlyRoute><VerifyOTP /></PublicOnlyRoute> },
-      { path: 'auth/onboarding', element: <RequireAuth><OnboardingPage /></RequireAuth> },
+      { path: 'auth/onboarding', element: <ProtectedRoute><OnboardingPage /></ProtectedRoute> },
       { path: 'auth/callback', element: <AuthCallback /> },
 
       // ── Kabaddi feature routes ────────────────────────────────

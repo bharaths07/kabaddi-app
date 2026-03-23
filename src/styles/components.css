@@ -8,8 +8,8 @@
    ════════════════════════════════════════════════════════════════ */
 .navbar {
   background: rgba(255,255,255,0.92);
-  backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--bg-border);
   position: sticky;
   top: 0;
@@ -52,6 +52,18 @@
   color: var(--color-sky-dark);
   background: var(--color-sky-subtle);
   border: 1px solid var(--color-sky-border);
+}
+
+.auth-loading {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  background: #020617;
+}
+
+.auth-loading__text {
+  color: #e2e8f0;
+  font-family: 'Nunito', sans-serif;
 }
 
 /* ════════════════════════════════════════════════════════════════
@@ -587,8 +599,9 @@
 .modal-overlay {
   position: fixed; inset: 0;
   background: rgba(15,23,42,0.4);
+  -webkit-backdrop-filter: blur(4px);
   backdrop-filter: blur(4px);
-  z-index: var(--z-modal);
+  display: flex; align-items: flex-end; justify-content: center;
   display: flex; align-items: flex-end; justify-content: center;
   padding: var(--space-md);
 }

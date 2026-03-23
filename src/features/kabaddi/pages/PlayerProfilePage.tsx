@@ -1,161 +1,7 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import './leaderboards.css'
-
-// Mock Detailed Player Data
-const PLAYER_DATA: Record<string, any> = {
-  'pawan-sehrawat': {
-    name: 'Pawan Sehrawat',
-    role: 'Raider',
-    country: 'India',
-    team: 'Wolves',
-    teamColor: '#64748b',
-    bio: 'Pawan Kumar Sehrawat is an Indian professional Kabaddi player who plays as a raider. He is widely considered one of the most explosive raiders in the history of the sport, known for his signature "Lion Jump" and incredible speed. He has captained the Indian national team and several franchise teams to victory.',
-    careerHighlights: [
-      'Most Valuable Player (Season 6)',
-      'Best Raider (Season 7, 8, 9)',
-      'Gold Medal - South Asian Games 2019',
-      'Highest points in a single match (39)'
-    ],
-    stats: {
-      overall: [
-        { label: 'Matches Played', value: 116 },
-        { label: 'Total Points Earned', value: 1202 },
-        { label: 'Raid Points Per Match', value: 9.85 },
-      ],
-      attacking: [
-        { label: 'Total Raids', value: 1845 },
-        { label: 'No. Of Super Raids', value: 32 },
-        { label: 'Super 10s', value: 55 },
-        { label: 'Total Raid Points', value: 1189 },
-      ],
-      defensive: [
-        { label: 'No. Of Super Tackles', value: 2 },
-        { label: 'High 5s', value: 1 },
-        { label: 'Total Tackle Points', value: 13 },
-        { label: 'Average Successful Tackles/Match', value: 0.11 },
-        { label: 'Total Tackles', value: 45 },
-      ],
-      percentages: {
-        notOut: 76.08,
-        successRaid: 64.44,
-        successTackle: 28.89
-      }
-    },
-    matches: [
-      { id: 'm1', opponent: 'Rangers', date: '2026-03-01', raidPts: 12, tacklePts: 1, result: 'Won 34-29' },
-      { id: 'm2', opponent: 'Titans', date: '2026-02-25', raidPts: 15, tacklePts: 0, result: 'Won 42-38' },
-      { id: 'm3', opponent: 'Falcons', date: '2026-02-18', raidPts: 8, tacklePts: 2, result: 'Lost 31-35' },
-    ],
-    achievements: [
-      { title: 'Super 10 Machine', icon: '🔥', desc: 'Scored 10+ points in 5 consecutive matches' },
-      { title: 'Lion Jump', icon: '🦁', desc: 'Executed 10 successful escape jumps' },
-      { title: 'Team Backbone', icon: '🛡️', desc: 'Played 100% of match minutes in a season' },
-    ]
-  },
-  'v-rao': {
-    name: 'V. Rao',
-    role: 'Defender',
-    country: 'India',
-    team: 'Puneri Paltan',
-    teamColor: '#f97316',
-    bio: 'V. Rao is a tactical defender specializing in the Left Corner position. Known for his "Ankle Hold" and "Dash", he is the backbone of the Puneri Paltan defense. His ability to read the raider\'s mind makes him one of the most feared defenders in the league.',
-    careerHighlights: [
-      'Best Defender (Season 10)',
-      'Most Super Tackles in a Season',
-      'Asian Games Bronze Medalist'
-    ],
-    stats: {
-      overall: [
-        { label: 'Matches Played', value: 84 },
-        { label: 'Total Points Earned', value: 245 },
-        { label: 'Tackle Points Per Match', value: 2.91 },
-      ],
-      attacking: [
-        { label: 'Total Raids', value: 12 },
-        { label: 'No. Of Super Raids', value: 0 },
-        { label: 'Super 10s', value: 0 },
-        { label: 'Total Raid Points', value: 4 },
-      ],
-      defensive: [
-        { label: 'No. Of Super Tackles', value: 15 },
-        { label: 'High 5s', value: 12 },
-        { label: 'Total Tackle Points', value: 241 },
-        { label: 'Average Successful Tackles/Match', value: 2.86 },
-        { label: 'Total Tackles', value: 420 },
-      ],
-      percentages: {
-        notOut: 85.00,
-        successRaid: 33.33,
-        successTackle: 57.38
-      }
-    },
-    matches: [
-      { id: 'm1', opponent: 'Spartans', date: '2026-03-05', raidPts: 0, tacklePts: 5, result: 'Won 28-24' },
-      { id: 'm2', opponent: 'Vipers', date: '2026-02-28', raidPts: 1, tacklePts: 3, result: 'Lost 22-30' },
-    ],
-    achievements: [
-      { title: 'Wall of Steel', icon: '🧱', desc: '5 clean sheets in a row' },
-      { title: 'Ankle King', icon: '👑', desc: '50 successful ankle holds' },
-    ]
-  }
-}
-
-// Fallback generator for other players
-const getPlayerData = (id: string) => {
-  if (PLAYER_DATA[id]) return PLAYER_DATA[id]
-  
-  // Handle simple IDs like p1, p2, etc.
-  const nameMap: Record<string, string> = {
-    'p1': 'Pradeep Narwal',
-    'p2': 'Maninder Singh',
-    'p3': 'Fazel Atrachali',
-    'p4': 'Rahul Chaudhari',
-    'p5': 'Deepak Hooda',
-    'p6': 'Sandeep Narwal',
-    'p7': 'Pawan Sehrawat',
-    'p8': 'Sagar',
-    'p9': 'Ajit Pawar',
-  }
-  
-  const name = nameMap[id] || id.split('-').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' ')
-  return {
-    name,
-    role: id.includes('rao') || id.includes('khan') ? 'Defender' : 'Raider',
-    country: 'India',
-    team: 'Pro Kabaddi',
-    teamColor: '#1e293b',
-    bio: `${name} is a dedicated professional Kabaddi player. With a focus on teamwork and strategic execution, they have consistently contributed to their team's performance throughout the season.`,
-    careerHighlights: ['Professional League Debut 2024'],
-    stats: {
-      overall: [
-        { label: 'Matches Played', value: 10 },
-        { label: 'Total Points Earned', value: 45 },
-        { label: 'Points Per Match', value: 4.5 },
-      ],
-      attacking: [
-        { label: 'Total Raids', value: 85 },
-        { label: 'No. Of Super Raids', value: 2 },
-        { label: 'Super 10s', value: 1 },
-        { label: 'Total Raid Points', value: 42 },
-      ],
-      defensive: [
-        { label: 'No. Of Super Tackles', value: 1 },
-        { label: 'High 5s', value: 0 },
-        { label: 'Total Tackle Points', value: 3 },
-        { label: 'Average Successful Tackles/Match', value: 0.3 },
-        { label: 'Total Tackles', value: 12 },
-      ],
-      percentages: {
-        notOut: 70,
-        successRaid: 45,
-        successTackle: 25
-      }
-    },
-    matches: [],
-    achievements: []
-  }
-}
+import { getPlayer } from '../../../shared/services/tournamentService'
 
 const CircleProgress = ({ val, label, color }: { val: number, label: string, color: string }) => (
   <div className="pp-circle-stat">
@@ -173,8 +19,23 @@ const CircleProgress = ({ val, label, color }: { val: number, label: string, col
 export default function PlayerProfilePage() {
   const { id } = useParams()
   const [activeTab, setActiveTab] = useState<'overview' | 'matches' | 'achievements' | 'bio'>('overview')
-  
-  const player = getPlayerData(id || 'pawan-sehrawat')
+  const [player, setPlayer] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    if (!id) return
+    (async () => {
+      setLoading(true)
+      const data = await getPlayer(id)
+      setPlayer(data)
+      setLoading(false)
+    })()
+  }, [id])
+
+  if (loading) return <div style={{ padding: 40, textAlign: 'center', color: '#fff' }}>Loading player profile...</div>
+  if (!player) return <div style={{ padding: 40, textAlign: 'center', color: '#fff' }}>Player not found</div>
+
+  const defaultBio = `${player.name} is a professional Kabaddi player for ${player.teamName}. With a focus on teamwork and strategic execution, they have consistently contributed to their team's performance throughout the season.`
 
   return (
     <div className="pp-container">
@@ -299,7 +160,7 @@ export default function PlayerProfilePage() {
               <div style={{ background: '#fff', padding: 30, borderRadius: 24, border: '1px solid #f1f5f9' }}>
                 <h2 style={{ fontSize: 20, fontWeight: 800, marginBottom: 16, color: '#1e293b' }}>About {player.name}</h2>
                 <p style={{ color: '#64748b', lineHeight: 1.6, fontSize: 15 }}>
-                  {player.bio}
+                  {player.bio || defaultBio}
                 </p>
               </div>
 

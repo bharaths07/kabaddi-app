@@ -24,18 +24,16 @@ type AuthContextValue = {
 }
 
 const Ctx = createContext<AuthContextValue>({
-  user: null,
-  profile: null,
-  loading: true,
+  user: null, profile: null, loading: true,
   profileLoading: false,
   signOut: async () => {},
   refreshProfile: async () => {},
 })
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser]               = useState<any | null>(null)
-  const [profile, setProfile]         = useState<Profile | null>(null)
-  const [loading, setLoading]         = useState(true)
+  const [user, setUser]                     = useState<any | null>(null)
+  const [profile, setProfile]               = useState<Profile | null>(null)
+  const [loading, setLoading]               = useState(true)
   const [profileLoading, setProfileLoading] = useState(false)
 
   const loadProfile = async (userId: string) => {
@@ -44,7 +42,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const data = await getProfile(userId)
       setProfile(data ?? null)
     } catch (e) {
-      console.error('Profile load error:', e)
+      console.warn('Profile load failed:', e)
       setProfile(null)
     } finally {
       setProfileLoading(false)
@@ -58,13 +56,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let mounted = true
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!mounted) return
-      const u = session?.user ?? null
-      setUser(u)
-      if (u) loadProfile(u.id)
-      else setLoading(false)
-    })
+    // FIX: Always call setLoading(false) via finally — even if getSession or
+    // loadProfile throws. Without this, a single network error causes a
+    // permanent blank screen that forces the user to re-login.
+    const init = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        if (!mounted) return
+        const u = session?.user ?? null
+        setUser(u)
+        // FIX: Don't await loadProfile here — load it in background so the
+        // page shows immediately after session is confirmed
+        if (u) loadProfile(u.id)  // no await — runs in background
+      } catch (e) {
+        console.warn('getSession error:', e)
+      } finally {
+        // FIX: This ALWAYS runs, so loading never gets stuck
+        if (mounted) setLoading(false)
+      }
+    }
+
+    init()
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
@@ -72,7 +84,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const u = session?.user ?? null
         setUser(u)
         if (u) {
-          await loadProfile(u.id)
+          loadProfile(u.id)  // background, no await
         } else {
           setProfile(null)
         }
@@ -87,12 +99,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const value = useMemo<AuthContextValue>(() => ({
-    user,
-    profile,
-    loading,
-    profileLoading,
+    user, profile, loading, profileLoading,
     signOut: async () => {
-      await supabase.auth.signOut()
+      try { await supabase.auth.signOut() } catch {}
       setUser(null)
       setProfile(null)
     },

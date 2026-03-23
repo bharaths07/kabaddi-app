@@ -62,7 +62,7 @@ export default function KabaddiToss() {
   return (
     <div className="ts-page">
       <div className="ts-header">
-        <button className="ts-back" onClick={() => navigate(-1)}>←</button>
+        <button className="ts-back" onClick={() => navigate('/kabaddi/create/start')}>←</button>
         <div className="ts-title">Start a Match</div>
         <div />
       </div>
@@ -118,7 +118,7 @@ export default function KabaddiToss() {
       </div>
 
       <div className="ts-footer">
-        <button className="ts-secondary" onClick={()=>navigate('/kabaddi/create')}>Back</button>
+        <button className="ts-secondary" onClick={()=>navigate('/kabaddi/create/start')}>Back</button>
         <button className="ts-primary" disabled={!result || !winnerTeam} onClick={confirm}>Start Match</button>
       </div>
     </div>

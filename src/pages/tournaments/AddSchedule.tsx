@@ -1,7 +1,9 @@
-import React, { useMemo, useState } from 'react'
+import React, { useMemo, useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import './add-schedule.css'
 import { assignScorer as svcAssignScorer } from '../../shared/services/fixturesService'
+import { getTournament, getTournamentFixtures, saveTournamentFixtures } from '../../shared/services/tournamentService'
+import { Tournament } from '../../features/kabaddi/types/kabaddi.types'
 
 type Team = { id: string; name: string }
 type Status = 'unscheduled' | 'scheduled' | 'scorer_assigned' | 'live' | 'completed'
@@ -21,42 +23,47 @@ type Tab = 'auto' | 'manual'
 type ScorerUser = { id: string; name: string; phone: string }
 
 export default function AddSchedule() {
-  const { id } = useParams()
+  const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
 
-  const tournament = useMemo(() => {
-    const all = [
-      { id: 'kpl2026', name: 'KPL 2026', start: '2026-03-05', end: '2026-03-10', teams: 8 },
-      { id: 'skbc2026', name: 'Spring Kabaddi Cup', start: '2026-03-01', end: '2026-03-05', teams: 8 },
-      { id: 'monsoon2026', name: 'Monsoon League', start: '2026-02-01', end: '2026-02-28', teams: 12 }
-    ]
-    return all.find(t => t.id === id) || all[0]
+  const [tournament, setTournament] = useState<Tournament | null>(null)
+  const [fixtures, setFixtures] = useState<Fixture[]>([])
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    if (!id) return
+    (async () => {
+      setLoading(true)
+      const t = await getTournament(id)
+      if (t) {
+        setTournament(t)
+        const dbFixtures = await getTournamentFixtures(t.id)
+        setFixtures(dbFixtures.map(df => ({
+          id: df.id.toString(),
+          round: parseInt(df.round),
+          home: { id: (df as any).teamAId, name: df.teamA },
+          guest: { id: (df as any).teamBId, name: df.teamB },
+          ts: df.ts,
+          court: df.court ? parseInt(df.court.replace('Court ', '')) : undefined,
+          status: df.status === 'scheduled' && !df.ts ? 'unscheduled' : df.status as Status
+        })))
+      }
+      setLoading(false)
+    })()
   }, [id])
 
-  const baseTeams = useMemo<Team[]>(() => {
-    const names = ['Team Pune', 'Team Mumbai', 'Team Delhi', 'Team Chennai', 'Team Kolkata', 'Team Jaipur', 'Team Bengaluru', 'Team Hyderabad', 'Team Lucknow', 'Team Indore', 'Team Patna', 'Team Surat']
-    return names.slice(0, tournament.teams).map((n, i) => ({ id: `t${i + 1}`, name: n }))
-  }, [tournament.teams])
-
-  const initialFixtures = useMemo<Fixture[]>(() => {
-    const pairs: Array<[Team, Team]> = []
-    for (let i = 0; i < baseTeams.length; i += 2) {
-      if (i + 1 < baseTeams.length) pairs.push([baseTeams[i], baseTeams[i + 1]])
-    }
-    return pairs.map((p, idx) => ({
-      id: `f${idx + 1}`,
-      round: 1,
-      home: p[0],
-      guest: p[1],
-      status: 'unscheduled'
-    }))
-  }, [baseTeams])
-
-  const [fixtures, setFixtures] = useState<Fixture[]>(initialFixtures)
   const [tab, setTab] = useState<Tab>('auto')
 
-  const [startDate, setStartDate] = useState<string>(tournament.start)
-  const [endDate, setEndDate] = useState<string>(tournament.end)
+  const [startDate, setStartDate] = useState<string>('')
+  const [endDate, setEndDate] = useState<string>('')
+
+  useEffect(() => {
+    if (tournament) {
+      setStartDate(tournament.startDate)
+      setEndDate(tournament.endDate)
+    }
+  }, [tournament])
   const [matchesPerDay, setMatchesPerDay] = useState<number>(4)
   const [matchMinutes, setMatchMinutes] = useState<number>(45)
   const [breakMinutes, setBreakMinutes] = useState<number>(15)
@@ -126,17 +133,51 @@ export default function AddSchedule() {
   const closeAssign = () => setAssignForFixtureId(null)
   const assignScorer = async (user: ScorerUser) => {
     if (!assignForFixtureId) return
-    await svcAssignScorer(assignForFixtureId, user.id)
-    onEditFixture(assignForFixtureId, { scorer: { ...user, confirmed: false }, status: 'scorer_assigned' })
-    closeAssign()
+    try {
+      await svcAssignScorer(assignForFixtureId, user.id)
+      onEditFixture(assignForFixtureId, { scorer: { ...user, confirmed: false }, status: 'scorer_assigned' })
+      closeAssign()
+    } catch (err) {
+      console.error('Error assigning scorer:', err)
+      alert('Failed to assign scorer.')
+    }
   }
+
+  const onSave = async () => {
+    if (!tournament) return
+    setSaving(true)
+    const fixturesToSave = fixtures.map(f => ({
+      id: f.id,
+      team_home_id: f.home.id,
+      team_guest_id: f.guest.id,
+      round: f.round,
+      scheduled_at: f.ts ? new Date(f.ts).toISOString() : null,
+      court: f.court ? `Court ${f.court}` : 'Court 1',
+      status: f.status
+    }))
+
+    const success = await saveTournamentFixtures(tournament.id, fixturesToSave)
+    setSaving(false)
+
+    if (success) {
+      navigate(`/tournament/${tournament.id}/dashboard`)
+    } else {
+      alert('Failed to save schedule. Please try again.')
+    }
+  }
+
+  if (loading) return <div className="as-page">Loading...</div>
+  if (!tournament) return <div className="as-page">Tournament not found</div>
 
   return (
     <div className="as-page">
       <div className="as-head">
-        <div>
-          <div className="as-title">Add Schedule</div>
-          <div className="as-sub">Tournament: {tournament.name}</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <button onClick={() => navigate(`/tournament/${id}/add-rounds`)} style={{ background: 'rgba(0,0,0,0.05)', border: 'none', borderRadius: 8, width: 36, height: 36, display: 'flex', alignItems: 'center', justifyCenter: 'center', cursor: 'pointer', fontSize: 20 }}>←</button>
+          <div>
+            <div className="as-title">Add Schedule</div>
+            <div className="as-sub">Tournament: {tournament.name}</div>
+          </div>
         </div>
       </div>
 
@@ -269,7 +310,9 @@ export default function AddSchedule() {
 
       <div className="as-foot">
         <button className="as-outline" onClick={() => navigate(`/tournament/${tournament.id}/add-rounds`)}>Back to Rounds</button>
-        <button className="as-primary" onClick={() => navigate(`/tournament/${tournament.id}/dashboard`)}>Save & Continue</button>
+        <button className="as-primary" onClick={onSave} disabled={saving}>
+          {saving ? 'Saving...' : 'Save & Continue'}
+        </button>
       </div>
 
       {assignForFixtureId && (

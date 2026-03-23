@@ -1,9 +1,176 @@
- .pl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:var(--space-md)}
- .pl-card{display:flex;flex-direction:column;gap:var(--space-sm)}
- .pl-card.active{border-color:var(--color-sky);box-shadow:var(--shadow-sky)}
- .pl-card-head{display:flex;justify-content:space-between;align-items:center}
- .pl-name{font-weight:800}
- .pl-price{color:var(--text-secondary)}
- .pl-features{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
- .pl-feature{color:var(--text-secondary)}
- .pl-note{color:var(--text-muted);margin-top:var(--space-md)}
+ .pl-grid {
+   display: grid;
+   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+   gap: 24px;
+   margin-top: 32px;
+ }
+ .pl-card {
+   display: flex;
+   flex-direction: column;
+   gap: 20px;
+   padding: 32px;
+   border: 2px solid rgba(255,255,255,0.05);
+   background: rgba(255,255,255,0.02);
+   transition: all 0.3s ease;
+   position: relative;
+   overflow: hidden;
+ }
+ .pl-card:hover {
+   transform: translateY(-4px);
+   border-color: var(--tier-color);
+ }
+ .pl-card.active {
+   border-color: var(--tier-color);
+   background: rgba(255,255,255,0.05);
+ }
+ .pl-card.active::after {
+   content: 'Active';
+   position: absolute;
+   top: 12px;
+   right: -30px;
+   background: var(--tier-color);
+   color: white;
+   padding: 4px 40px;
+   font-size: 11px;
+   font-weight: 800;
+   transform: rotate(45deg);
+   text-transform: uppercase;
+ }
+ .pl-card-head {
+   display: flex;
+   flex-direction: column;
+   gap: 4px;
+ }
+ .pl-name {
+   font-size: 20px;
+   font-weight: 800;
+   color: var(--tier-color);
+ }
+ .pl-price {
+   font-size: 32px;
+   font-weight: 800;
+   color: #fff;
+ }
+ .pl-features {
+   list-style: none;
+   margin: 0;
+   padding: 0;
+   display: flex;
+   flex-direction: column;
+   gap: 12px;
+   flex: 1;
+ }
+ .pl-feature {
+   color: rgba(255,255,255,0.6);
+   font-size: 14px;
+   display: flex;
+   align-items: center;
+   gap: 10px;
+ }
+ .pl-feature-icon {
+   color: var(--tier-color);
+   font-weight: 900;
+ }
+ .pl-note {
+   color: rgba(255,255,255,0.3);
+   margin-top: 32px;
+   text-align: center;
+   font-size: 13px;
+ }
+
+ .pl-title {
+   font-size: 32px;
+   font-weight: 900;
+   text-align: center;
+   margin-bottom: 8px;
+ }
+ .pl-subtitle {
+   text-align: center;
+   color: rgba(255,255,255,0.5);
+   font-size: 15px;
+ }
+ .pl-current-badge {
+   background: rgba(255,255,255,0.1);
+   padding: 2px 8px;
+   border-radius: 4px;
+   color: #fff;
+   font-weight: 700;
+ }
+
+ /* Modal Styles */
+ .pl-modal-overlay {
+   position: fixed;
+   top: 0;
+   left: 0;
+   right: 0;
+   bottom: 0;
+   background: rgba(0,0,0,0.8);
+   backdrop-filter: blur(8px);
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   z-index: 1000;
+   padding: 20px;
+ }
+ .pl-modal {
+   background: #1a1a1a;
+   border: 1px solid rgba(255,255,255,0.1);
+   border-radius: 16px;
+   width: 100%;
+   max-width: 400px;
+   overflow: hidden;
+ }
+ .pl-modal-header {
+   padding: 20px;
+   border-bottom: 1px solid rgba(255,255,255,0.05);
+   display: flex;
+   justify-content: space-between;
+   align-items: center;
+ }
+ .pl-modal-header h3 { margin: 0; font-size: 18px; }
+ .pl-modal-close {
+   background: none;
+   border: none;
+   color: rgba(255,255,255,0.5);
+   font-size: 20px;
+   cursor: pointer;
+ }
+ .pl-modal-body {
+   padding: 24px;
+   display: flex;
+   flex-direction: column;
+   gap: 20px;
+ }
+ .pl-modal-amount {
+   display: flex;
+   justify-content: space-between;
+   align-items: center;
+   padding: 16px;
+   background: rgba(255,255,255,0.03);
+   border-radius: 8px;
+ }
+ .pl-razorpay-simulation {
+   border: 1px dashed rgba(255,255,255,0.2);
+   padding: 20px;
+   border-radius: 8px;
+   text-align: center;
+   background: rgba(14,165,233,0.05);
+ }
+ .pl-razorpay-logo {
+   color: #0ea5e9;
+   font-weight: 900;
+   font-size: 18px;
+   margin-bottom: 8px;
+ }
+ .pl-razorpay-simulation p {
+   margin: 0;
+   font-size: 12px;
+   color: rgba(255,255,255,0.4);
+ }
+ .pl-modal-footer {
+   padding: 20px;
+   display: flex;
+   gap: 12px;
+   background: rgba(0,0,0,0.2);
+ }
+ .pl-modal-footer .btn { flex: 1; }

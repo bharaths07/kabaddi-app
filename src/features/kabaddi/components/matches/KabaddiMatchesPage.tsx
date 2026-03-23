@@ -1,34 +1,34 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { supabase } from '@shared/lib/supabase'
 import './matches.css'
 
-type MatchStatus = 'live' | 'upcoming' | 'completed'
-type TeamSide = { id: string; name: string; shortName: string; logo?: string; score?: number }
-export type MatchListItem = {
+type MatchStatus = 'live' | 'upcoming' | 'completed' | 'toss_pending' | 'toss_completed'
+
+type MatchListItem = {
   id: string
-  tournamentName?: string
-  roundName?: string
-  teamA: TeamSide
-  teamB: TeamSide
+  teamA: { id: string; name: string; shortName: string; score?: number }
+  teamB: { id: string; name: string; shortName: string; score?: number }
   status: MatchStatus
   startTime: string
   venue?: string
   currentHalf?: number
-  raidInfo?: string
   resultText?: string
 }
 
-function MatchesTabs({ active, onChange }: { active: 'top'|'live'|'upcoming'|'completed'; onChange: (v:any)=>void }) {
-  const tabs: Array<{k:'top'|'live'|'upcoming'|'completed'; label:string}> = [
-    { k: 'top', label: 'Top Matches' },
-    { k: 'live', label: 'Live' },
-    { k: 'upcoming', label: 'Upcoming' },
-    { k: 'completed', label: 'Completed' }
+function MatchesTabs({ active, onChange }: { active: string; onChange: (v: any) => void }) {
+  const tabs = [
+    { k: 'top',       label: 'Top Matches' },
+    { k: 'live',      label: 'Live' },
+    { k: 'upcoming',  label: 'Upcoming' },
+    { k: 'completed', label: 'Completed' },
   ]
   return (
     <div className="mx-tabs">
       {tabs.map(t => (
-        <button key={t.k} className={`mx-tab ${active===t.k?'active':''}`} onClick={()=>onChange(t.k)}>{t.label}</button>
+        <button key={t.k} className={`mx-tab ${active === t.k ? 'active' : ''}`} onClick={() => onChange(t.k)}>
+          {t.label}
+        </button>
       ))}
     </div>
   )
@@ -36,37 +36,36 @@ function MatchesTabs({ active, onChange }: { active: 'top'|'live'|'upcoming'|'co
 
 function MatchCard({ match }: { match: MatchListItem }) {
   const navigate = useNavigate()
+  const displayStatus = match.status === 'toss_pending' || match.status === 'toss_completed' ? 'upcoming' : match.status
   const onOpen = () => {
     if (match.status === 'completed') navigate(`/matches/${match.id}/summary`)
+    else if (match.status === 'live') navigate(`/matches/${match.id}/live`)
     else navigate(`/matches/${match.id}`)
   }
   return (
     <div className="mx-card" onClick={onOpen}>
       <div className="mx-topline">
-        <div className={`mx-status ${match.status}`}>{match.status==='live'?'● Live': match.status[0].toUpperCase()+match.status.slice(1)}</div>
-        <div className="mx-meta">{[match.tournamentName, match.roundName].filter(Boolean).join(' • ')}</div>
+        <div className={`mx-status ${displayStatus}`}>
+          {displayStatus === 'live' ? '● Live' : displayStatus.charAt(0).toUpperCase() + displayStatus.slice(1)}
+        </div>
       </div>
-      {match.venue && <div className="mx-venue">{match.venue}</div>}
       <div className="mx-versus">
-        <div className="mx-side" onClick={(e) => { e.stopPropagation(); navigate(`/teams/${match.teamA.name.toLowerCase().replace(/\s+/g, '-')}`) }} style={{ cursor: 'pointer' }}>
+        <div className="mx-side">
           <div className="mx-badge">{match.teamA.shortName}</div>
           <div className="mx-score">{match.teamA.score ?? '-'}</div>
           <div className="mx-name">{match.teamA.name}</div>
         </div>
         <div className="mx-mid">-</div>
-        <div className="mx-side right" onClick={(e) => { e.stopPropagation(); navigate(`/teams/${match.teamB.name.toLowerCase().replace(/\s+/g, '-')}`) }} style={{ cursor: 'pointer' }}>
+        <div className="mx-side right">
           <div className="mx-badge">{match.teamB.shortName}</div>
           <div className="mx-score">{match.teamB.score ?? '-'}</div>
           <div className="mx-name">{match.teamB.name}</div>
         </div>
       </div>
-      {match.status==='live' && (
-        <div className="mx-livebar">Half {match.currentHalf} • {match.raidInfo || 'Raid in progress'}</div>
+      {match.status === 'live' && (
+        <div className="mx-livebar">Half {match.currentHalf || 1} • Live</div>
       )}
-      {match.status==='upcoming' && (
-        <div className="mx-subtle">{new Date(match.startTime).toLocaleString()}</div>
-      )}
-      {match.status==='completed' && (
+      {match.status === 'completed' && match.resultText && (
         <div className="mx-subtle">{match.resultText}</div>
       )}
     </div>
@@ -74,70 +73,95 @@ function MatchCard({ match }: { match: MatchListItem }) {
 }
 
 export default function KabaddiMatchesPage() {
-  const [active, setActive] = useState<'top'|'live'|'upcoming'|'completed'>('top')
+  const [active, setActive] = useState<'top' | 'live' | 'upcoming' | 'completed'>('top')
+  const [matches, setMatches] = useState<MatchListItem[]>([])
   const [loading, setLoading] = useState(true)
-  const matches: MatchListItem[] = useMemo(() => [
-    { id:'m2', tournamentName:'KPL 2026', roundName:'Semi Final', teamA:{id:'sk', name:'SKBC', shortName:'SK', score:18}, teamB:{id:'ra', name:'Rangers', shortName:'RN', score:15}, status:'live', startTime:new Date().toISOString(), venue:'Indoor Stadium', currentHalf:1, raidInfo:'Raid 12' },
-    { id:'m3', tournamentName:'KPL 2026', teamA:{id:'sk', name:'SKBC', shortName:'SK'}, teamB:{id:'tt', name:'Titans', shortName:'TT'}, status:'upcoming', startTime:new Date(Date.now()+20*3600*1000).toISOString(), venue:'Arena' },
-    { id:'m1', tournamentName:'KPL 2026', teamA:{id:'sk', name:'SKBC', shortName:'SK', score:34}, teamB:{id:'ra', name:'Rangers', shortName:'RN', score:29}, status:'completed', startTime:new Date(Date.now()-86400000).toISOString(), resultText:'SKBC won by 5 points' },
-    { id:'m4', tournamentName:'KPL 2026', teamA:{id:'vv', name:'Vipers', shortName:'VP'}, teamB:{id:'ww', name:'Warriors', shortName:'WR'}, status:'upcoming', startTime:new Date(Date.now()+32*3600*1000).toISOString(), venue:'Sports Complex' },
-    { id:'m5', tournamentName:'KPL 2026', teamA:{id:'ff', name:'Falcons', shortName:'FL'}, teamB:{id:'ss', name:'Spartans', shortName:'SP'}, status:'completed', startTime:new Date(Date.now()-172800000).toISOString(), resultText:'Falcons won by 12 points' }
-  ], [])
+
+  useEffect(() => {
+    fetchMatches()
+  }, [])
+
+  async function fetchMatches() {
+    setLoading(true)
+    try {
+      const { data, error } = await supabase
+        .from('kabaddi_matches')
+        .select(`
+          id, status, home_score, guest_score, period, created_at,
+          home_team:teams!team_home_id(id, name, short),
+          guest_team:teams!team_guest_id(id, name, short)
+        `)
+        .order('created_at', { ascending: false })
+        .limit(50)
+
+      if (error) throw error
+
+      const mapped: MatchListItem[] = (data || []).map((m: any) => {
+        const homeName  = m.home_team?.name  || 'Home Team'
+        const guestName = m.guest_team?.name || 'Guest Team'
+        const homeShort = m.home_team?.short  || homeName.slice(0, 2).toUpperCase()
+        const guestShort = m.guest_team?.short || guestName.slice(0, 2).toUpperCase()
+
+        const isCompleted = m.status === 'completed'
+        const isLive      = m.status === 'live'
+
+        return {
+          id: m.id,
+          teamA: { id: m.home_team?.id || '', name: homeName,  shortName: homeShort,  score: m.home_score  ?? undefined },
+          teamB: { id: m.guest_team?.id || '', name: guestName, shortName: guestShort, score: m.guest_score ?? undefined },
+          status: m.status as MatchStatus,
+          startTime: m.created_at,
+          currentHalf: m.period,
+          resultText: isCompleted
+            ? `${(m.home_score || 0) > (m.guest_score || 0) ? homeName : guestName} won`
+            : undefined,
+        }
+      })
+
+      setMatches(mapped)
+    } catch (e) {
+      console.error('Matches fetch error:', e)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const filtered = useMemo(() => {
     if (active === 'top') {
-      const live = matches.filter(m => m.status==='live')
-      const upcoming = matches.filter(m => m.status==='upcoming' && new Date(m.startTime).getTime() - Date.now() <= 24*3600*1000)
-      return [...live, ...upcoming]
+      const live     = matches.filter(m => m.status === 'live')
+      const upcoming = matches.filter(m => m.status === 'toss_pending' || m.status === 'toss_completed' || m.status === 'upcoming')
+      return [...live, ...upcoming.slice(0, 3)]
     }
-    return matches.filter(m => m.status === active)
+    if (active === 'live')      return matches.filter(m => m.status === 'live')
+    if (active === 'upcoming')  return matches.filter(m => ['toss_pending','toss_completed','upcoming'].includes(m.status))
+    if (active === 'completed') return matches.filter(m => m.status === 'completed')
+    return matches
   }, [active, matches])
-
-  useEffect(() => {
-    const t = setTimeout(() => setLoading(false), 300)
-    return () => clearTimeout(t)
-  }, [])
 
   return (
     <div className="mx-page">
       <div className="mx-header">
         <h1 className="mx-title">Matches</h1>
-        <div className="mx-subtitle">Top, live, upcoming and completed</div>
+        <div className="mx-subtitle">Live, upcoming and completed</div>
       </div>
       <MatchesTabs active={active} onChange={setActive} />
       <div className="mx-list">
-        {loading
-          ? Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="mx-card">
-                <div className="mx-topline">
-                  <div className="mx-status" style={{ background:'var(--bg-elevated)', borderColor:'var(--bg-elevated)', color:'transparent' }}>.</div>
-                  <div className="mx-meta" style={{ background:'var(--bg-elevated)', borderRadius:6, height:12, width:'40%' }} />
-                </div>
-                <div className="mx-versus">
-                  <div className="mx-side">
-                    <div className="mx-badge" style={{ background:'var(--bg-elevated)', color:'transparent' }}>.</div>
-                    <div className="mx-score" style={{ background:'var(--bg-elevated)', borderRadius:6, height:18, width:32, color:'transparent' }}>.</div>
-                    <div className="mx-name" style={{ background:'var(--bg-elevated)', borderRadius:6, height:12, width:'70%' }} />
-                  </div>
-                  <div className="mx-mid">-</div>
-                  <div className="mx-side right">
-                    <div className="mx-badge" style={{ background:'var(--bg-elevated)', color:'transparent' }}>.</div>
-                    <div className="mx-score" style={{ background:'var(--bg-elevated)', borderRadius:6, height:18, width:32, color:'transparent' }}>.</div>
-                    <div className="mx-name" style={{ background:'var(--bg-elevated)', borderRadius:6, height:12, width:'70%' }} />
-                  </div>
-                </div>
-                <div className="mx-subtle" style={{ background:'var(--bg-elevated)', borderRadius:6, height:12, width:'60%' }} />
-              </div>
-            ))
-          : filtered.length > 0 
-            ? filtered.map(m => <MatchCard key={m.id} match={m} />)
-            : (
-              <div className="mx-empty">
-                <div className="mx-empty-icon">📅</div>
-                <div className="mx-empty-title">No {active === 'top' ? 'matches' : active} matches found</div>
-                <div className="mx-empty-text">Check back later for updates or try another tab.</div>
-              </div>
-            )
+        {loading ? (
+          Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="mx-card" style={{ opacity: 0.5 }}>
+              <div style={{ height: 12, background: '#e2e8f0', borderRadius: 6, width: '40%', marginBottom: 12 }} />
+              <div style={{ height: 40, background: '#e2e8f0', borderRadius: 8 }} />
+            </div>
+          ))
+        ) : filtered.length > 0
+          ? filtered.map(m => <MatchCard key={m.id} match={m} />)
+          : (
+            <div className="mx-empty">
+              <div className="mx-empty-icon">📅</div>
+              <div className="mx-empty-title">No {active === 'top' ? '' : active} matches yet</div>
+              <div className="mx-empty-text">Start a match to see it here.</div>
+            </div>
+          )
         }
       </div>
     </div>
