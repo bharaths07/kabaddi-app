@@ -17,7 +17,10 @@ export default function TopNav() {
     '/teams/',
     '/players/',
     '/matches/',
-    '/about'
+    '/about',
+    '/kabaddi/create',
+    '/tournament/create',
+    '/verify-otp'
   ]
 
   const isSubPage = subPagePaths.some(p => location.pathname.startsWith(p)) && location.pathname !== '/'

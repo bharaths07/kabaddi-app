@@ -111,8 +111,8 @@ export default function KabaddiStartMatch() {
           <input id="all-out-points" className="sm-input" type="number" min={0} value={config.allOutPoints} onChange={e=>setField('allOutPoints', Number(e.target.value))} placeholder="2"/>
         </div>
         <div className="sm-field">
-          <label className="sm-label">Golden Raid</label>
-          <label className="sm-toggle"><input type="checkbox" checked={config.goldenRaidEnabled} onChange={e=>setField('goldenRaidEnabled', e.target.checked)}/> <span>Enable</span></label>
+          <label className="sm-label" id="golden-raid-label">Golden Raid</label>
+          <label className="sm-toggle"><input type="checkbox" checked={config.goldenRaidEnabled} onChange={e=>setField('goldenRaidEnabled', e.target.checked)} aria-labelledby="golden-raid-label"/> <span>Enable</span></label>
         </div>
         <div className="sm-field">
           <label className="sm-label" htmlFor="tie-break-mode">Tie Break Mode</label>
@@ -125,25 +125,25 @@ export default function KabaddiStartMatch() {
 
       <div className="sm-section sm-grid-2">
         <div className="sm-field">
-          <label className="sm-label">City</label>
-          <input className="sm-input" value={config.venue.city} onChange={e=>setVenue('city', e.target.value)} placeholder="City"/>
+          <label className="sm-label" htmlFor="city">City</label>
+          <input id="city" className="sm-input" value={config.venue.city} onChange={e=>setVenue('city', e.target.value)} placeholder="City"/>
         </div>
         <div className="sm-field">
-          <label className="sm-label">Stadium / Court</label>
-          <input className="sm-input" value={config.venue.stadium} onChange={e=>setVenue('stadium', e.target.value)} placeholder="Stadium or Court"/>
+          <label className="sm-label" htmlFor="stadium">Stadium / Court</label>
+          <input id="stadium" className="sm-input" value={config.venue.stadium} onChange={e=>setVenue('stadium', e.target.value)} placeholder="Stadium or Court"/>
         </div>
         <div className="sm-field">
-          <label className="sm-label">Surface</label>
-          <div className="sm-chips">
-            <button className={`sm-chip ${config.venue.surface==='mat'?'active':''}`} onClick={()=>setVenue('surface','mat')}>Mat</button>
-            <button className={`sm-chip ${config.venue.surface==='mud'?'active':''}`} onClick={()=>setVenue('surface','mud')}>Mud</button>
+          <label className="sm-label" id="surface-label">Surface</label>
+          <div className="sm-chips" role="group" aria-labelledby="surface-label">
+            <button className={`sm-chip ${config.venue.surface==='mat'?'active':''}`} onClick={()=>setVenue('surface','mat')} aria-pressed={config.venue.surface==='mat'}>Mat</button>
+            <button className={`sm-chip ${config.venue.surface==='mud'?'active':''}`} onClick={()=>setVenue('surface','mud')} aria-pressed={config.venue.surface==='mud'}>Mud</button>
           </div>
         </div>
         <div className="sm-field">
-          <label className="sm-label">Indoor / Outdoor</label>
-          <div className="sm-chips">
-            <button className={`sm-chip ${config.venue.indoor?'active':''}`} onClick={()=>setVenue('indoor', true)}>Indoor</button>
-            <button className={`sm-chip ${!config.venue.indoor?'active':''}`} onClick={()=>setVenue('indoor', false)}>Outdoor</button>
+          <label className="sm-label" id="indoor-label">Indoor / Outdoor</label>
+          <div className="sm-chips" role="group" aria-labelledby="indoor-label">
+            <button className={`sm-chip ${config.venue.indoor?'active':''}`} onClick={()=>setVenue('indoor', true)} aria-pressed={config.venue.indoor}>Indoor</button>
+            <button className={`sm-chip ${!config.venue.indoor?'active':''}`} onClick={()=>setVenue('indoor', false)} aria-pressed={!config.venue.indoor}>Outdoor</button>
           </div>
         </div>
       </div>
