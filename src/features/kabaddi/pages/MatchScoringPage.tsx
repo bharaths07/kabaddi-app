@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import KabaddiLiveScorer from '../components/scorers/KabaddiLiveScorer'
+import { getCurrentMatch } from '../state/matchStore'
 
 export default function MatchScoringPage() {
   const { id } = useParams()
@@ -9,15 +10,27 @@ export default function MatchScoringPage() {
   const [matchData, setMatchDetails] = useState<any>(null)
 
   useEffect(() => {
-    // In a real app, fetch real match data
-    // For now, we use the ID to set up the scorer
-    setMatchDetails({
-      id: id,
-      homeTeam: { name: 'Home Team', short: 'HT', color: '#ef4444' },
-      guestTeam: { name: 'Guest Team', short: 'GT', color: '#0ea5e9' },
-      periodMins: 20
-    })
-    setLoading(false)
+    // 1. Try to get real-time match from local state (match creation flow)
+    const m = getCurrentMatch()
+    
+    if (m && m.id === id) {
+      setMatchDetails({
+        id: m.id,
+        homeTeam: { name: m.teamAId || 'Team A', short: 'A', color: '#ef4444' },
+        guestTeam: { name: m.teamBId || 'Team B', short: 'B', color: '#0ea5e9' },
+        periodMins: m.config?.halfDurationMinutes || 20
+      })
+      setLoading(false)
+    } else {
+      // 2. Fallback: Mock data (In a real app, fetch from Supabase by ID)
+      setMatchDetails({
+        id: id,
+        homeTeam: { name: 'Home Team', short: 'HT', color: '#ef4444' },
+        guestTeam: { name: 'Guest Team', short: 'GT', color: '#0ea5e9' },
+        periodMins: 20
+      })
+      setLoading(false)
+    }
   }, [id])
 
   if (loading) return <div style={{ padding: 40, color: '#fff', background: '#0c1832', minHeight: '100vh' }}>Loading Scorer...</div>
