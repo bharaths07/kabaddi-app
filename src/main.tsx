@@ -61,8 +61,8 @@ import MatchScoringPage    from './features/kabaddi/pages/MatchScoringPage'
 
 const router = createBrowserRouter([
   // ── Public intro routes ─────────────────────────────────────────
-  { path: '/intro', element: <IntroPage /> },
-  { path: '/', element: <Navigate to="/intro" replace /> },
+  { path: '/intro', element: <PublicOnlyRoute><IntroPage /></PublicOnlyRoute> },
+  { path: '/', element: <PublicOnlyRoute><IntroPage /></PublicOnlyRoute> },
   // ── Public auth routes (short paths) ────────────────────────────
   { path: '/login', element: <PublicOnlyRoute><LoginPage /></PublicOnlyRoute> },
   { path: '/signup', element: <PublicOnlyRoute><SignupPage /></PublicOnlyRoute> },
@@ -70,13 +70,11 @@ const router = createBrowserRouter([
   { path: '/onboarding', element: <ProtectedRoute><OnboardingPage /></ProtectedRoute> },
   { path: '/auth/callback', element: <AuthCallback /> },
   {
-    path: '/',
     element: <ProtectedRoute><Layout /></ProtectedRoute>,
     errorElement: <ErrorPage />,
     children: [
 
       // ── Home ─────────────────────────────────────────────────
-      { index: true, element: <Home /> },
       { path: 'home', element: <Home /> },
       { path: 'about', element: <AboutProject /> },
 
