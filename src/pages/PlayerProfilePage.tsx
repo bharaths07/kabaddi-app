@@ -182,10 +182,10 @@ export default function PlayerProfilePage() {
           {/* Quick stats bar */}
           <div className="profile-quick-stats">
             {[
-              { label: 'Followers',    value: stats.followers    },
-              { label: 'Profile Views', value: stats.profileViews },
-              { label: 'Team Rank',    value: `#${stats.teamRank}` },
-              { label: 'Tournaments',  value: stats.tournaments  },
+              { label: 'Followers',    value: stats?.followers || 0    },
+              { label: 'Profile Views', value: stats?.profileViews || 0 },
+              { label: 'Team Rank',    value: `#${stats?.teamRank || 0}` },
+              { label: 'Tournaments',  value: stats?.tournaments || 0  },
             ].map((s, i) => (
               <div key={i} className="profile-quick-stat">
                 <div className="profile-quick-val">{s.value}</div>
