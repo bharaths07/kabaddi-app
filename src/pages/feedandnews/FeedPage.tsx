@@ -401,8 +401,8 @@ export default function FeedPage() {
       setHasMore(mapped.length === PAGE_SIZE)
     } catch (e: any) {
       setError(e.message || 'Failed to load feed')
-      // Show mock posts so page isn't empty
-      if (reset) setPosts(MOCK_POSTS)
+      // No mock posts in production
+      if (reset) setPosts([])
     } finally {
       setLoading(false)
       setLoadingMore(false)
@@ -533,10 +533,3 @@ export default function FeedPage() {
     </div>
   )
 }
-
-// ── Mock posts (shown if feed_posts table doesn't exist yet) ──────
-const MOCK_POSTS: FeedPost[] = [
-  { id:'m1', user_id:'u1', type:'achievement', caption:'🏆 SKBC Varadanayakanahalli won the district championship! Pavan Kumar scored 18 raid points in the final. Incredible performance from the whole squad!', likes_count:42, created_at:new Date(Date.now()-3600000).toISOString(), author_name:'Pavan Kumar', author_initials:'PK', author_color:'#0ea5e9', tournament_name:'KPL 2026', liked_by_me:false },
-  { id:'m2', user_id:'u2', type:'announcement', caption:'📢 Registrations OPEN for Spring Kabaddi Cup 2026! 8 slots available. Entry ₹2000 per team. Contact 9876543210. Last date: March 30th.', likes_count:28, created_at:new Date(Date.now()-7200000).toISOString(), author_name:'Suresh Organizer', author_initials:'SO', author_color:'#ea580c', liked_by_me:false },
-  { id:'m3', user_id:'u3', type:'result', caption:'⚡ Super Raid Alert! Rahul Sharma completed a Super 10 today in the Warriors Cup semi-final. 3 defenders out in a single raid! 🔥', likes_count:76, created_at:new Date(Date.now()-86400000).toISOString(), author_name:'Warriors FC', author_initials:'WF', author_color:'#16a34a', tournament_name:'Warriors Cup', liked_by_me:true },
-]

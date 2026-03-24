@@ -12,6 +12,7 @@ export interface Profile {
   state?: string
   date_of_birth?: string
   is_profile_complete?: boolean
+  created_at?: string
 }
 
 type AuthContextValue = {

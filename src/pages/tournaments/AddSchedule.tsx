@@ -44,9 +44,9 @@ export default function AddSchedule() {
           round: parseInt(df.round),
           home: { id: (df as any).teamAId, name: df.teamA },
           guest: { id: (df as any).teamBId, name: df.teamB },
-          ts: df.ts,
+          ts: (df as any).ts,
           court: df.court ? parseInt(df.court.replace('Court ', '')) : undefined,
-          status: df.status === 'scheduled' && !df.ts ? 'unscheduled' : df.status as Status
+          status: df.status === 'scheduled' && !(df as any).ts ? 'unscheduled' : df.status as Status
         })))
       }
       setLoading(false)
@@ -173,7 +173,7 @@ export default function AddSchedule() {
     <div className="as-page">
       <div className="as-head">
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <button onClick={() => navigate(`/tournament/${id}/add-rounds`)} style={{ background: 'rgba(0,0,0,0.05)', border: 'none', borderRadius: 8, width: 36, height: 36, display: 'flex', alignItems: 'center', justifyCenter: 'center', cursor: 'pointer', fontSize: 20 }}>←</button>
+          <button onClick={() => navigate(`/tournament/${id}/add-rounds`)} style={{ background: 'rgba(0,0,0,0.05)', border: 'none', borderRadius: 8, width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 20 }}>←</button>
           <div>
             <div className="as-title">Add Schedule</div>
             <div className="as-sub">Tournament: {tournament.name}</div>

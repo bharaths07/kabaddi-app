@@ -11,46 +11,6 @@ import {
 import { getTournament, getTournamentTeams, getTournamentFixtures } from "../../shared/services/tournamentService";
 
 // ─────────────────────────────────────────────────────────────
-// MOCK DATA — keep as fallback or reference
-// ─────────────────────────────────────────────────────────────
-const MOCK_TEAMS: Team[] = [
-  { id: 1, name: "Pune Warriors",   color: "#e74c3c", captain: "Arjun Patil",  players: 12, status: "confirmed" },
-  { id: 2, name: "Mumbai Titans",   color: "#2980b9", captain: "Rohit Sharma", players: 11, status: "confirmed" },
-  { id: 3, name: "Delhi Kings",     color: "#27ae60", captain: "Suresh Kumar", players: 12, status: "confirmed" },
-  { id: 4, name: "Chennai Bulls",   color: "#f39c12", captain: "Karthik V.",   players: 10, status: "confirmed" },
-  { id: 5, name: "Kolkata Riders",  color: "#8e44ad", captain: "Amit Das",     players: 9,  status: "confirmed" },
-  { id: 6, name: "Hyderabad Hawks", color: "#1abc9c", captain: "—",            players: 0,  status: "invited"   },
-  { id: 7, name: "Jaipur Giants",   color: "#e67e22", captain: "—",            players: 0,  status: "pending"   },
-  { id: 8, name: "Bengaluru Force", color: "#c0392b", captain: "—",            players: 0,  status: "pending"   },
-];
-
-const MOCK_FIXTURES: Fixture[] = [
-  { id: 1, round: "Round 1", teamA: "Pune Warriors",  teamB: "Delhi Kings",     date: "Mar 9",  time: "10:00 AM", court: "Court 1", scorer: "Rahul S.",  scorerStatus: "confirmed",  status: "completed", result: "38 – 22" },
-  { id: 2, round: "Round 1", teamA: "Mumbai Titans",  teamB: "Chennai Bulls",   date: "Mar 9",  time: "12:00 PM", court: "Court 2", scorer: "Vikram P.", scorerStatus: "confirmed",  status: "completed", result: "29 – 25" },
-  { id: 3, round: "Round 2", teamA: "Delhi Kings",    teamB: "Chennai Bulls",   date: "Mar 10", time: "12:00 PM", court: "Court 2", scorer: "Rahul S.",  scorerStatus: "confirmed",  status: "scheduled" },
-  { id: 4, round: "Round 2", teamA: "Kolkata Riders", teamB: "Hyderabad Hawks", date: "Mar 10", time: "02:30 PM", court: "Court 1", scorer: null,        scorerStatus: "unassigned", status: "scheduled" },
-  { id: 5, round: "Round 2", teamA: "Jaipur Giants",  teamB: "Bengaluru Force", date: "Mar 11", time: "10:00 AM", court: "Court 2", scorer: "Vikram P.", scorerStatus: "pending",    status: "scheduled" },
-];
-
-const STANDINGS: StandingRow[] = [
-  { rank: 1, team: "Pune Warriors",  color: "#e74c3c", played: 2, won: 2, lost: 0, points: 4, diff: "+12" },
-  { rank: 2, team: "Mumbai Titans",  color: "#2980b9", played: 2, won: 1, lost: 1, points: 2, diff: "+3"  },
-  { rank: 3, team: "Delhi Kings",    color: "#27ae60", played: 2, won: 1, lost: 1, points: 2, diff: "-2"  },
-  { rank: 4, team: "Chennai Bulls",  color: "#f39c12", played: 2, won: 0, lost: 2, points: 0, diff: "-13" },
-];
-
-const TOP_RAIDERS: PlayerStat[]  = [
-  { name: "Arjun Patil",  team: "Pune Warriors",  value: 18 },
-  { name: "Rohit Sharma", team: "Mumbai Titans",  value: 14 },
-  { name: "Karthik V.",   team: "Chennai Bulls",  value: 11 },
-];
-const TOP_TACKLERS: PlayerStat[] = [
-  { name: "Suresh Kumar", team: "Delhi Kings",    value: 10 },
-  { name: "Amit Das",     team: "Kolkata Riders", value: 8  },
-  { name: "Vikram M.",    team: "Pune Warriors",  value: 7  },
-];
-
-// ─────────────────────────────────────────────────────────────
 // BADGE — maps status string → css class in tournament-details.css
 // ─────────────────────────────────────────────────────────────
 const BADGE_CLASS: Record<string, string> = {
@@ -86,9 +46,8 @@ function OverviewTab({ onTabChange, tournament, fixtures }: { onTabChange: (tab:
   const teamPct  = Math.round((tournament.confirmedTeams   / tournament.totalTeams)   * 100);
   const matchPct = Math.round((tournament.completedMatches / tournament.totalMatches)  * 100);
   
-  // Use real fixtures from props, fallback to mock if empty
-  const displayFixtures = fixtures.length > 0 ? fixtures : MOCK_FIXTURES;
-  const upcoming = displayFixtures.filter(f => f.status === "scheduled").slice(0, 3);
+  // Use real fixtures from props, fallback to empty if no fixtures
+  const upcoming = (fixtures || []).filter(f => f.status === "scheduled").slice(0, 3);
 
   const progressConfigs = [
     { id: "teams",    label: "Teams Confirmed",  pct: teamPct },
@@ -196,9 +155,7 @@ function TeamsTab({ teams }: { teams: Team[] }) {
   const navigate = useNavigate();
   const [filter, setFilter] = useState<"all" | "confirmed" | "invited" | "pending">("all");
 
-  // Use real teams from props
-  const displayTeams = teams.length > 0 ? teams : MOCK_TEAMS;
-  const filtered = filter === "all" ? displayTeams : displayTeams.filter(t => t.status === filter);
+  const filtered = filter === "all" ? teams : teams.filter(t => t.status === filter);
 
   return (
     <div className="tab-content">
@@ -263,8 +220,7 @@ function FixturesTab({ fixtures, setFixtures }: { fixtures: Fixture[], setFixtur
     teamA: "", teamB: "", date: "", time: "", round: "Round 1", court: "Court 1"
   });
 
-  const displayFixtures = fixtures.length > 0 ? fixtures : MOCK_FIXTURES;
-  const rounds = [...new Set(displayFixtures.map(f => f.round))];
+  const rounds = [...new Set(fixtures.map(f => f.round))];
 
   const SUGGESTED = [
     { name: "Rahul Sharma", phone: "+91 9876543210" },
@@ -334,7 +290,7 @@ function FixturesTab({ fixtures, setFixtures }: { fixtures: Fixture[], setFixtur
       {rounds.map(round => (
         <div key={round}>
           <p className="round-label">{round}</p>
-          {displayFixtures.filter(f => f.round === round).map(fixture => (
+          {fixtures.filter(f => f.round === round).map(fixture => (
             <div
               key={fixture.id}
               className={`fixture-card ${fixture.status === "completed" ? "fixture-card--done" : ""}`}
@@ -444,22 +400,11 @@ function StandingsTab() {
           ))}
         </div>
 
-        {STANDINGS.map((row, i) => (
-          <div className={`standings-row ${i === 0 ? "standings-row--top" : ""}`} key={row.rank}>
-            <span className="standings-col">{i === 0 ? "🥇" : row.rank}</span>
-            <span className="standings-col standings-col--team">
-              <TeamAvatar name={row.team} color={row.color} size={28} />
-              {row.team.split(" ")[0]}
-            </span>
-            <span className="standings-col">{row.played}</span>
-            <span className="standings-col">{row.won}</span>
-            <span className="standings-col">{row.lost}</span>
-            <span className="standings-col standings-col--pts">{row.points}</span>
-            <span className={`standings-col ${row.diff.startsWith("+") ? "standings-col--pos" : "standings-col--neg"}`}>
-              {row.diff}
-            </span>
-          </div>
-        ))}
+        {[]}
+        <div className="empty-state">
+          <div className="empty-state__icon">🏆</div>
+          <p className="empty-state__text">Standings will appear after the first match is completed.</p>
+        </div>
 
       </div>
 
@@ -476,7 +421,7 @@ function StandingsTab() {
 // ─────────────────────────────────────────────────────────────
 function StatsTab() {
   const [type, setType] = useState<"raiders" | "tacklers">("raiders");
-  const data = type === "raiders" ? TOP_RAIDERS : TOP_TACKLERS;
+  const data: any[] = []; // Stats will be dynamic later
 
   return (
     <div className="tab-content">
@@ -495,26 +440,33 @@ function StatsTab() {
         </button>
       </div>
 
-      {data.map((player, i) => (
-        <div className="stat-player-card" key={player.name}>
-          <span className="stat-player-card__medal">
-            {["🥇", "🥈", "🥉"][i]}
-          </span>
-          <Link
-            to={`/players/${player.name.toLowerCase().replace(/\s+/g, '-')}`}
-            className="stat-player-card__info stat-player-card__info-link"
-          >
-            <p className="stat-player-card__name">{player.name}</p>
-            <p className="stat-player-card__team">{player.team}</p>
-          </Link>
-          <div className="stat-player-card__score">
-            <span className="stat-player-card__value">{player.value}</span>
-            <span className="stat-player-card__unit">
-              {type === "raiders" ? "Raid Pts" : "Tackle Pts"}
-            </span>
-          </div>
+      {data.length === 0 ? (
+        <div className="empty-state">
+          <div className="empty-state__icon">📈</div>
+          <p className="empty-state__text">Player stats will be updated as matches are played.</p>
         </div>
-      ))}
+      ) : (
+        data.map((player, i) => (
+          <div className="stat-player-card" key={player.name}>
+            <span className="stat-player-card__medal">
+              {["🥇", "🥈", "🥉"][i]}
+            </span>
+            <Link
+              to={`/players/${player.name.toLowerCase().replace(/\s+/g, '-')}`}
+              className="stat-player-card__info stat-player-card__info-link"
+            >
+              <p className="stat-player-card__name">{player.name}</p>
+              <p className="stat-player-card__team">{player.team}</p>
+            </Link>
+            <div className="stat-player-card__score">
+              <span className="stat-player-card__value">{player.value}</span>
+              <span className="stat-player-card__unit">
+                {type === "raiders" ? "Raid Pts" : "Tackle Pts"}
+              </span>
+            </div>
+          </div>
+        ))
+      )}
     </div>
   );
 }

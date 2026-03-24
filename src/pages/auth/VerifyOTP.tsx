@@ -177,20 +177,22 @@ export default function VerifyOTP() {
         </div>
 
         {/* Testing note */}
-        <div style={{
-          marginTop: 20,
-          background: 'rgba(14,165,233,0.08)',
-          border: '1px solid rgba(14,165,233,0.2)',
-          borderRadius: 10,
-          padding: '10px 14px',
-          fontSize: 12,
-          color: 'rgba(255,255,255,0.4)',
-          fontFamily: 'Nunito,sans-serif',
-          lineHeight: 1.6,
-        }}>
-          🧪 <strong style={{ color: 'rgba(255,255,255,0.6)' }}>Testing:</strong>{' '}
-          In Supabase Dashboard → Auth → Settings → disable "Enable phone confirmations" → use OTP <code style={{ color: '#0ea5e9' }}>123456</code>
-        </div>
+        {import.meta.env.DEV && (
+          <div style={{
+            marginTop: 20,
+            background: 'rgba(14,165,233,0.08)',
+            border: '1px solid rgba(14,165,233,0.2)',
+            borderRadius: 10,
+            padding: '10px 14px',
+            fontSize: 12,
+            color: 'rgba(255,255,255,0.4)',
+            fontFamily: 'Nunito,sans-serif',
+            lineHeight: 1.6,
+          }}>
+            🧪 <strong style={{ color: 'rgba(255,255,255,0.6)' }}>Testing:</strong>{' '}
+            In Supabase Dashboard → Auth → Settings → disable "Enable phone confirmations" → use OTP <code style={{ color: '#0ea5e9' }}>123456</code>
+          </div>
+        )}
       </div>
     </div>
   );

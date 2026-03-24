@@ -132,7 +132,7 @@ export default function AddTeams() {
     <div className="teams-page">
       <div className="teams-head">
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <button onClick={() => navigate(`/tournament/${id}/dashboard`)} style={{ background: 'rgba(0,0,0,0.05)', border: 'none', borderRadius: 8, width: 36, height: 36, display: 'flex', alignItems: 'center', justifyCenter: 'center', cursor: 'pointer', fontSize: 20 }}>←</button>
+          <button onClick={() => navigate(`/tournament/${id}/dashboard`)} style={{ background: 'rgba(0,0,0,0.05)', border: 'none', borderRadius: 8, width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 20 }}>←</button>
           <div>
             <div className="teams-title">Add Teams</div>
             <div className="teams-sub">Tournament: {tournament.name}</div>

@@ -110,7 +110,7 @@ export default function PlayerProfilePage() {
                 ].map(s => (
                   <div key={s.label} className="pp-grid-card">
                     <div className="pp-grid-label">{s.label}</div>
-                    <div className="pp-grid-val" style={{ color: s.color }}>{s.val}</div>
+                    <div className="pp-grid-val" style={{ color: (s as any).color }}>{s.val}</div>
                   </div>
                 ))}
               </div>

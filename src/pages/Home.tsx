@@ -28,14 +28,6 @@ interface FeedPost {
 }
 interface Stats { tournaments: number; teams: number; players: number; matches: number }
 
-// ── Mock feed data (until feed_posts table is created) ────────────
-const MOCK_FEED: FeedPost[] = [
-  { id:'f1', type:'achievement', caption:'🏆 SKBC Varadanayakanahalli won the district championship! Pavan Kumar scored 18 raid points in the final match. Incredible performance from the whole squad!', author:'Pavan Kumar', authorInitials:'PK', authorColor:'#0ea5e9', createdAt: new Date(Date.now()-3600*1000).toISOString(), likes:42, liked:false, tournament:'KPL 2026' },
-  { id:'f2', type:'announcement', caption:'📢 Registrations are now OPEN for the Spring Kabaddi Cup 2026! 8 slots available. Entry fee ₹2000 per team. Contact 9876543210 to register. Last date: March 30th.', author:'Suresh Organizer', authorInitials:'SO', authorColor:'#ea580c', createdAt: new Date(Date.now()-7200*1000).toISOString(), likes:28, liked:false },
-  { id:'f3', type:'result', caption:'⚡ Super Raid Alert! Rahul Sharma completed a Super 10 today in the Warriors Cup semi-final. What a performance — 3 defenders out in a single raid! 🔥', author:'Warriors FC', authorInitials:'WF', authorColor:'#16a34a', createdAt: new Date(Date.now()-86400*1000).toISOString(), likes:76, liked:false, tournament:'Warriors Cup' },
-  { id:'f4', type:'announcement', caption:'📅 Schedule update: KPL 2026 Quarter Finals will be held on April 5th at Indoor Stadium Bengaluru. All 8 teams confirmed. Come support your team!', author:'KPL Admin', authorInitials:'KA', authorColor:'#7c3aed', createdAt: new Date(Date.now()-2*86400*1000).toISOString(), likes:53, liked:false, tournament:'KPL 2026' },
-]
-
 function timeAgo(iso: string) {
   const diff = Date.now() - new Date(iso).getTime()
   const mins = Math.floor(diff / 60000)
@@ -55,7 +47,7 @@ const TYPE_CONFIG = {
 
 // ── Feed Post Card ────────────────────────────────────────────────
 function FeedCard({ post, onLike }: { post: FeedPost; onLike: (id: string) => void }) {
-  const cfg = TYPE_CONFIG[post.type]
+  const cfg = TYPE_CONFIG[post.type] || TYPE_CONFIG.result
   return (
     <div className="feed-card">
       <div className="feed-card-header">
@@ -157,7 +149,7 @@ export default function Home() {
   const [liveMatches, setLiveMatches]   = useState<LiveMatch[]>([])
   const [upcoming, setUpcoming]         = useState<UpcomingMatch[]>([])
   const [stats, setStats]               = useState<Stats>({ tournaments:0, teams:0, players:0, matches:0 })
-  const [feed, setFeed]                 = useState<FeedPost[]>(MOCK_FEED)
+  const [feed, setFeed]                 = useState<FeedPost[]>([])
   const [tournaments, setTournaments]   = useState<any[]>([])
   const [loading, setLoading]           = useState(true)
 
@@ -171,7 +163,7 @@ export default function Home() {
   async function fetchAll() {
     setLoading(true)
     try {
-      const [matchRes, statsRes, tournRes] = await Promise.allSettled([
+      const [matchRes, statsRes, tournRes, feedRes] = await Promise.allSettled([
         // Live + upcoming matches
         supabase.from('kabaddi_matches')
           .select(`id,status,home_score,guest_score,period,created_at,
@@ -194,6 +186,12 @@ export default function Home() {
           .select('id,name,status,level,start_date')
           .order('created_at', { ascending:false })
           .limit(5),
+
+        // Real feed data
+        supabase.from('feed_posts')
+          .select('*, profiles(full_name)')
+          .order('created_at', { ascending: false })
+          .limit(10)
       ])
 
       // Matches
@@ -214,8 +212,6 @@ export default function Home() {
         })
         setLiveMatches(live)
         setUpcoming(upcom)
-      } else if (matchRes.status === 'fulfilled' && matchRes.value.error) {
-        console.warn('Matches fetch aborted or failed:', matchRes.value.error.message)
       }
 
       // Stats
@@ -233,8 +229,23 @@ export default function Home() {
       // Tournaments
       if (tournRes.status === 'fulfilled' && !tournRes.value.error) {
         setTournaments(tournRes.value.data || [])
-      } else if (tournRes.status === 'fulfilled' && tournRes.value.error) {
-        console.warn('Tournaments fetch aborted or failed:', tournRes.value.error.message)
+      }
+
+      // Feed
+      if (feedRes.status === 'fulfilled' && !feedRes.value.error) {
+        const posts = (feedRes.value.data || []).map((p: any) => ({
+          id: p.id,
+          type: p.type || 'result',
+          caption: p.caption || '',
+          image_url: p.image_url,
+          author: p.profiles?.full_name || 'Official',
+          authorInitials: (p.profiles?.full_name || 'PL').split(' ').map((n:any)=>n[0]).join('').slice(0,2).toUpperCase(),
+          authorColor: '#0ea5e9',
+          createdAt: p.created_at,
+          likes: p.likes_count || 0,
+          liked: false
+        }))
+        setFeed(posts)
       }
 
     } catch (e) {

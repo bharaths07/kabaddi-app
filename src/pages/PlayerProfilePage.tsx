@@ -37,28 +37,6 @@ interface MatchRecord {
   date: string;
 }
 
-// ── Fallback mock (until Supabase connected) ──────────────────────
-const MOCK_STATS: PlayerStats = {
-  matches:42, wins:28, raidPts:312, tacklePts:146,
-  avgRaid:7.4, avgTackle:3.6, followers:120, profileViews:40,
-  teamRank:3, tournaments:6,
-};
-const MOCK_MATCHES: MatchRecord[] = [
-  { id:'1', opponent:'CSE B',      result:'W', score:'36-28', raids:8, tackles:3, pts:18, date:'Mar 10' },
-  { id:'2', opponent:'Rangers FC', result:'W', score:'42-31', raids:6, tackles:5, pts:14, date:'Mar 7'  },
-  { id:'3', opponent:'Warriors',   result:'L', score:'24-29', raids:4, tackles:2, pts:9,  date:'Mar 3'  },
-  { id:'4', opponent:'Titans',     result:'W', score:'38-22', raids:9, tackles:4, pts:21, date:'Feb 28' },
-  { id:'5', opponent:'Spartans',   result:'W', score:'31-25', raids:7, tackles:6, pts:16, date:'Feb 24' },
-];
-const MOCK_ACHIEVEMENTS = [
-  { icon:'⚡', title:'Raid Master',   desc:'100+ raid points in a season',    earned:true,  date:'Mar 2024' },
-  { icon:'🏆', title:'Champion',      desc:'Won a tournament as team captain', earned:true,  date:'Feb 2024' },
-  { icon:'💪', title:'Super Tackler', desc:'5 super tackles in one match',     earned:true,  date:'Jan 2024' },
-  { icon:'🎯', title:'Bonus Hunter',  desc:'10 bonus points in a season',      earned:true,  date:'Dec 2023' },
-  { icon:'🔥', title:'Unstoppable',   desc:'Win 10 matches in a row',          earned:false, date:null       },
-  { icon:'👑', title:'Legend',        desc:'500+ total points career',         earned:false, date:null       },
-];
-
 // ── Helper: initials from name ────────────────────────────────────
 function getInitials(name: string): string {
   return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
@@ -142,12 +120,22 @@ function AchievementCard({ icon, title, desc, earned, date }: {
 export default function PlayerProfilePage() {
   const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();
-  const [tab, setTab] = useState<'overview' | 'matches' | 'achievements'>('overview');
+  const [tab, setTab] = useState<'overview' | 'matches' | 'achievements' | 'bio'>('overview');
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState<PlayerStats | null>(null);
+  const [matches, setMatches] = useState<MatchRecord[]>([]);
+  const [achievements, setAchievements] = useState<any[]>([]);
 
-  // TODO: Replace with real Supabase queries when connected
-  const stats   = MOCK_STATS;
-  const matches = MOCK_MATCHES;
-  const achievements = MOCK_ACHIEVEMENTS;
+  useEffect(() => {
+    (async () => {
+      setLoading(true);
+      // Fetch stats and matches from Supabase later
+      setStats(null);
+      setMatches([]);
+      setAchievements([]);
+      setLoading(false);
+    })();
+  }, [user]);
 
   const initials = profile?.full_name ? getInitials(profile.full_name) : 'PL';
   const name     = profile?.full_name || 'Player';
@@ -229,7 +217,7 @@ export default function PlayerProfilePage() {
             <div className="profile-top-row">
               {/* Win ring */}
               <div className="profile-win-card">
-                <WinRing wins={stats.wins} total={stats.matches} />
+                <WinRing wins={stats?.wins || 0} total={stats?.matches || 0} />
                 <div className="profile-season-label">Season 2024</div>
                 <div className="profile-season-sub">KPL · Spring Cup</div>
               </div>
@@ -237,9 +225,9 @@ export default function PlayerProfilePage() {
               {/* Top 3 stats */}
               <div className="profile-top-stats">
                 {[
-                  { label:'Matches',  value:stats.matches,  icon:'🏉', color:'#0ea5e9', bg:'#eff6ff' },
-                  { label:'Wins',     value:stats.wins,     icon:'🏆', color:'#16a34a', bg:'#f0fdf4' },
-                  { label:'Raid Pts', value:stats.raidPts,  icon:'⚡', color:'#ea580c', bg:'#fff7ed' },
+                  { label:'Matches',  value:stats?.matches || 0,  icon:'🏉', color:'#0ea5e9', bg:'#eff6ff' },
+                  { label:'Wins',     value:stats?.wins || 0,     icon:'🏆', color:'#16a34a', bg:'#f0fdf4' },
+                  { label:'Raid Pts', value:stats?.raidPts || 0,  icon:'⚡', color:'#ea580c', bg:'#fff7ed' },
                 ].map((s, i) => (
                   <div key={i} className="profile-big-stat" style={{ '--accent': s.color, '--bg': s.bg } as any}>
                     <div className="profile-big-stat-icon">{s.icon}</div>
@@ -253,9 +241,9 @@ export default function PlayerProfilePage() {
             {/* Secondary stats */}
             <div className="profile-secondary-stats">
               {[
-                { label:'Tackle Pts', value:stats.tacklePts, icon:'🛡️', color:'#7c3aed', bg:'#f5f3ff' },
-                { label:'Avg Raid',   value:stats.avgRaid,   icon:'📈', color:'#0284c7', bg:'#f0f9ff' },
-                { label:'Avg Tackle', value:stats.avgTackle, icon:'💪', color:'#b45309', bg:'#fffbeb' },
+                { label:'Tackle Pts', value:stats?.tacklePts || 0, icon:'🛡️', color:'#7c3aed', bg:'#f5f3ff' },
+                { label:'Avg Raid',   value:stats?.avgRaid || '0.0',   icon:'📈', color:'#0284c7', bg:'#f0f9ff' },
+                { label:'Avg Tackle', value:stats?.avgTackle || '0.0', icon:'💪', color:'#b45309', bg:'#fffbeb' },
               ].map((s, i) => (
                 <div key={i} className="profile-sec-stat" style={{ '--accent': s.color } as any}
                   onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = s.color; }}
@@ -274,12 +262,16 @@ export default function PlayerProfilePage() {
                 <button className="profile-see-all" onClick={() => setTab('matches')}>See all →</button>
               </div>
               <div className="profile-form-dots">
-                {matches.map(m => (
-                  <div key={m.id} title={`vs ${m.opponent} · ${m.score}`}
-                    className={`form-dot ${m.result === 'W' ? 'form-dot-win' : 'form-dot-loss'}`}>
-                    {m.result}
-                  </div>
-                ))}
+                {matches.length === 0 ? (
+                  <div className="profile-empty-state">No form history.</div>
+                ) : (
+                  matches.map(m => (
+                    <div key={m.id} title={`vs ${m.opponent} · ${m.score}`}
+                      className={`form-dot ${m.result === 'W' ? 'form-dot-win' : 'form-dot-loss'}`}>
+                      {m.result}
+                    </div>
+                  ))
+                )}
                 <span className="form-dot-label">Last 5 matches</span>
               </div>
               {matches.slice(0, 3).map(m => <MatchRow key={m.id} match={m} />)}
@@ -293,7 +285,11 @@ export default function PlayerProfilePage() {
             <div className="profile-matches-card">
               <div className="profile-card-title">All Matches</div>
               <div className="profile-matches-sub">{matches.length} matches this season</div>
-              {matches.map(m => <MatchRow key={m.id} match={m} />)}
+              {matches.length === 0 ? (
+                <div className="profile-empty-state">No match records found yet.</div>
+              ) : (
+                matches.map(m => <MatchRow key={m.id} match={m} />)
+              )}
             </div>
           </div>
         )}
@@ -303,16 +299,20 @@ export default function PlayerProfilePage() {
           <div className="profile-tab-content">
             <div className="profile-ach-summary">
               <div className="ach-summary-card ach-earned">
-                <div className="ach-summary-val">4</div>
+                <div className="ach-summary-val">{achievements.filter(a => a.earned).length}</div>
                 <div className="ach-summary-label">EARNED</div>
               </div>
               <div className="ach-summary-card ach-locked">
-                <div className="ach-summary-val">2</div>
+                <div className="ach-summary-val">{achievements.filter(a => !a.earned).length}</div>
                 <div className="ach-summary-label">LOCKED</div>
               </div>
             </div>
             <div className="profile-ach-list">
-              {achievements.map((a, i) => <AchievementCard key={i} {...a} />)}
+              {achievements.length === 0 ? (
+                <div className="profile-empty-state">No achievements earned yet. Keep playing!</div>
+              ) : (
+                achievements.map((a, i) => <AchievementCard key={i} {...a} />)
+              )}
             </div>
           </div>
         )}

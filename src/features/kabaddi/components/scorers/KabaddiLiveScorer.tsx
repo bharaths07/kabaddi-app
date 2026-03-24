@@ -7,35 +7,35 @@ import { supabase } from "../../../../shared/lib/supabase";
 import "./KabaddiLiveScorer.css";
 
 const HOME_SQUAD = [
-  { id:"h1", name:"Pavan Kumar",   jerseyNumber:7,  role:"raider" },
-  { id:"h2", name:"Ravi Singh",    jerseyNumber:3,  role:"defender" },
-  { id:"h3", name:"Arjun Rao",     jerseyNumber:11, role:"raider" },
-  { id:"h4", name:"Suresh Naik",   jerseyNumber:5,  role:"defender" },
-  { id:"h5", name:"Kiran Reddy",   jerseyNumber:9,  role:"all-rounder" },
-  { id:"h6", name:"Dev Patil",     jerseyNumber:14, role:"defender" },
-  { id:"h7", name:"Ajay Kumar",    jerseyNumber:1,  role:"raider" },
+  { id:"h1", name:"Raider 1",   jerseyNumber:1,  role:"raider" },
+  { id:"h2", name:"Defender 1", jerseyNumber:2,  role:"defender" },
+  { id:"h3", name:"Raider 2",   jerseyNumber:3,  role:"raider" },
+  { id:"h4", name:"Defender 2", jerseyNumber:4,  role:"defender" },
+  { id:"h5", name:"All Rounder 1", jerseyNumber:5,  role:"all-rounder" },
+  { id:"h6", name:"Defender 3", jerseyNumber:6,  role:"defender" },
+  { id:"h7", name:"Raider 3",   jerseyNumber:7,  role:"raider" },
 ];
 const GUEST_SQUAD = [
-  { id:"g1", name:"Rahul Sharma",  jerseyNumber:6,  role:"raider" },
-  { id:"g2", name:"Vijay Nair",    jerseyNumber:4,  role:"defender" },
-  { id:"g3", name:"Manoj Yadav",   jerseyNumber:10, role:"raider" },
-  { id:"g4", name:"Sanjay Mehta",  jerseyNumber:2,  role:"defender" },
-  { id:"g5", name:"Pradeep Singh", jerseyNumber:8,  role:"all-rounder" },
-  { id:"g6", name:"Nikhil Joshi",  jerseyNumber:15, role:"defender" },
-  { id:"g7", name:"Rohit Das",     jerseyNumber:12, role:"raider" },
+  { id:"g1", name:"Raider A",  jerseyNumber:10, role:"raider" },
+  { id:"g2", name:"Defender A", jerseyNumber:11, role:"defender" },
+  { id:"g3", name:"Raider B",  jerseyNumber:12, role:"raider" },
+  { id:"g4", name:"Defender B", jerseyNumber:13, role:"defender" },
+  { id:"g5", name:"All Rounder A", jerseyNumber:14, role:"all-rounder" },
+  { id:"g6", name:"Defender C", jerseyNumber:15, role:"defender" },
+  { id:"g7", name:"Raider C",  jerseyNumber:16, role:"raider" },
 ];
-const HOME  = { name:"SKBC Varadanayakanahalli", abbr:"SK", color:"#0ea5e9", squad:HOME_SQUAD };
-const GUEST = { name:"CSE B",                    abbr:"CB", color:"#ef4444", squad:GUEST_SQUAD };
+const HOME  = { name:"Home Team", abbr:"HOME", color:"#0ea5e9", squad:HOME_SQUAD };
+const GUEST = { name:"Guest Team", abbr:"GUEST", color:"#ef4444", squad:GUEST_SQUAD };
 const MINS  = 20;
 
-const pad = n => String(n).padStart(2,"0");
-const fmt = s => `${pad(Math.floor(s/60))}:${pad(s%60)}`;
-const dc  = v => JSON.parse(JSON.stringify(v));
+const pad = (n: any) => String(n).padStart(2,"0");
+const fmt = (s: any) => `${pad(Math.floor(s/60))}:${pad(s%60)}`;
+const dc  = (v: any) => JSON.parse(JSON.stringify(v));
 
 // ── Audio ─────────────────────────────────────────────────────────
-function playSound(type) {
+function playSound(type: string) {
   try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const ctx = new ((window as any).AudioContext || (window as any).webkitAudioContext)();
     const g = ctx.createGain();
     g.connect(ctx.destination);
     if (type === "allout") {
@@ -64,8 +64,8 @@ function playSound(type) {
   } catch(e) {}
 }
 
-function mkStats(squad, side) {
-  const o = {};
+function mkStats(squad: any[], side: string) {
+  const o: any = {};
   squad.forEach(p => {
     o[p.id] = { id:p.id, name:p.name, num:p.jerseyNumber, side,
       raids:0, raidPts:0, successRaids:0, emptyRaids:0,
@@ -74,25 +74,25 @@ function mkStats(squad, side) {
   return o;
 }
 
-function makeInit(home, guest, mins) {
+function makeInit(home?: any, guest?: any, mins?: number) {
   const h = home || HOME;
   const g = guest || GUEST;
   const m = mins || MINS;
   return {
     period:1, clock:m*60, running:false,
     raidCount:1, rs:"home", doOrDie:false,
-    phase:"playing", history:[],
+    phase:"playing", history:[] as any[],
     home:  { ...h,  score:0, active:7, consEmpty:0 },
     guest: { ...g, score:0, active:7, consEmpty:0 },
     stats: { ...mkStats(h.squad || HOME_SQUAD,"home"), ...mkStats(g.squad || GUEST_SQUAD,"guest") },
-    eventLog:[],
+    eventLog:[] as any[],
     raidClock: 30, raidRunning: false,
   };
 }
 
 // ── Raider Strip ──────────────────────────────────────────────────
-function RaiderStrip({ squad, onCourt, color, selectedId, onSelect }) {
-  const available = squad.filter(p => onCourt.has(p.id));
+function RaiderStrip({ squad, onCourt, color, selectedId, onSelect }: any) {
+  const available = squad.filter((p: any) => onCourt.has(p.id));
   return (
     <div className="kls-raider-strip">
       <div className="kls-raider-strip__label">👤 Who's Raiding?</div>
@@ -108,7 +108,7 @@ function RaiderStrip({ squad, onCourt, color, selectedId, onSelect }) {
           <span className="kls-raider-strip__num-box kls-raider-strip__num-box--skip">?</span>
           <span className="kls-raider-strip__name kls-raider-strip__name--skip">Skip</span>
         </button>
-        {available.map(p => {
+        {available.map((p: any) => {
           const on = selectedId === p.id;
           return (
             <button 
@@ -131,10 +131,10 @@ function RaiderStrip({ squad, onCourt, color, selectedId, onSelect }) {
 }
 
 // ── Defender Picker ───────────────────────────────────────────────
-function DefenderPicker({ squad, onCourt, color, pts, isSuperTackle, onConfirm, onCancel }) {
-  const [sel, setSel] = useState(new Set());
-  const tog = id => setSel(p => { const n = new Set(p); n.has(id)?n.delete(id):n.add(id); return n; });
-  const available = squad.filter(p => onCourt.has(p.id));
+function DefenderPicker({ squad, onCourt, color, pts, isSuperTackle, onConfirm }: any) {
+  const [sel, setSel] = useState(new Set<string>());
+  const tog = (id: string) => setSel(p => { const n = new Set(p); n.has(id)?n.delete(id):n.add(id); return n; });
+  const available = squad.filter((p: any) => onCourt.has(p.id));
   return (
     <div className="kls-overlay">
       <div className={`kls-modal ${isSuperTackle ? 'kls-modal--super' : 'kls-modal--def'}`}>
@@ -149,7 +149,7 @@ function DefenderPicker({ squad, onCourt, color, pts, isSuperTackle, onConfirm, 
           Tackle +{pts}{isSuperTackle?` +1 super = ${pts+1} total`:""} — tap all defenders
         </div>
         <div className="kls-grid-picker">
-          {available.map(p => {
+          {available.map((p: any) => {
             const on = sel.has(p.id);
             return (
               <button 
@@ -180,7 +180,7 @@ function DefenderPicker({ squad, onCourt, color, pts, isSuperTackle, onConfirm, 
 }
 
 // ── Sub Panel ─────────────────────────────────────────────────────
-function SubPanel({ homeSquad, guestSquad, homeOnCourt, guestOnCourt, onSub, onClose }) {
+function SubPanel({ homeSquad, guestSquad, homeOnCourt, guestOnCourt, onSub, onClose }: any) {
   const [side, setSide] = useState("home");
   const squad    = side==="home" ? homeSquad   : guestSquad;
   const onCourt  = side==="home" ? homeOnCourt : guestOnCourt;
@@ -210,7 +210,7 @@ function SubPanel({ homeSquad, guestSquad, homeOnCourt, guestOnCourt, onSub, onC
         </div>
         <div className="kls-panel-hint">TAP TO TOGGLE — GREEN = ON COURT</div>
         <div className="kls-grid-2">
-          {squad.map(p => {
+          {squad.map((p: any) => {
             const active = onCourt.has(p.id);
             return (
               <button 
@@ -237,11 +237,11 @@ function SubPanel({ homeSquad, guestSquad, homeOnCourt, guestOnCourt, onSub, onC
 }
 
 // ── Stats Panel ───────────────────────────────────────────────────
-function StatsPanel({ stats, onClose }) {
-  const all = Object.values(stats);
+function StatsPanel({ stats, onClose }: any) {
+  const all: any[] = Object.values(stats);
   const raiders   = all.filter(p=>p.raids>0).sort((a,b)=>b.raidPts-a.raidPts);
   const defenders = all.filter(p=>p.tackles>0).sort((a,b)=>b.tacklePts-a.tacklePts);
-  const color = p => p.side==="home" ? HOME.color : GUEST.color;
+  const color = (p: any) => p.side==="home" ? HOME.color : GUEST.color;
   return (
     <div className="kls-stats-overlay">
       <div className="kls-stats-container">
@@ -292,12 +292,12 @@ function StatsPanel({ stats, onClose }) {
 }
 
 // ── Event Log ─────────────────────────────────────────────────────
-function EventLog({ log }) {
+function EventLog({ log }: any) {
   if (log.length===0) return (
     <div style={{ padding:"24px 0", textAlign:"center", color:"rgba(255,255,255,0.25)", fontFamily:"Nunito,sans-serif", fontSize:13 }}>No events yet. Start scoring ↑</div>
   );
-  const icons = { RAID:"⚡", TACKLE:"🛡️", EMPTY:"○", BONUS:"🎯", ALLOUT:"💥", SUPER:"💪", DOD_FAIL:"❌" };
-  const clrs  = { RAID:"#22c55e", TACKLE:"#ef4444", EMPTY:"rgba(255,255,255,0.35)", BONUS:"#4ade80", ALLOUT:"#f59e0b", SUPER:"#f97316", DOD_FAIL:"#ef4444" };
+  const icons: any = { RAID:"⚡", TACKLE:"🛡️", EMPTY:"○", BONUS:"🎯", ALLOUT:"💥", SUPER:"💪", DOD_FAIL:"❌" };
+  const clrs: any  = { RAID:"#22c55e", TACKLE:"#ef4444", EMPTY:"rgba(255,255,255,0.35)", BONUS:"#4ade80", ALLOUT:"#f59e0b", SUPER:"#f97316", DOD_FAIL:"#ef4444" };
   return (
     <div style={{ maxHeight:220, overflowY:"auto", scrollbarWidth:"none" }}>
       {[...log].reverse().map((e,i) => (
@@ -320,7 +320,7 @@ function EventLog({ log }) {
 }
 
 // ── All-Out Flash ─────────────────────────────────────────────────
-function AllOutFlash({ team, raidPts, onDone }) {
+function AllOutFlash({ team, raidPts, onDone }: any) {
   useEffect(() => { const t = setTimeout(onDone, 2400); return () => clearTimeout(t); }, []);
   return (
     <div className="kls-ao-overlay">
@@ -346,22 +346,22 @@ function AllOutFlash({ team, raidPts, onDone }) {
 }
 
 // ── Main ──────────────────────────────────────────────────────────
-export default function App({ homeTeam, guestTeam, periodMins, matchId }) {
+export default function App({ homeTeam, guestTeam, periodMins, matchId }: any) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [S, setS]            = useState(() => makeInit(homeTeam, guestTeam, periodMins));
-  const [selRaider, setSR]   = useState("unset");
-  const [defPick, setDP]     = useState(null);
-  const [toast, setToast]    = useState(null);
+  const [selRaider, setSR]   = useState<any>("unset");
+  const [defPick, setDP]     = useState<any>(null);
+  const [toast, setToast]    = useState<any>(null);
   const [showReset, setSReset] = useState(false);
   const [showStats, setSStats] = useState(false);
   const [showSub,   setSSub]   = useState(false);
   const [showLog,   setSLog]   = useState(false);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
-  const [allOutFlash, setAOF]  = useState(null); 
-  const [homeOnCourt, setHOC]  = useState(() => new Set(HOME_SQUAD.map(p=>p.id)));
-  const [guestOnCourt, setGOC] = useState(() => new Set(GUEST_SQUAD.map(p=>p.id)));
-  const timerRef = useRef(null);
+  const [allOutFlash, setAOF]  = useState<any>(null); 
+  const [homeOnCourt, setHOC]  = useState(() => new Set((homeTeam?.squad || HOME_SQUAD).map((p:any)=>p.id)));
+  const [guestOnCourt, setGOC] = useState(() => new Set((guestTeam?.squad || GUEST_SQUAD).map((p:any)=>p.id)));
+  const timerRef = useRef<any>(null);
   const prevSide = useRef("home");
   const matchStartedRef = useRef(false);
 
@@ -373,7 +373,7 @@ export default function App({ homeTeam, guestTeam, periodMins, matchId }) {
     }
   };
 
-  const postNoti = (title, body, type = 'match') => {
+  const postNoti = (title: string, body: string, type: any = 'match') => {
     notificationService.createNotification({
       user_id: user?.id,
       type,
@@ -384,11 +384,11 @@ export default function App({ homeTeam, guestTeam, periodMins, matchId }) {
     });
   };
 
-  const showT = useCallback((msg, clr="#0ea5e9") => {
+  const showT = useCallback((msg: string, clr="#0ea5e9") => {
     setToast({msg,clr}); setTimeout(()=>setToast(null), 2400);
   }, []);
 
-  const apply = useCallback((action) => {
+  const apply = useCallback((action: any) => {
     setS(prev => {
       const next = dc(prev);
       next.history.push(dc({...prev, history:[]}));
@@ -404,7 +404,7 @@ export default function App({ homeTeam, guestTeam, periodMins, matchId }) {
         next.raidRunning = false;
       };
 
-      const checkAllOut = (team, scoringKey, raidPtsThisRaid) => {
+      const checkAllOut = (team: any, scoringKey: string, raidPtsThisRaid: number) => {
         if (team.active <= 0) {
           team.active = 7; 
           next[scoringKey].score += 2; 
@@ -420,7 +420,7 @@ export default function App({ homeTeam, guestTeam, periodMins, matchId }) {
         }
       };
 
-      const addRS = (id, pts, ok, bonus=false) => {
+      const addRS = (id: string, pts: number, ok: boolean, bonus=false) => {
         if (!next.stats[id]) return;
         const s = next.stats[id];
         s.raids++; s.raidPts += pts;
@@ -428,7 +428,7 @@ export default function App({ homeTeam, guestTeam, periodMins, matchId }) {
         if (bonus) s.bonusPts++;
         s.total = s.raidPts + s.tacklePts + s.bonusPts;
       };
-      const addDS = (ids, pts) => {
+      const addDS = (ids: string[], pts: number) => {
         ids.forEach(id => {
           if (!next.stats[id]) return;
           const s = next.stats[id];
@@ -438,7 +438,7 @@ export default function App({ homeTeam, guestTeam, periodMins, matchId }) {
       };
 
       const raiderName = action.rid && next.stats[action.rid] ? next.stats[action.rid].name.split(" ")[0] : null;
-      const defNames   = (action.dids||[]).map(id => next.stats[id]?.name.split(" ")[0]).filter(Boolean);
+      const defNames: any[]   = (action.dids||[]).map((id: string) => next.stats[id]?.name.split(" ")[0]).filter(Boolean);
 
       if (matchId) {
         const isRaidSuccess = action.type === "RAID" || action.type === "BONUS";
@@ -530,7 +530,7 @@ export default function App({ homeTeam, guestTeam, periodMins, matchId }) {
     setSR("unset");
   };
 
-  const handleSub = (side, pid) => {
+  const handleSub = (side: string, pid: string) => {
     if (side==="home") setHOC(p=>{ const n=new Set(p); n.has(pid)?n.delete(pid):n.add(pid); return n; });
     else setGOC(p=>{ const n=new Set(p); n.has(pid)?n.delete(pid):n.add(pid); return n; });
   };
@@ -544,6 +544,16 @@ export default function App({ homeTeam, guestTeam, periodMins, matchId }) {
       if (!matchStartedRef.current) {
         matchStartedRef.current = true;
         postNoti("Match Started! ⚡", `${S.home.name} vs ${S.guest.name} is now LIVE.`);
+        
+        // Update match status to 'live' in Supabase
+        if (matchId) {
+          supabase.from('kabaddi_matches')
+            .update({ status: 'live' })
+            .eq('id', matchId)
+            .then(({ error }) => {
+              if (error) console.error("Failed to update match status to live:", error);
+            });
+        }
       }
       timerRef.current = setInterval(() => {
         setS(p => {
@@ -554,6 +564,22 @@ export default function App({ homeTeam, guestTeam, periodMins, matchId }) {
               postNoti("Half Time ⏱️", `Score: ${p.home.name} ${p.home.score} - ${p.guest.score} ${p.guest.name}`);
             } else {
               postNoti("Full Time 🏆", `Final: ${p.home.name} ${p.home.score} - ${p.guest.score} ${p.guest.name}`);
+              
+              // Update match status to 'completed' and save final scores
+              if (matchId) {
+                supabase.from('kabaddi_matches')
+                  .update({ 
+                    status: 'completed',
+                    home_score: p.home.score,
+                    guest_score: p.guest.score
+                  })
+                  .eq('id', matchId)
+                  .then(({ error }) => {
+                    if (error) console.error("Failed to update final match status:", error);
+                    else navigate(`/matches/${matchId}/summary`);
+                  });
+              }
+
               const resultMsg = `${p.home.name} ${p.home.score} - ${p.guest.score} ${p.guest.name}`;
               const winner = p.home.score > p.guest.score ? p.home.name : p.guest.score > p.home.score ? p.guest.name : "Draw";
               const caption = `🏁 Match Ended! ${resultMsg}. ${winner !== "Draw" ? `Congratulations ${winner}! 🏆` : "It's a draw!"}`;
@@ -561,10 +587,12 @@ export default function App({ homeTeam, guestTeam, periodMins, matchId }) {
                 user_id: user?.id,
                 type: 'result',
                 caption,
-                tournament_id: p.tournamentId,
+                tournament_id: (p as any).tournamentId,
                 match_id: matchId,
                 likes_count: 0
-              }).catch(err => console.error("Failed to post match result to feed:", err));
+              }).then(({ error }) => {
+                if (error) console.error("Failed to post match result to feed:", error);
+              });
             }
             return {...p, running:false, phase:isHalf?"halftime":"fulltime", clock:0}; 
           }
@@ -573,10 +601,10 @@ export default function App({ homeTeam, guestTeam, periodMins, matchId }) {
       }, 1000);
     } else clearInterval(timerRef.current);
     return () => clearInterval(timerRef.current);
-  }, [S.running, S.phase, matchId, postNoti, user?.id]);
+  }, [S.running, S.phase, matchId, postNoti, user?.id, navigate]);
 
   useEffect(() => {
-    let raidTimer;
+    let raidTimer: any;
     if (S.raidRunning && S.phase === "playing") {
       raidTimer = setInterval(() => {
         setS(p => {
@@ -597,7 +625,7 @@ export default function App({ homeTeam, guestTeam, periodMins, matchId }) {
   }, [S.raidRunning, S.phase, S.doOrDie, selRaider, apply, showT]);
 
   const rs = S.rs, ds = rs==="home"?"guest":"home";
-  const rT = S[rs], dT = S[ds];
+  const rT = (S as any)[rs], dT = (S as any)[ds];
   const raidingSquad   = rs==="home" ? HOME_SQUAD  : GUEST_SQUAD;
   const defendingSquad = rs==="home" ? GUEST_SQUAD : HOME_SQUAD;
   const raidOnCourt    = rs==="home" ? homeOnCourt : guestOnCourt;
@@ -605,7 +633,7 @@ export default function App({ homeTeam, guestTeam, periodMins, matchId }) {
   const rid = selRaider!=="unset" ? selRaider?.id : undefined;
   const bonusOk       = dT.active >= 6;
   const isSuperTackle = dT.active <= 3 && dT.active > 0;
-  const isLowAlert    = t => t.active <= 2 && t.active > 0;
+  const isLowAlert    = (t: any) => t.active <= 2 && t.active > 0;
 
   if (S.phase==="halftime") return (
     <div className="kls-end-view">
@@ -662,7 +690,7 @@ export default function App({ homeTeam, guestTeam, periodMins, matchId }) {
       {allOutFlash && <AllOutFlash team={allOutFlash.team} raidPts={allOutFlash.raidPts} onDone={()=>setAOF(null)}/>}
       {toast && <div className="kls-toast" style={{ background: toast.clr, boxShadow: `0 8px 28px ${toast.clr}88` }}>{toast.msg}</div>}
       {defPick && <DefenderPicker squad={defendingSquad} onCourt={defOnCourt} color={dT.color} pts={defPick.pts} isSuperTackle={isSuperTackle}
-        onConfirm={dids=>{
+        onConfirm={(dids: string[])=>{
           apply({type:"TACKLE",pts:defPick.pts,rid,dids});
           showT(isSuperTackle?`💪 SUPER TACKLE!\n+${defPick.pts+1} ${dT.name}`:`🛡️ Tackle +${defPick.pts}  ${dT.name}`, isSuperTackle?"#f97316":"#10b981");
           setDP(null); setSR("unset");
@@ -744,7 +772,7 @@ export default function App({ homeTeam, guestTeam, periodMins, matchId }) {
 
       <RaiderStrip squad={raidingSquad} onCourt={raidOnCourt} color={rT.color}
         selectedId={selRaider==="unset" ? null : (selRaider?.id ?? null)}
-        onSelect={p=>setSR(p)}
+        onSelect={(p: any)=>setSR(p)}
       />
 
       <div className="kls-team-grid">

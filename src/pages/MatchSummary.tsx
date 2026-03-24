@@ -53,9 +53,9 @@ export default function MatchSummary() {
 
         setMatch({
           id: matchData.id,
-          tournament_name: matchData.tournament?.name || 'Local Tournament',
-          home_team: matchData.home_team || { name: 'Home Team', short: 'HT', color: '#ef4444' },
-          guest_team: matchData.guest_team || { name: 'Guest Team', short: 'GT', color: '#0ea5e9' },
+          tournament_name: (matchData.tournament as any)?.name || 'Local Tournament',
+          home_team: (matchData.home_team as any) || { name: 'Home Team', short: 'HT', color: '#ef4444' },
+          guest_team: (matchData.guest_team as any) || { name: 'Guest Team', short: 'GT', color: '#0ea5e9' },
           home_score: matchData.home_score || 0,
           guest_score: matchData.guest_score || 0,
           status: matchData.status,
