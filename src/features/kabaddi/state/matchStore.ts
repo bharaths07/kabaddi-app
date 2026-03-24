@@ -1,4 +1,5 @@
 import { supabase } from '@shared/lib/supabase'
+import { getDraft } from './createDraft'
 
 export type MatchStatus = 'draft' | 'toss_pending' | 'toss_completed' | 'live' | 'completed'
 
@@ -16,6 +17,8 @@ export type Match = {
   id: string
   teamAId: string
   teamBId: string
+  playersA?: any[]
+  playersB?: any[]
   config: any
   toss?: TossDetails
   status: MatchStatus
@@ -81,11 +84,14 @@ export async function upsertFromDraft(args: {
       .single()
 
     if (!error && data) {
+      const draftData = getDraft()
       const match: Match = {
         id: data.id,  // use real UUID as the match ID
         supabaseId: data.id,
         teamAId: args.teamAId,
         teamBId: args.teamBId,
+        playersA: draftData.playersA,
+        playersB: draftData.playersB,
         config: args.config,
         status: 'toss_pending',
         toss: existing?.toss,
@@ -109,11 +115,14 @@ export async function upsertFromDraft(args: {
   }
 
   // Fallback to localStorage only
+  const draftData = getDraft()
   const id = existing?.id || String(Date.now())
   const match: Match = {
     id,
     teamAId: args.teamAId,
     teamBId: args.teamBId,
+    playersA: draftData.playersA,
+    playersB: draftData.playersB,
     config: args.config,
     status: 'toss_pending',
     toss: existing?.toss,

@@ -14,7 +14,7 @@ export async function shareToWhatsApp(blob: Blob, text: string) {
   if (navigator.share && navigator.canShare({ files: [] })) {
     const file = new File([blob], "poster.png", { type: "image/png" });
     await navigator.share({
-      title: "Game Legends Kabaddi",
+      title: "Play Legends Kabaddi",
       text,
       files: [file],
     });

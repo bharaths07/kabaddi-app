@@ -408,13 +408,34 @@ export async function saveTournamentTeams(tournamentId: string, teams: any[]): P
       status: t.status || 'confirmed',
     }))
 
-    const { error } = await supabase
+    const { data: insertedTeams, error } = await supabase
       .from('teams')
       .upsert(teamsToSave, { onConflict: 'tournament_id, name' })
+      .select('id, name')
 
     if (error) {
       console.error('Error saving teams:', error)
       return false
+    }
+
+    if (insertedTeams && insertedTeams.length > 0) {
+      const playersToSave: any[] = []
+      teams.forEach(userInputTeam => {
+        const dbTeam = insertedTeams.find((dbT: any) => dbT.name === userInputTeam.name)
+        if (dbTeam && userInputTeam.players) {
+          userInputTeam.players.forEach((p: any) => {
+            playersToSave.push({
+              team_id: dbTeam.id,
+              name: p.name,
+              number: p.number || 0,
+              role: p.isCaptain ? 'Captain' : 'Player'
+            })
+          })
+        }
+      })
+      if (playersToSave.length > 0) {
+        await supabase.from('players').insert(playersToSave)
+      }
     }
     return true
   } catch (err) {

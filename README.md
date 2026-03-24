@@ -1,4 +1,4 @@
-# Play Legends (Game Legends) 🏆
+# Play Legends 🏆
 
 ### _The Ultimate Kabaddi Tournament Management & Scoring Ecosystem_
 

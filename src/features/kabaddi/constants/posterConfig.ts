@@ -1,5 +1,5 @@
 export const POSTER_BRAND = {
-  name:      "Game Legends",
+  name:      "Play Legends",
   tagline:   "India's Kabaddi App",
   primary:   "#f59e0b",
   dark:      "#0c1832",

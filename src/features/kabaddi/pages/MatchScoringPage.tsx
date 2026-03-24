@@ -16,8 +16,18 @@ export default function MatchScoringPage() {
     if (m && m.id === id) {
       setMatchDetails({
         id: m.id,
-        homeTeam: { name: m.teamAId || 'Team A', short: 'A', color: '#ef4444' },
-        guestTeam: { name: m.teamBId || 'Team B', short: 'B', color: '#0ea5e9' },
+        homeTeam: { 
+          name: m.teamAId || 'Team A', 
+          short: 'A', 
+          color: '#ef4444',
+          squad: m.playersA?.map(p => ({ ...p, role: p.isCaptain ? 'raider' : 'defender' })) 
+        },
+        guestTeam: { 
+          name: m.teamBId || 'Team B', 
+          short: 'B', 
+          color: '#0ea5e9',
+          squad: m.playersB?.map(p => ({ ...p, role: p.isCaptain ? 'raider' : 'defender' })) 
+        },
         periodMins: m.config?.halfDurationMinutes || 20
       })
       setLoading(false)

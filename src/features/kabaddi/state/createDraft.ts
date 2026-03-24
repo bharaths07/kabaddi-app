@@ -1,6 +1,7 @@
 import type { KabaddiMatchConfig } from '../types/matchConfig'
 export type TeamSummary = { id: string; name: string; location?: string }
-export type CreateDraft = { teamA?: TeamSummary; teamB?: TeamSummary; config?: KabaddiMatchConfig }
+export type PlayerSummary = { id: string; name: string; phone?: string; isCaptain?: boolean; jerseyNumber?: number }
+export type CreateDraft = { teamA?: TeamSummary; teamB?: TeamSummary; playersA?: PlayerSummary[]; playersB?: PlayerSummary[]; config?: KabaddiMatchConfig }
 
 const KEY = 'kabaddi.create.draft'
 
@@ -40,6 +41,13 @@ export function setConfig(config: KabaddiMatchConfig) {
 
 export function getConfig(): KabaddiMatchConfig | undefined {
   return read().config
+}
+
+export function setSquad(slot: 'a' | 'b', players: PlayerSummary[]) {
+  const current = read()
+  if (slot === 'a') current.playersA = players
+  else current.playersB = players
+  write(current)
 }
 
 export function clearDraft() {

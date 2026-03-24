@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import './squad.css'
-import { getDraft } from '../../state/createDraft'
+import { getDraft, setSquad } from '../../state/createDraft'
 
 type Player = { id: string; name: string; phone?: string; isCaptain?: boolean }
 
@@ -98,7 +98,11 @@ export default function SquadOnboarding() {
         Both teams need at least 4 players with a captain
       </div>
       <div className="sq-footer">
-        <button className={`sq-start ${canStart ? 'ready' : ''}`} disabled={!canStart} onClick={()=>navigate('/kabaddi/create/toss')}>
+        <button className={`sq-start ${canStart ? 'ready' : ''}`} disabled={!canStart} onClick={()=>{
+          setSquad('a', playersA.map((p, i) => ({ ...p, jerseyNumber: i + 1 })))
+          setSquad('b', playersB.map((p, i) => ({ ...p, jerseyNumber: i + 1 })))
+          navigate('/kabaddi/create/toss')
+        }}>
           {canStart ? 'Start Match' : 'Complete Squads to Start'}
         </button>
       </div>
