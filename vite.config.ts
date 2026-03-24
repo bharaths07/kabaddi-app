@@ -9,5 +9,8 @@ export default defineConfig({
       '@shared': path.resolve(__dirname, 'src/shared'),
       'src': path.resolve(__dirname, 'src')
     }
+  },
+  build: {
+    chunkSizeWarningLimit: 1600
   }
 })
