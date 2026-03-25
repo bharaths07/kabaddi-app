@@ -364,7 +364,7 @@ export default function FeedPage() {
       let likedIds = new Set<string>()
       if (user && data?.length) {
         try {
-          const ids = data.map(p => p.id)
+          const ids = data.map((p: any) => p.id)
           const { data: likes, error: lErr } = await supabase
             .from('feed_likes')
             .select('post_id')

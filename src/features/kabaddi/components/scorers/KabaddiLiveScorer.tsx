@@ -550,7 +550,7 @@ export default function App({ homeTeam, guestTeam, periodMins, matchId }: any) {
           supabase.from('kabaddi_matches')
             .update({ status: 'live' })
             .eq('id', matchId)
-            .then(({ error }) => {
+            .then(({ error }: { error: any }) => {
               if (error) console.error("Failed to update match status to live:", error);
             });
         }
@@ -574,7 +574,7 @@ export default function App({ homeTeam, guestTeam, periodMins, matchId }: any) {
                     guest_score: p.guest.score
                   })
                   .eq('id', matchId)
-                  .then(({ error }) => {
+                  .then(({ error }: { error: any }) => {
                     if (error) console.error("Failed to update final match status:", error);
                     else navigate(`/matches/${matchId}/summary`);
                   });
@@ -590,7 +590,7 @@ export default function App({ homeTeam, guestTeam, periodMins, matchId }: any) {
                 tournament_id: (p as any).tournamentId,
                 match_id: matchId,
                 likes_count: 0
-              }).then(({ error }) => {
+              }).then(({ error }: { error: any }) => {
                 if (error) console.error("Failed to post match result to feed:", error);
               });
             }

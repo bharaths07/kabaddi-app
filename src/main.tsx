@@ -69,6 +69,12 @@ const router = createBrowserRouter([
   { path: '/verify-otp', element: <PublicOnlyRoute><VerifyOTP /></PublicOnlyRoute> },
   { path: '/onboarding', element: <ProtectedRoute><OnboardingPage /></ProtectedRoute> },
   { path: '/auth/callback', element: <AuthCallback /> },
+  // ── Standalone / Full-Screen Routes (No Layout) ─────────────────
+  { path: '/matches/:id/live', element: <ProtectedRoute><MatchScoringPage /></ProtectedRoute> },
+  { path: '/kabaddi/match/:id/score', element: <ProtectedRoute><MatchScoringPage /></ProtectedRoute> },
+  { path: '/kabaddi/matches/:id/live', element: <Navigate to="/matches/:id/live" replace /> },
+  { path: '/kabaddi/match/:id/live', element: <Navigate to="/matches/:id/live" replace /> },
+
   {
     element: <ProtectedRoute><Layout /></ProtectedRoute>,
     errorElement: <ErrorPage />,
@@ -108,9 +114,6 @@ const router = createBrowserRouter([
 
       // ── Scorer ────────────────────────────────────────────────
       { path: 'scorer/assigned', element: <AssignedMatches /> },
-
-      // ── Extra poster-enabled pages ────────────────────────────
-      { path: 'kabaddi/match/:id/score', element: <MatchScoringPage /> },
 
       // ── Tournaments ───────────────────────────────────────────
       { path: 'tournaments',                   element: <Tournaments /> },

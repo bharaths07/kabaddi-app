@@ -82,7 +82,7 @@ export default function MatchSummary() {
             super_10: s.super_10 || false,
             high_5: s.high_5 || false
           }))
-          setStats(mappedStats.sort((a, b) => b.total_points - a.total_points))
+          setStats(mappedStats.sort((a: any, b: any) => b.total_points - a.total_points))
         }
       } catch (err) {
         console.error('Error fetching match summary:', err)

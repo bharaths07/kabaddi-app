@@ -136,12 +136,12 @@ export async function getPlayer(playerIdOrSlug: string): Promise<any | null> {
 
     // Aggregate overall stats
     const totalMatches = matchStats?.length || 0;
-    const totalRaidPts = matchStats?.reduce((sum, s) => sum + (s.raid_points || 0), 0) || 0;
-    const totalTacklePts = matchStats?.reduce((sum, s) => sum + (s.tackle_points || 0), 0) || 0;
-    const superRaids = matchStats?.reduce((sum, s) => sum + (s.super_raids || 0), 0) || 0;
-    const superTackles = matchStats?.reduce((sum, s) => sum + (s.super_tackles || 0), 0) || 0;
-    const super10s = matchStats?.filter(s => (s.raid_points || 0) >= 10).length || 0;
-    const high5s = matchStats?.filter(s => (s.tackle_points || 0) >= 5).length || 0;
+    const totalRaidPts = matchStats?.reduce((sum: number, s: any) => sum + (s.raid_points || 0), 0) || 0;
+    const totalTacklePts = matchStats?.reduce((sum: number, s: any) => sum + (s.tackle_points || 0), 0) || 0;
+    const superRaids = matchStats?.reduce((sum: number, s: any) => sum + (s.super_raids || 0), 0) || 0;
+    const superTackles = matchStats?.reduce((sum: number, s: any) => sum + (s.super_tackles || 0), 0) || 0;
+    const super10s = matchStats?.filter((s: any) => (s.raid_points || 0) >= 10).length || 0;
+    const high5s = matchStats?.filter((s: any) => (s.tackle_points || 0) >= 5).length || 0;
 
     return {
       ...player,
@@ -154,7 +154,7 @@ export async function getPlayer(playerIdOrSlug: string): Promise<any | null> {
           { label: 'Points Per Match', value: totalMatches > 0 ? ((totalRaidPts + totalTacklePts) / totalMatches).toFixed(1) : 0 },
         ],
         attacking: [
-          { label: 'Total Raids', value: matchStats?.reduce((sum, s) => sum + (s.total_raids || 0), 0) || 0 },
+          { label: 'Total Raids', value: matchStats?.reduce((sum: number, s: any) => sum + (s.total_raids || 0), 0) || 0 },
           { label: 'No. Of Super Raids', value: superRaids },
           { label: 'Super 10s', value: super10s },
           { label: 'Total Raid Points', value: totalRaidPts },
@@ -164,7 +164,7 @@ export async function getPlayer(playerIdOrSlug: string): Promise<any | null> {
           { label: 'High 5s', value: high5s },
           { label: 'Total Tackle Points', value: totalTacklePts },
           { label: 'Average Successful Tackles/Match', value: totalMatches > 0 ? (totalTacklePts / totalMatches).toFixed(2) : 0 },
-          { label: 'Total Tackles', value: matchStats?.reduce((sum, s) => sum + (s.total_tackles || 0), 0) || 0 },
+          { label: 'Total Tackles', value: matchStats?.reduce((sum: number, s: any) => sum + (s.total_tackles || 0), 0) || 0 },
         ],
         percentages: {
           notOut: 75, // Placeholder
@@ -204,7 +204,7 @@ export async function getTournamentTeams(tournamentId: string): Promise<Tourname
       return []
     }
 
-    return (data || []).map(t => ({
+    return (data || []).map((t: any) => ({
       id: t.id,
       name: t.name,
       color: t.color || '#0ea5e9',
@@ -234,7 +234,7 @@ export async function getTournamentFixtures(tournamentId: string): Promise<Tourn
       return []
     }
 
-    return (data || []).map(f => ({
+    return (data || []).map((f: any) => ({
       id: f.id,
       round: f.round.toString(),
       teamA: f.home?.name || f.team_home_id,
@@ -274,7 +274,7 @@ export async function getAwards(): Promise<any[]> {
 
     // Aggregate stats by player
     const playerAgg: Record<string, any> = {};
-    allStats.forEach(s => {
+    allStats.forEach((s: any) => {
       const pid = s.player_id;
       if (!playerAgg[pid]) {
         playerAgg[pid] = {

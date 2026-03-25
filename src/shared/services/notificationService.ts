@@ -34,7 +34,7 @@ export const notificationService = {
         console.warn('Error fetching notifications:', error.message)
         return []
       }
-      return (data || []).map(n => ({
+      return (data || []).map((n: any) => ({
         id: n.id,
         user_id: n.user_id,
         type: n.type,

@@ -17,9 +17,6 @@ export const kabaddiRoutes: RouteObject[] = [
   // ── Match detail (Canonical: /matches/:id) ───────────────────
   { path: "/matches/:id",  element: <MatchDetailsPage /> },
 
-  // ── Live scorer (Canonical: /matches/:id/live) ───────────────
-  { path: "/matches/:id/live", element: <MatchScoringPage /> },
-
   // ── Match summary (Canonical: /matches/:id/summary) ──────────
   { path: "/matches/:id/summary", element: <MatchSummary /> },
 
@@ -27,8 +24,6 @@ export const kabaddiRoutes: RouteObject[] = [
   { path: "/kabaddi/matches",         element: <Navigate to="/matches" replace /> },
   { path: "/kabaddi/matches/:id",     element: <Navigate to="/matches/:id" replace /> },
   { path: "/kabaddi/match/:id",       element: <Navigate to="/matches/:id" replace /> },
-  { path: "/kabaddi/matches/:id/live", element: <Navigate to="/matches/:id/live" replace /> },
-  { path: "/kabaddi/match/:id/live",   element: <Navigate to="/matches/:id/live" replace /> },
   { path: "/kabaddi/matches/:id/summary", element: <Navigate to="/matches/:id/summary" replace /> },
   { path: "/kabaddi/match/:id/summary",   element: <Navigate to="/matches/:id/summary" replace /> },
 
