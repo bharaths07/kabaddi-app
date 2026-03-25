@@ -89,7 +89,7 @@ export default function IntroPage() {
       <nav className="intro-nav">
         <div className="intro-nav-inner">
           <div className="intro-nav-logo">
-            <div className="intro-nav-icon">🏉</div>
+            <img src="/assets/logo.png" alt="KabaddiPulse" height="32" style={{ objectFit: 'contain', marginRight: '8px' }} />
             <span className="intro-nav-brand">KabaddiPulse</span>
           </div>
           <button className="intro-nav-btn" onClick={() => navigate('/login')}>
@@ -118,7 +118,7 @@ export default function IntroPage() {
           </h1>
 
           <p className="intro-hero-sub">
-            KabaddiPulse is the complete KabaddiPulse — start a match in seconds,
+            KabaddiPulse is the complete kabaddi scoring app — start a match in seconds,
             score every raid with full player stats, manage tournaments, and share
             results with your team instantly.
           </p>
@@ -303,6 +303,10 @@ export default function IntroPage() {
           </div>
           <div className="intro-footer-tagline">
             Kabaddi Tournament & Scoring Platform
+          </div>
+          <div className="intro-footer-links" style={{ display: 'flex', gap: '16px', justifyContent: 'center', marginTop: '12px', flexWrap: 'wrap' }}>
+            <a href="mailto:kabaddipulse.official@gmail.com" className="intro-footer-link" style={{ textDecoration: 'none' }}>✉️ kabaddipulse.official@gmail.com</a>
+            <a href="https://www.instagram.com/kabaddipulse_official?igsh=MWZobmQyeWpsc2dxZA==" target="_blank" rel="noreferrer" className="intro-footer-link" style={{ textDecoration: 'none' }}>📸 Instagram</a>
           </div>
           <div className="intro-footer-links">
             <button className="intro-footer-link" onClick={() => navigate('/login')}>Sign In</button>

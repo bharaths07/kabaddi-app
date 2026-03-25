@@ -49,8 +49,10 @@ export default function RightSidebar({ role = 'organizer', user = { name: 'User'
       </div>
 
       <div className="gl-section gl-bottom">
-        <Link to="/settings" className="gl-item" onClick={closeSidebar}>Settings</Link>
-        <Link to="/logout" className="gl-item" onClick={closeSidebar}>Logout</Link>
+        <a href="mailto:kabaddipulse.official@gmail.com" className="gl-item" style={{ textDecoration: 'none' }}>✉️ Support Email</a>
+        <a href="https://www.instagram.com/kabaddipulse_official?igsh=MWZobmQyeWpsc2dxZA==" target="_blank" rel="noreferrer" className="gl-item" style={{ textDecoration: 'none' }}>📸 Instagram</a>
+        <Link to="/settings" className="gl-item" onClick={closeSidebar}>⚙️ Settings</Link>
+        <Link to="/logout" className="gl-item" onClick={closeSidebar}>🚪 Logout</Link>
       </div>
     </aside>
   )
