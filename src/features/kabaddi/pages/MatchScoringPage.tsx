@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, Navigate } from 'react-router-dom'
 import KabaddiLiveScorer from '../components/scorers/KabaddiLiveScorer'
 import { getCurrentMatch } from '../state/matchStore'
 import { useAuth } from '../../../shared/context/AuthContext'
@@ -56,18 +56,8 @@ export default function MatchScoringPage() {
   if (loading) return <div style={{ padding: 40, color: '#fff', background: '#0A1628', minHeight: '100vh' }}>Loading Scorer...</div>
 
   if (!canScore && matchData) {
-    return (
-      <div style={{ background: '#0A1628', minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'white', fontFamily: 'Nunito, sans-serif' }}>
-        <div style={{ fontSize: 48, marginBottom: 16 }}>🔒</div>
-        <h2 style={{ fontSize: 24, fontWeight: 800 }}>Spectator Mode Active</h2>
-        <p style={{ color: '#94a3b8', maxWidth: 400, textAlign: 'center', marginTop: 8 }}>
-          You are viewing this match as a spectator. Only the Team Admin, Scorer, or Organizer can access the Live Scoring action dashboard.
-        </p>
-        <button onClick={() => navigate('/matches')} style={{ marginTop: 24, padding: '10px 20px', background: '#FF6B35', border: 'none', borderRadius: 8, color: 'white', fontWeight: 'bold', cursor: 'pointer' }}>
-          Back to Matches
-        </button>
-      </div>
-    )
+    // Redirect normal users to the Match Center / Viewer screens!
+    return <Navigate to={`/matches/${id}`} replace />
   }
 
   return (
