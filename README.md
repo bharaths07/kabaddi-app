@@ -1,8 +1,8 @@
-# Play Legends 🏆
+# KabaddiPulse 🏆
 
 ### _The Ultimate Kabaddi Tournament Management & Scoring Ecosystem_
 
-Play Legends is a professional-grade platform designed to digitize and revolutionize the Kabaddi tournament experience. It bridges the gap between local grassroots tournaments and the professional league standards seen in the Pro Kabaddi League (PKL).
+KabaddiPulse is a professional-grade platform designed to digitize and revolutionize the Kabaddi tournament experience. It bridges the gap between local grassroots tournaments and the professional league standards seen in the Pro Kabaddi League (PKL).
 
 ---
 

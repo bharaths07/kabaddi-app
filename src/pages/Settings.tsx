@@ -152,7 +152,7 @@ export default function Settings() {
         return (
           <div className="st-content">
             <div className="st-section">
-              <div className="st-section-title">About Play Legends</div>
+              <div className="st-section-title">About KabaddiPulse</div>
               <div className="st-about-row">
                 <span className="st-label">Version</span>
                 <span className="st-value">1.2.4 (Beta)</span>

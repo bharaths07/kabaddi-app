@@ -1,0 +1,26 @@
+﻿src/features/kabaddi/components/scorers/KabaddiLiveScorer.tsx(553,22): error TS7031: Binding element 'error' implicitly has an 'any' type.
+src/features/kabaddi/components/scorers/KabaddiLiveScorer.tsx(577,28): error TS7031: Binding element 'error' implicitly has an 'any' type.
+src/features/kabaddi/components/scorers/KabaddiLiveScorer.tsx(593,26): error TS7031: Binding element 'error' implicitly has an 'any' type.
+src/pages/feedandnews/FeedPage.tsx(367,32): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/pages/MatchSummary.tsx(85,38): error TS7006: Parameter 'a' implicitly has an 'any' type.
+src/pages/MatchSummary.tsx(85,41): error TS7006: Parameter 'b' implicitly has an 'any' type.
+src/shared/context/AuthContext.tsx(83,14): error TS7006: Parameter '_event' implicitly has an 'any' type.
+src/shared/context/AuthContext.tsx(83,22): error TS7006: Parameter 'session' implicitly has an 'any' type.
+src/shared/services/notificationService.ts(37,31): error TS7006: Parameter 'n' implicitly has an 'any' type.
+src/shared/services/tournamentService.ts(139,46): error TS7006: Parameter 'sum' implicitly has an 'any' type.
+src/shared/services/tournamentService.ts(139,51): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/shared/services/tournamentService.ts(140,48): error TS7006: Parameter 'sum' implicitly has an 'any' type.
+src/shared/services/tournamentService.ts(140,53): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/shared/services/tournamentService.ts(141,44): error TS7006: Parameter 'sum' implicitly has an 'any' type.
+src/shared/services/tournamentService.ts(141,49): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/shared/services/tournamentService.ts(142,46): error TS7006: Parameter 'sum' implicitly has an 'any' type.
+src/shared/services/tournamentService.ts(142,51): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/shared/services/tournamentService.ts(143,41): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/shared/services/tournamentService.ts(144,39): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/shared/services/tournamentService.ts(157,62): error TS7006: Parameter 'sum' implicitly has an 'any' type.
+src/shared/services/tournamentService.ts(157,67): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/shared/services/tournamentService.ts(167,64): error TS7006: Parameter 'sum' implicitly has an 'any' type.
+src/shared/services/tournamentService.ts(167,69): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/shared/services/tournamentService.ts(207,29): error TS7006: Parameter 't' implicitly has an 'any' type.
+src/shared/services/tournamentService.ts(237,29): error TS7006: Parameter 'f' implicitly has an 'any' type.
+src/shared/services/tournamentService.ts(277,22): error TS7006: Parameter 's' implicitly has an 'any' type.

@@ -29,7 +29,7 @@ export default function PosterCanvas({ data, ratio = 'square', style = 'career',
 }
 
 function renderBase(ctx: CanvasRenderingContext2D, w: number, h: number, data: PosterData, style: PosterStyle) {
-  const brand = 'Play Legends'
+  const brand = 'KabaddiPulse'
   const bg = style === 'career' ? '#0ea5e9' : style === 'season' ? '#10b981' : '#8b5cf6'
 
   // 1. BACKGROUND LAYER

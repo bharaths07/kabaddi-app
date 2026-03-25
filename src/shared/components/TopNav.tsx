@@ -34,7 +34,9 @@ export default function TopNav() {
             <span className="gl-back-text">Back</span>
           </button>
         ) : (
-          <Link to="/" className="gl-logo">Play Legends</Link>
+          <Link to="/" className="gl-logo">
+            <img src="/assets/logo.png" alt="KabaddiPulse" height="40" style={{ objectFit: 'contain' }} />
+          </Link>
         )}
       </div>
       {!isSubPage && (

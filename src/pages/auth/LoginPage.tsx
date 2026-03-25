@@ -72,7 +72,7 @@ export default function LoginPage() {
         <div className="auth-logo">
           <div className="auth-logo-icon">🏉</div>
           <div>
-            <div className="auth-logo-title">Play Legends</div>
+            <div className="auth-logo-title">KabaddiPulse</div>
             <div className="auth-logo-sub">Kabaddi Tournament Platform</div>
           </div>
         </div>

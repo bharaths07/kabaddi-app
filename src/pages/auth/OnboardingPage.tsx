@@ -132,7 +132,7 @@ export default function OnboardingPage() {
         <div className="auth-logo">
           <div className="auth-logo-icon">🏉</div>
           <div>
-            <div className="auth-logo-title">Play Legends</div>
+            <div className="auth-logo-title">KabaddiPulse</div>
             <div className="auth-logo-sub">Set up your profile</div>
           </div>
         </div>

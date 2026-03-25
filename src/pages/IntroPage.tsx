@@ -90,7 +90,7 @@ export default function IntroPage() {
         <div className="intro-nav-inner">
           <div className="intro-nav-logo">
             <div className="intro-nav-icon">🏉</div>
-            <span className="intro-nav-brand">Play Legends</span>
+            <span className="intro-nav-brand">KabaddiPulse</span>
           </div>
           <button className="intro-nav-btn" onClick={() => navigate('/login')}>
             Sign In
@@ -118,7 +118,7 @@ export default function IntroPage() {
           </h1>
 
           <p className="intro-hero-sub">
-            Play Legends is the complete kabaddi app — start a match in seconds,
+            KabaddiPulse is the complete KabaddiPulse — start a match in seconds,
             score every raid with full player stats, manage tournaments, and share
             results with your team instantly.
           </p>
@@ -298,7 +298,7 @@ export default function IntroPage() {
           <div className="intro-footer-logo">
             <div className="intro-nav-icon" style={{ width: 28, height: 28, fontSize: 14 }}>🏉</div>
             <span style={{ fontFamily: 'Rajdhani,sans-serif', fontWeight: 900, fontSize: 16, color: '#1e293b' }}>
-              Play Legends
+              KabaddiPulse
             </span>
           </div>
           <div className="intro-footer-tagline">

@@ -277,7 +277,7 @@ function PostCard({ post, onLike, onShare }: {
 // ── Share Sheet ───────────────────────────────────────────────────
 function ShareSheet({ post, onClose }: { post: FeedPost; onClose: () => void }) {
   const [copied, setCopied] = useState(false)
-  const text = `${post.caption}\n\n— via Play Legends`
+  const text = `${post.caption}\n\n— via KabaddiPulse`
 
   const copy = () => {
     navigator.clipboard?.writeText(text).catch(() => {})

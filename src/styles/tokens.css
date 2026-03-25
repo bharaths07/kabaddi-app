@@ -1,19 +1,34 @@
 /* ═══════════════════════════════════════════════════════════════
    src/styles/tokens.css
-   GAME LEGENDS — Light Sports Theme Design Tokens
-   Vibe: Fresh · Energetic · Youth Sports · Airy
+   KABADDIPULSE — Official Sports Theme Design Tokens
+   Vibe: Professional · Energetic · Pulse
    ═══════════════════════════════════════════════════════════════ */
 
 :root {
 
-  /* ── BRAND ACCENT COLORS ──────────────────────────────────── */
+  /* ── BRAND CORE COLORS ────────────────────────────────────── */
+  --color-primary:       #FF6B35; /* Orange */
+  --color-primary-dark:  #E05828;
+  --color-primary-light: #FF885C;
+  --color-primary-subtle:rgba(255, 107, 53, 0.10);
 
-  /* Sky Blue — primary action, CTAs, links */
-  --color-sky:          #0EA5E9;
-  --color-sky-dark:     #0284C7;
-  --color-sky-light:    #38BDF8;
-  --color-sky-subtle:   rgba(14,165,233,0.10);
-  --color-sky-border:   rgba(14,165,233,0.25);
+  --color-dark:          #0A1628; /* Navy */
+  --color-dark-subtle:   rgba(10, 22, 40, 0.8);
+
+  --color-gold:          #FFB800; /* Gold */
+  --color-gold-dark:     #E0A300;
+  --color-gold-light:    #FFC933;
+  --color-gold-subtle:   rgba(255, 184, 0, 0.10);
+  --color-gold-border:   rgba(255, 184, 0, 0.25);
+
+  --color-white:         #FFFFFF;
+
+  /* ── FALLBACK/LEGACY ALIASES (to prevent breaking legacy CTAs) ── */
+  --color-sky:          var(--color-primary);
+  --color-sky-dark:     var(--color-primary-dark);
+  --color-sky-light:    var(--color-primary-light);
+  --color-sky-subtle:   var(--color-primary-subtle);
+  --color-sky-border:   rgba(255,107,53,0.25);
 
   /* Neon Green — live scores, success, active */
   --color-green:        #16A34A;
@@ -21,19 +36,6 @@
   --color-green-light:  #22C55E;
   --color-green-subtle: rgba(22,163,74,0.10);
   --color-green-border: rgba(22,163,74,0.25);
-
-  /* Gold — live badge, highlights, tournaments */
-  --color-gold:         #D97706;
-  --color-gold-dark:    #B45309;
-  --color-gold-light:   #F59E0B;
-  --color-gold-subtle:  rgba(217,119,6,0.10);
-  --color-gold-border:  rgba(217,119,6,0.25);
-
-  /* Coral/Orange — CTA buttons, alerts, energy */
-  --color-orange:       #EA580C;
-  --color-orange-dark:  #C2410C;
-  --color-orange-light: #F97316;
-  --color-orange-subtle:rgba(234,88,12,0.10);
 
   /* Purple — stats, leaderboards */
   --color-purple:       #7C3AED;
@@ -43,29 +45,26 @@
   --color-purple-border:rgba(124,58,237,0.25);
 
   /* ── SEMANTIC MAPPING ─────────────────────────────────────── */
-  --color-primary:       var(--color-sky);
-  --color-primary-dark:  var(--color-sky-dark);
-  --color-primary-light: var(--color-sky-light);
-  --color-primary-subtle:var(--color-sky-subtle);
-
   --color-live:    var(--color-gold);
   --color-success: var(--color-green);
-  --color-info:    var(--color-sky);
+  --color-info:    var(--color-primary);
   --color-stat:    var(--color-purple);
   --color-danger:  #DC2626;
   --color-warning: var(--color-gold);
 
   /* ── BACKGROUNDS — light, airy, layered whites ────────────── */
-  --bg-page:        #F0F4F8;   /* soft grey-white — main page bg   */
+  --bg-page:        #F8FAFC;   /* slightly sharper grey for contrast */
   --bg-surface:     #FFFFFF;   /* cards, panels — pure white       */
-  --bg-elevated:    #F8FAFC;   /* slightly off-white — nested      */
+  --bg-elevated:    #F1F5F9;   /* slightly off-white — nested      */
   --bg-input:       #FFFFFF;   /* form fields                      */
-  --bg-hover:       #EFF6FF;   /* sky-tinted hover                 */
+  --bg-hover:       rgba(255, 107, 53, 0.05); /* Orange tinted hover */
   --bg-border:      #E2E8F0;   /* dividers, card borders           */
   --bg-border-subtle: #F1F5F9; /* very subtle separators           */
+  
+  --bg-navy:        var(--color-dark); /* For dark headers */
 
   /* ── TEXT ─────────────────────────────────────────────────── */
-  --text-primary:   #0F172A;   /* near-black — headings            */
+  --text-primary:   var(--color-dark);   /* Navy black */
   --text-secondary: #475569;   /* mid-grey — body text             */
   --text-muted:     #94A3B8;   /* light grey — placeholders        */
   --text-inverse:   #FFFFFF;   /* white text on dark/colored bg    */
@@ -90,14 +89,14 @@
   --radius-full: 9999px;
 
   /* ── SHADOWS — softer, light-mode appropriate ─────────────── */
-  --shadow-xs:     0 1px 3px rgba(15,23,42,0.06), 0 1px 2px rgba(15,23,42,0.04);
-  --shadow-sm:     0 2px 8px rgba(15,23,42,0.08), 0 1px 3px rgba(15,23,42,0.05);
-  --shadow-md:     0 4px 16px rgba(15,23,42,0.10), 0 2px 6px rgba(15,23,42,0.06);
-  --shadow-lg:     0 8px 32px rgba(15,23,42,0.12), 0 4px 12px rgba(15,23,42,0.07);
-  --shadow-sky:    0 4px 20px rgba(14,165,233,0.20);
-  --shadow-gold:   0 4px 20px rgba(217,119,6,0.18);
+  --shadow-xs:     0 1px 3px rgba(10,22,40,0.06), 0 1px 2px rgba(10,22,40,0.04);
+  --shadow-sm:     0 2px 8px rgba(10,22,40,0.08), 0 1px 3px rgba(10,22,40,0.05);
+  --shadow-md:     0 4px 16px rgba(10,22,40,0.10), 0 2px 6px rgba(10,22,40,0.06);
+  --shadow-lg:     0 8px 32px rgba(10,22,40,0.12), 0 4px 12px rgba(10,22,40,0.07);
+  --shadow-sky:    0 4px 20px rgba(255,107,53,0.20); /* Maps legacy shadow-sky to shadow-primary */
+  --shadow-gold:   0 4px 20px rgba(255,184,0,0.18);
   --shadow-green:  0 4px 20px rgba(22,163,74,0.18);
-  --shadow-orange: 0 4px 20px rgba(234,88,12,0.22);
+  --shadow-orange: 0 4px 20px rgba(255,107,53,0.22);
   --shadow-purple: 0 4px 20px rgba(124,58,237,0.18);
 
   /* ── TYPOGRAPHY ───────────────────────────────────────────── */

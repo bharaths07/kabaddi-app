@@ -6,31 +6,24 @@ import type { ReactElement } from 'react'
 function SessionLoader() {
   return (
     <div style={{
-      minHeight: '100vh',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      background: '#f8fafc',
-      gap: 16,
+      background:'#0A1628', 
+      height:'100vh', 
+      display:'flex', 
+      flexDirection:'column',
+      alignItems:'center', 
+      justifyContent:'center'
     }}>
-      {/* Spinning ring */}
-      <div style={{
-        width: 44, height: 44,
-        border: '3px solid #e2e8f0',
-        borderTopColor: '#0ea5e9',
-        borderRadius: '50%',
-        animation: 'spin 0.8s linear infinite',
-      }}/>
-      <div style={{
-        fontFamily: "'Nunito', sans-serif",
-        fontWeight: 700,
-        fontSize: 14,
-        color: '#94a3b8',
+      <img src="/assets/logo.png" width="220" alt="KabaddiPulse Logo" />
+      <p style={{
+        color:'#FFB800', 
+        marginTop:12, 
+        letterSpacing:3, 
+        fontSize:12,
+        fontWeight:800,
+        fontFamily: "'Nunito', sans-serif"
       }}>
-        Loading Play Legends...
-      </div>
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+        THE HEART OF KABADDI
+      </p>
     </div>
   )
 }

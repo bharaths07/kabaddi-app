@@ -110,7 +110,7 @@ export function drawWatermark(
   ctx.font = "600 28px Nunito";
   ctx.textAlign = "right";
   ctx.textBaseline = "bottom";
-  ctx.fillText("Play Legends 🏉", w - 32, h - 28);
+  ctx.fillText("KabaddiPulse 🏉", w - 32, h - 28);
 }
 
 export function drawPill(

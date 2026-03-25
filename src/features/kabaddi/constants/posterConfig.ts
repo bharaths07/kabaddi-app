@@ -1,6 +1,6 @@
 export const POSTER_BRAND = {
-  name:      "Play Legends",
-  tagline:   "India's Kabaddi App",
+  name:      "KabaddiPulse",
+  tagline:   "India's KabaddiPulse",
   primary:   "#f59e0b",
   dark:      "#0c1832",
   fontDisplay: "Rajdhani",

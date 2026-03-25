@@ -7,7 +7,7 @@ export default function AboutProject() {
     <div className="ap-page">
       <header className="ap-header">
         <div className="ap-header-glow" />
-        <h1 className="ap-title">Play Legends</h1>
+        <h1 className="ap-title">KabaddiPulse</h1>
         <p className="ap-subtitle">The Digital Revolution for Every Kabaddi Legend</p>
         <span className="ap-badge">Professional Ecosystem</span>
       </header>

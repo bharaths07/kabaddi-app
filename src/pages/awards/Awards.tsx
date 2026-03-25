@@ -190,7 +190,7 @@ export default function AwardsPage() {
               <div className="awards-logo">🏆</div>
             </div>
             <div className="awards-header-text">
-              <h1 className="awards-title">Play Legends Awards</h1>
+              <h1 className="awards-title">KabaddiPulse Awards</h1>
               <p className="awards-subtitle">Recognising the best talent across Karnataka's kabaddi leagues</p>
             </div>
           </div>
