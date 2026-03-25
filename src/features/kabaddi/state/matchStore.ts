@@ -23,6 +23,9 @@ export type Match = {
   toss?: TossDetails
   status: MatchStatus
   supabaseId?: string  // real UUID from kabaddi_matches table
+  owner_id?: string
+  scorer_id?: string
+  tournament_organizer_id?: string
 }
 
 const KEY = 'kabaddi.current.match'

@@ -142,6 +142,11 @@ export interface KabaddiMatch {
   // Tournament Context
   tournamentId?: string
   isLiveMatch: boolean
+
+  // Role-Based Access Control (RBAC) Links
+  owner_id?: string
+  scorer_id?: string
+  tournament_organizer_id?: string
 }
 
 /**
