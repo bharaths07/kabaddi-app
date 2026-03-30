@@ -1,325 +1,440 @@
-import React, { useMemo, useState } from 'react'
-import './create-tournament.css'
-import { Link, useNavigate } from 'react-router-dom'
-import { saveDraft, getDraft, saveTournamentDraft } from '../../shared/state/tournamentDraftStore'
+import { useState, useEffect, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { saveTournament, type Tournament, type TFormat } from '../../features/kabaddi/state/tournamentStore'
+import { useAuth } from '../../shared/context/AuthContext'
+import './tournament-wizard.css'
 
 export default function CreateTournament() {
-  const initial = useMemo(() => getDraft(), [])
-  const [step, setStep] = useState<1|2|3|4>(1)
+    const navigate = useNavigate()
+    const { user } = useAuth()
+    const fileInputRef = useRef<HTMLInputElement>(null)
 
-  // Step 1: Identity
-  const [name, setName] = useState(initial.name || '')
-  const [logo, setLogo] = useState<string | undefined>(initial.logo)
-  const [organizer, setOrganizer] = useState(initial.organizer || 'User')
-  const [contact, setContact] = useState(initial.contact || '')
-
-  // Step 2: Logistics
-  const [level, setLevel] = useState(initial.level || 'local')
-  const [registrationDeadline, setRegistrationDeadline] = useState<string>(initial.registrationDeadline || '')
-  const [startDate, setStartDate] = useState<string>(initial.startDate || '')
-  const [endDate, setEndDate] = useState<string>(initial.endDate || '')
-  const [venueName, setVenueName] = useState<string>(initial.venueName || '')
-  const [cityState, setCityState] = useState<string>(initial.cityState || '')
-  const [mapsLink, setMapsLink] = useState<string>(initial.mapsLink || '')
-  const [courtsAvailable, setCourtsAvailable] = useState<number>(initial.courtsAvailable || 1)
-
-  // Step 3: Rules & Prizes
-  const [format, setFormat] = useState(initial.format || 'league')
-  const [halfDuration, setHalfDuration] = useState<number>(initial.halfDuration || 20)
-  const [playersOnCourt, setPlayersOnCourt] = useState<number>(initial.playersOnCourt || 7)
-  const [squadSize, setSquadSize] = useState<number>(initial.squadSize || 12)
-  const [timeoutsPerHalf, setTimeoutsPerHalf] = useState<number>(initial.timeoutsPerHalf || 2)
-  const [superTackleEnabled, setSuperTackleEnabled] = useState<boolean>(initial.superTackleEnabled ?? true)
-  const [bonusPointEnabled, setBonusPointEnabled] = useState<boolean>(initial.bonusPointEnabled ?? true)
-  const [scoringNotes, setScoringNotes] = useState<string>(initial.scoringNotes || '')
-  const [entryFee, setEntryFee] = useState(initial.entryFee ?? '')
-  const [prize, setPrize] = useState(initial.prize || '')
-
-  const [tid, setTid] = useState<string>(initial.id || String(Date.now()))
-  const [saving, setSaving] = useState(false)
-
-  // Validation
-  const canNextStep1 = name.trim().length > 0 && organizer.trim().length > 0
-  const canNextStep2 = level.trim().length > 0
-  const canSubmit = true
-
-  const onUpload = (f: File | null) => {
-    if (!f) return
-    const reader = new FileReader()
-    reader.onload = () => setLogo(String(reader.result))
-    reader.readAsDataURL(f)
-  }
-
-  const saveStateToDraft = () => {
-    saveDraft({
-      id: tid, name, level, organizer, contact, entryFee, prize, logo,
-      format, halfDuration, playersOnCourt, squadSize, timeoutsPerHalf,
-      superTackleEnabled, bonusPointEnabled, scoringNotes,
-      registrationDeadline, startDate, endDate, venueName, cityState,
-      mapsLink, courtsAvailable
+    // 1. Unified State for Pro Level creation
+    const [form, setForm] = useState({
+        basic: {
+            name: "",
+            banner: null as { file: File; preview: string } | null,
+            format: "league" as TFormat,
+            teamsCount: 8,
+            startDate: "",
+            category: "Open"
+        },
+        organizer: {
+            name: "",
+            phone: "",
+            whatsapp: "",
+            email: ""
+        },
+        matchSetup: {
+            type: "standard" as "standard" | "short" | "custom",
+            halfDuration: 20,
+            playersOnMat: 7,
+            squadSize: 12,
+            raidTimer: 30,
+            allOutPoints: 2,
+            superTackle: true,
+            bonus: true,
+            dod: true
+        },
+        location: {
+            venue: "",
+            city: "",
+            groundType: "mat" as "mat" | "mud",
+            isIndoor: true,
+            mapsLink: "",
+            district: "",
+            state: ""
+        }
     })
-  }
 
-  const onNext = async () => {
-    if (step === 1) {
-      saveStateToDraft()
-      setStep(2)
-      return
-    }
-    if (step === 2) {
-      saveStateToDraft()
-      setStep(3)
-      return
-    }
-    if (step === 3) {
-      try {
-        setSaving(true)
-        const id = await saveTournamentDraft({
-          id: tid, name, level, organizer, contact, entryFee, prize, logo,
-          format, halfDuration, playersOnCourt, squadSize, timeoutsPerHalf,
-          superTackleEnabled, bonusPointEnabled, scoringNotes,
-          registrationDeadline, startDate, endDate, venueName, cityState,
-          mapsLink, courtsAvailable
-        })
-        setTid(id)
-        setStep(4)
-      } catch (e) {
-        console.error('Failed to save tournament draft to Supabase, using local draft id instead', e)
-        setStep(4)
-      } finally {
-        setSaving(false)
-      }
-    }
-  }
+    const [isValid, setIsValid] = useState(false)
 
-  const onBack = () => {
-    if (step > 1 && step < 4) setStep((step - 1) as 1|2|3)
-  }
+    // Load draft if exists
+    useEffect(() => {
+        const draft = localStorage.getItem("pl.tournament_draft")
+        if (draft) {
+            try {
+                const parsed = JSON.parse(draft)
+                // Note: banner preview URL won't work after refresh, need to handle
+                setForm(prev => ({ ...prev, ...parsed, basic: { ...parsed.basic, banner: null } }))
+            } catch (e) {
+                console.error("Failed to load draft", e)
+            }
+        }
+    }, [])
 
-  const renderStepper = () => {
-    if (step === 4) return null;
+    // Real-time Validation & Draft Save
+    useEffect(() => {
+        const { basic, organizer, location } = form
+        const valid = !!(
+            basic.name.trim() && 
+            basic.startDate && 
+            organizer.name.trim() && 
+            organizer.phone.trim() && 
+            location.venue.trim() && 
+            location.city.trim()
+        )
+        setIsValid(valid)
+
+        // Auto-save draft (minus the file object)
+        const draftData = { ...form }
+        // @ts-ignore
+        delete draftData.basic.banner
+        localStorage.setItem("pl.tournament_draft", JSON.stringify(draftData))
+    }, [form])
+
+    const handleBannerUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0]
+        if (file) {
+            const url = URL.createObjectURL(file)
+            setForm(prev => ({ 
+                ...prev, 
+                basic: { ...prev.basic, banner: { file, preview: url } } 
+            }))
+        }
+    }
+
+    const handleCreate = () => {
+        if (!isValid) return
+
+        const id = `t-${Date.now()}`
+        const newTournament: Tournament = {
+            id,
+            name: form.basic.name,
+            banner: form.basic.banner?.preview,
+            organizer: form.organizer.name,
+            contact: form.organizer.phone,
+            contactWhatsapp: form.organizer.whatsapp,
+            contactEmail: form.organizer.email,
+            level: form.basic.category,
+            venue: form.location.venue,
+            cityState: `${form.location.city}, ${form.location.state}`,
+            district: form.location.district,
+            state: form.location.state,
+            groundType: form.location.groundType,
+            isIndoor: form.location.isIndoor,
+            mapsLink: form.location.mapsLink,
+            startDate: form.basic.startDate,
+            endDate: form.basic.startDate, // Default same
+            format: form.basic.format,
+            halfDuration: form.matchSetup.halfDuration,
+            squadSize: form.matchSetup.squadSize,
+            playersOnCourt: form.matchSetup.playersOnMat,
+            raidTimer: form.matchSetup.raidTimer,
+            allOutPoints: form.matchSetup.allOutPoints,
+            doOrDie: form.matchSetup.dod,
+            courts: 1, // Default
+            superTackle: form.matchSetup.superTackle,
+            bonusLine: form.matchSetup.bonus,
+            entryFee: "Free", // Default
+            prize: "Trophy", // Default
+            status: 'draft',
+            created_by: user?.id,
+            teams: [],
+            groups: [],
+            rounds: [],
+            fixtures: [],
+            createdAt: new Date().toISOString()
+        }
+
+        saveTournament(newTournament)
+        localStorage.removeItem("pl.tournament_draft")
+        navigate(`/tournaments/${id}/setup`)
+    }
+
     return (
-      <div className="ct-stepper">
-        <div className="ct-stepper-line">
-          <div className="ct-stepper-progress" style={{ width: step === 1 ? '0%' : step === 2 ? '50%' : '100%' }}></div>
+        <div className="tw-page">
+            <div className="tw-header">
+                <button className="tw-back" onClick={() => navigate(-1)}>← Back</button>
+                <div className="tw-header-info">
+                    <div className="tw-header-title">🏆 Pro Tournament Designer</div>
+                    <div className="tw-header-sub">Define the battlefield in one screen</div>
+                </div>
+            </div>
+
+            <div className="tw-pro-container">
+                {/* ── LEFT: Form Sections ── */}
+                <div className="tw-pro-form">
+                    
+                    {/* 1. BASIC INFO */}
+                    <div className="tw-pro-section">
+                        <div className="tw-section-header">1. BASIC INFO (MANDATORY)</div>
+                        
+                        <div className="tw-banner-upload" onClick={() => fileInputRef.current?.click()}>
+                            {form.basic.banner ? (
+                                <img src={form.basic.banner.preview} alt="Banner Preview" className="tw-banner-preview-img" />
+                            ) : (
+                                <div className="tw-banner-placeholder">
+                                    <span className="tw-icon">🖼️</span>
+                                    <span>Upload Tournament Banner / Logo *</span>
+                                    <span className="tw-sub">Recommended: 1200x400px</span>
+                                </div>
+                            )}
+                            <input type="file" ref={fileInputRef} hidden accept="image/*" onChange={handleBannerUpload} />
+                        </div>
+
+                        <div className="tw-form-group">
+                            <label className="tw-label">Tournament Name *</label>
+                            <input 
+                                className="tw-input lg" 
+                                placeholder="e.g. Saptagiri Pro Kabaddi Cup" 
+                                value={form.basic.name}
+                                onChange={e => setForm({ ...form, basic: { ...form.basic, name: e.target.value } })}
+                            />
+                        </div>
+
+                        <div className="tw-form-row">
+                            <div className="tw-form-group" style={{ flex: 1 }}>
+                                <label className="tw-label">Format</label>
+                                <select 
+                                    className="tw-input"
+                                    value={form.basic.format}
+                                    onChange={e => setForm({ ...form, basic: { ...form.basic, format: e.target.value as any } })}
+                                >
+                                    <option value="league">League</option>
+                                    <option value="knockout">Knockout</option>
+                                    <option value="league_ko">League + Knockout</option>
+                                </select>
+                            </div>
+                            <div className="tw-form-group" style={{ flex: 1 }}>
+                                <label className="tw-label">Expected Teams *</label>
+                                <input 
+                                    type="number" 
+                                    className="tw-input" 
+                                    value={form.basic.teamsCount}
+                                    onChange={e => setForm({ ...form, basic: { ...form.basic, teamsCount: parseInt(e.target.value) } })}
+                                />
+                            </div>
+                            <div className="tw-form-group" style={{ flex: 1 }}>
+                                <label className="tw-label">Start Date *</label>
+                                <input 
+                                    type="date" 
+                                    className="tw-input" 
+                                    value={form.basic.startDate}
+                                    onChange={e => setForm({ ...form, basic: { ...form.basic, startDate: e.target.value } })}
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* 2. ORGANIZER INFO */}
+                    <div className="tw-pro-section">
+                        <div className="tw-section-header">2. ORGANIZER INFO</div>
+                        <div className="tw-form-row">
+                            <div className="tw-form-group" style={{ flex: 1 }}>
+                                <label className="tw-label">Organizer Name *</label>
+                                <input 
+                                    className="tw-input" 
+                                    placeholder="Your Name" 
+                                    value={form.organizer.name}
+                                    onChange={e => setForm({ ...form, organizer: { ...form.organizer, name: e.target.value } })}
+                                />
+                            </div>
+                            <div className="tw-form-group" style={{ flex: 1 }}>
+                                <label className="tw-label">Contact Number *</label>
+                                <input 
+                                    className="tw-input" 
+                                    placeholder="10-digit number" 
+                                    value={form.organizer.phone}
+                                    onChange={e => setForm({ ...form, organizer: { ...form.organizer, phone: e.target.value } })}
+                                />
+                            </div>
+                        </div>
+                        <div className="tw-form-row">
+                            <div className="tw-form-group" style={{ flex: 1 }}>
+                                <label className="tw-label">WhatsApp (Optional)</label>
+                                <input 
+                                    className="tw-input" 
+                                    placeholder="WhatsApp Number" 
+                                    value={form.organizer.whatsapp}
+                                    onChange={e => setForm({ ...form, organizer: { ...form.organizer, whatsapp: e.target.value } })}
+                                />
+                            </div>
+                            <div className="tw-form-group" style={{ flex: 1 }}>
+                                <label className="tw-label">Email (Optional)</label>
+                                <input 
+                                    className="tw-input" 
+                                    placeholder="organizer@email.com" 
+                                    value={form.organizer.email}
+                                    onChange={e => setForm({ ...form, organizer: { ...form.organizer, email: e.target.value } })}
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* 3. MATCH SETUP (KABADDI SPECIFIC) */}
+                    <div className="tw-pro-section">
+                        <div className="tw-section-header">3. MATCH SETUP (KABADDI RULES)</div>
+                        <div className="tw-match-spec-grid">
+                            <div className="tw-spec-item">
+                                <label className="tw-label">Match Type</label>
+                                <div className="tw-seg-ctrl pro">
+                                    {['standard', 'short', 'custom'].map(t => (
+                                        <button 
+                                            key={t}
+                                            className={`tw-seg-btn ${form.matchSetup.type === t ? 'active' : ''}`}
+                                            onClick={() => {
+                                                const updates = t === 'standard' ? { halfDuration: 20, raidTimer: 30 } : t === 'short' ? { halfDuration: 15, raidTimer: 30 } : {}
+                                                setForm({ ...form, matchSetup: { ...form.matchSetup, type: t as any, ...updates } })
+                                            }}
+                                        >
+                                            {t.toUpperCase()}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                            <div className="tw-spec-item">
+                                <label className="tw-label">Half Duration (Mins)</label>
+                                <input className="tw-input" type="number" value={form.matchSetup.halfDuration} onChange={e => setForm({ ...form, matchSetup: { ...form.matchSetup, halfDuration: parseInt(e.target.value) } })} />
+                            </div>
+                            <div className="tw-spec-item">
+                                <label className="tw-label">Players on Mat</label>
+                                <select className="tw-input" value={form.matchSetup.playersOnMat} onChange={e => setForm({ ...form, matchSetup: { ...form.matchSetup, playersOnMat: parseInt(e.target.value) } })}>
+                                    {[5, 7, 9].map(n => <option key={n} value={n}>{n} Players</option>)}
+                                </select>
+                            </div>
+                            <div className="tw-spec-item">
+                                <label className="tw-label">Raid Timer (Secs)</label>
+                                <input className="tw-input" type="number" value={form.matchSetup.raidTimer} onChange={e => setForm({ ...form, matchSetup: { ...form.matchSetup, raidTimer: parseInt(e.target.value) } })} />
+                            </div>
+                            <div className="tw-spec-item">
+                                <label className="tw-label">All-Out Points</label>
+                                <input className="tw-input" type="number" value={form.matchSetup.allOutPoints} onChange={e => setForm({ ...form, matchSetup: { ...form.matchSetup, allOutPoints: parseInt(e.target.value) } })} />
+                            </div>
+                        </div>
+
+                        <div className="tw-rules-toggles">
+                            <div className="tw-toggle-row">
+                                <span className="tw-rule-name">Bonus Line</span>
+                                <div className={`tw-toggle ${form.matchSetup.bonus ? 'active' : ''}`} onClick={() => setForm({ ...form, matchSetup: { ...form.matchSetup, bonus: !form.matchSetup.bonus } })}>
+                                    <div className="tw-toggle-thumb" />
+                                </div>
+                            </div>
+                            <div className="tw-toggle-row">
+                                <span className="tw-rule-name">Super Tackle</span>
+                                <div className={`tw-toggle ${form.matchSetup.superTackle ? 'active' : ''}`} onClick={() => setForm({ ...form, matchSetup: { ...form.matchSetup, superTackle: !form.matchSetup.superTackle } })}>
+                                    <div className="tw-toggle-thumb" />
+                                </div>
+                            </div>
+                            <div className="tw-toggle-row">
+                                <span className="tw-rule-name">Do-or-Die Raid (DOD)</span>
+                                <div className={`tw-toggle ${form.matchSetup.dod ? 'active' : ''}`} onClick={() => setForm({ ...form, matchSetup: { ...form.matchSetup, dod: !form.matchSetup.dod } })}>
+                                    <div className="tw-toggle-thumb" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* 4. LOCATION DETAILS */}
+                    <div className="tw-pro-section">
+                        <div className="tw-section-header">4. LOCATION DETAILS</div>
+                        <div className="tw-form-row">
+                            <div className="tw-form-group" style={{ flex: 2 }}>
+                                <label className="tw-label">Venue Name *</label>
+                                <input 
+                                    className="tw-input" 
+                                    placeholder="e.g. Sports Stadium Bengaluru" 
+                                    value={form.location.venue}
+                                    onChange={e => setForm({ ...form, location: { ...form.location, venue: e.target.value } })}
+                                />
+                            </div>
+                            <div className="tw-form-group" style={{ flex: 1 }}>
+                                <label className="tw-label">Ground Type</label>
+                                <select className="tw-input" value={form.location.groundType} onChange={e => setForm({ ...form, location: { ...form.location, groundType: e.target.value as any } })}>
+                                    <option value="mat">Mat</option>
+                                    <option value="mud">Mud</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div className="tw-form-row">
+                            <div className="tw-form-group" style={{ flex: 1 }}>
+                                <label className="tw-label">City/Town *</label>
+                                <input 
+                                    className="tw-input" 
+                                    placeholder="Bengaluru" 
+                                    value={form.location.city}
+                                    onChange={e => setForm({ ...form, location: { ...form.location, city: e.target.value } })}
+                                />
+                            </div>
+                            <div className="tw-form-group" style={{ flex: 1 }}>
+                                <label className="tw-label">District/State</label>
+                                <input 
+                                    className="tw-input" 
+                                    placeholder="Karnataka" 
+                                    value={form.location.state}
+                                    onChange={e => setForm({ ...form, location: { ...form.location, state: e.target.value } })}
+                                />
+                            </div>
+                        </div>
+                        <div className="tw-form-group">
+                            <label className="tw-label">Google Maps Link (Optional)</label>
+                            <input 
+                                className="tw-input" 
+                                placeholder="Paste Maps URL" 
+                                value={form.location.mapsLink}
+                                onChange={e => setForm({ ...form, location: { ...form.location, mapsLink: e.target.value } })}
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                {/* ── RIGHT: Live Preview (Sticky) ── */}
+                <div className="tw-pro-preview">
+                    <div className="tw-preview-card">
+                        <div className="tw-preview-header">LIVE PREVIEW</div>
+                        <div className="tw-preview-banner">
+                            {form.basic.banner ? (
+                                <img src={form.basic.banner.preview} alt="Banner" />
+                            ) : (
+                                <div className="tw-preview-banner-placeholder">Your Banner Here</div>
+                            )}
+                        </div>
+                        <div className="tw-preview-body">
+                            <div className="tw-preview-title">{form.basic.name || "Untitled Tournament"}</div>
+                            <div className="tw-preview-meta">
+                                <div className="tw-preview-item">
+                                    <span className="tw-icon">📍</span>
+                                    <span>{form.location.venue || "Location TBD"}, {form.location.city || "City"}</span>
+                                </div>
+                                <div className="tw-preview-item">
+                                    <span className="tw-icon">📅</span>
+                                    <span>Starts: {form.basic.startDate ? new Date(form.basic.startDate).toLocaleDateString(undefined, { day: 'numeric', month: 'short' }) : "Date TBD"}</span>
+                                </div>
+                                <div className="tw-preview-item">
+                                    <span className="tw-icon">👥</span>
+                                    <span>{form.basic.teamsCount} Teams</span>
+                                </div>
+                                <div className="tw-preview-item">
+                                    <span className="tw-icon">🏷️</span>
+                                    <span>{form.basic.category} · {form.basic.format.toUpperCase()}</span>
+                                </div>
+                            </div>
+
+                            <div className="tw-preview-organizer">
+                                <div className="tw-org-label">ORGANIZED BY</div>
+                                <div className="tw-org-name">{form.organizer.name || "TBD"}</div>
+                            </div>
+
+                            <div className="tw-preview-rules">
+                                <div className="tw-rule-pill">{form.matchSetup.halfDuration}m Half</div>
+                                <div className="tw-rule-pill">{form.matchSetup.playersOnMat} Mat</div>
+                                <div className="tw-rule-pill">{form.location.groundType.toUpperCase()}</div>
+                                {form.matchSetup.superTackle && <div className="tw-rule-pill">Super Tackle</div>}
+                                {form.matchSetup.bonus && <div className="tw-rule-pill">Bonus</div>}
+                            </div>
+                        </div>
+
+                        <button 
+                            className={`tw-pro-create-btn ${isValid ? 'ready' : ''}`}
+                            disabled={!isValid}
+                            onClick={handleCreate}
+                        >
+                            {isValid ? 'Create Tournament →' : 'Complete Required Fields'}
+                        </button>
+                        {!isValid && <div className="tw-validation-hint">Check mandatory (*) fields</div>}
+                    </div>
+                </div>
+            </div>
         </div>
-        <div className={`ct-step-indicator ${step >= 1 ? 'active' : ''} ${step > 1 ? 'completed' : ''}`}>
-          <div className="ct-step-circle">{step > 1 ? '✓' : '1'}</div>
-          <div className="ct-step-label">Identity</div>
-        </div>
-        <div className={`ct-step-indicator ${step >= 2 ? 'active' : ''} ${step > 2 ? 'completed' : ''}`}>
-          <div className="ct-step-circle">{step > 2 ? '✓' : '2'}</div>
-          <div className="ct-step-label">Logistics</div>
-        </div>
-        <div className={`ct-step-indicator ${step >= 3 ? 'active' : ''} ${step > 3 ? 'completed' : ''}`}>
-          <div className="ct-step-circle">{step > 3 ? '✓' : '3'}</div>
-          <div className="ct-step-label">Rules</div>
-        </div>
-      </div>
     )
-  }
-
-  return (
-    <div className="ct-page">
-      <div className="ct-header">
-        <h1 className="ct-title">Create Tournament</h1>
-        {step !== 4 && <div className="ct-sub">Step {step} of 3</div>}
-      </div>
-
-      {renderStepper()}
-
-      {step === 1 && (
-        <div className="ct-section">
-          <div className="ct-section-title">Tournament Identity</div>
-          
-          <div className="ct-field">
-            <label className="ct-label">Tournament Banner / Logo</label>
-            <div className="ct-upload">
-              {logo ? <img src={logo} alt="Logo preview" className="ct-logo" /> : <div className="ct-logo placeholder">Logo</div>}
-              <label className="ct-upload-btn">
-                <input type="file" accept="image/*" onChange={e=>onUpload(e.target.files?.[0] || null)} />
-                <span>Upload Logo</span>
-              </label>
-            </div>
-          </div>
-
-          <div className="ct-field">
-            <label className="ct-label">Tournament Name</label>
-            <input className="ct-input" placeholder='e.g. "Zilla Kabaddi Cup"' value={name} onChange={e=>setName(e.target.value)} autoFocus />
-          </div>
-
-          <div className="ct-grid-2">
-            <div className="ct-field">
-              <label className="ct-label">Organizer Name</label>
-              <input className="ct-input" placeholder="Your name or club" value={organizer} onChange={e=>setOrganizer(e.target.value)} />
-            </div>
-            <div className="ct-field">
-              <label className="ct-label">Contact Number</label>
-              <input className="ct-input" placeholder="+91" value={contact} onChange={e=>setContact(e.target.value)} />
-            </div>
-          </div>
-        </div>
-      )}
-
-      {step === 2 && (
-        <div className="ct-section">
-          <div className="ct-section-title">Location & Schedule</div>
-
-          <div className="ct-field">
-            <label className="ct-label">Tournament Level</label>
-            <select className="ct-input" value={level} onChange={e=>setLevel(e.target.value as any)}>
-              <option value="local">Local / Village</option>
-              <option value="district">District</option>
-              <option value="state">State</option>
-              <option value="national">National</option>
-            </select>
-          </div>
-
-          <div className="ct-grid-3">
-            <div className="ct-field">
-              <label className="ct-label">Reg. Deadline</label>
-              <input className="ct-input" type="date" value={registrationDeadline} onChange={e=>setRegistrationDeadline(e.target.value)} />
-            </div>
-            <div className="ct-field">
-              <label className="ct-label">Start Date</label>
-              <input className="ct-input" type="date" value={startDate} onChange={e=>setStartDate(e.target.value)} />
-            </div>
-            <div className="ct-field">
-              <label className="ct-label">End Date</label>
-              <input className="ct-input" type="date" value={endDate} onChange={e=>setEndDate(e.target.value)} />
-            </div>
-          </div>
-
-          <div className="ct-grid-2">
-            <div className="ct-field">
-              <label className="ct-label">Venue Name</label>
-              <input className="ct-input" placeholder="e.g. Nehru Stadium, Pune" value={venueName} onChange={e=>setVenueName(e.target.value)} />
-            </div>
-            <div className="ct-field">
-              <label className="ct-label">City & State</label>
-              <input className="ct-input" placeholder="City, State" value={cityState} onChange={e=>setCityState(e.target.value)} />
-            </div>
-          </div>
-
-          <div className="ct-grid-2">
-            <div className="ct-field">
-              <label className="ct-label">Google Maps Link</label>
-              <input className="ct-input" placeholder="https://maps.google.com/..." value={mapsLink} onChange={e=>setMapsLink(e.target.value)} />
-            </div>
-            <div className="ct-field">
-              <label className="ct-label">Number of Courts</label>
-              <input className="ct-input" type="number" min={1} max={6} value={courtsAvailable} onChange={e=>setCourtsAvailable(Number(e.target.value))} />
-            </div>
-          </div>
-        </div>
-      )}
-
-      {step === 3 && (
-        <div className="ct-section">
-          <div className="ct-section-title">Kabaddi Rules & Prizes</div>
-
-          <div className="ct-field">
-            <label className="ct-label">Tournament Format</label>
-            <div className="ct-options">
-              <div className={`ct-option ${format==='league'?'active':''}`} onClick={()=>setFormat('league')}>League</div>
-              <div className={`ct-option ${format==='knockout'?'active':''}`} onClick={()=>setFormat('knockout')}>Knockout</div>
-              <div className={`ct-option ${format==='league_knockout'?'active':''}`} onClick={()=>setFormat('league_knockout')}>League + KO</div>
-            </div>
-          </div>
-
-          <div className="ct-grid-3">
-            <div className="ct-field">
-              <label className="ct-label">Half Duration</label>
-              <select className="ct-input" value={halfDuration} onChange={e=>setHalfDuration(Number(e.target.value))}>
-                <option value={20}>20 Minutes</option>
-                <option value={15}>15 Minutes</option>
-                <option value={10}>10 Minutes</option>
-              </select>
-            </div>
-            <div className="ct-field">
-              <label className="ct-label">Players On Court</label>
-              <input className="ct-input" type="number" min={5} max={9} value={playersOnCourt} onChange={e=>setPlayersOnCourt(Number(e.target.value))}/>
-            </div>
-            <div className="ct-field">
-              <label className="ct-label">Squad Size</label>
-              <input className="ct-input" type="number" min={10} max={20} value={squadSize} onChange={e=>setSquadSize(Number(e.target.value))}/>
-            </div>
-          </div>
-
-          <div className="ct-toggles">
-            <label className="ct-toggle">
-              <input type="checkbox" checked={superTackleEnabled} onChange={e=>setSuperTackleEnabled(e.target.checked)} />
-              <span>Super Tackle (2 Pts)</span>
-            </label>
-            <label className="ct-toggle">
-              <input type="checkbox" checked={bonusPointEnabled} onChange={e=>setBonusPointEnabled(e.target.checked)} />
-              <span>Bonus Line Active</span>
-            </label>
-          </div>
-          
-          <div className="ct-field">
-            <label className="ct-label">Timeouts Per Team/Half</label>
-            <input className="ct-input" type="number" min={0} max={5} value={timeoutsPerHalf} onChange={e=>setTimeoutsPerHalf(Number(e.target.value))}/>
-          </div>
-
-          <div className="ct-grid-2">
-            <div className="ct-field">
-              <label className="ct-label">Entry Fee</label>
-              <input className="ct-input" type="number" min={0} placeholder="₹ Per team amount (optional)" value={entryFee} onChange={e=>setEntryFee(e.target.value)} />
-            </div>
-            <div className="ct-field">
-              <label className="ct-label">Prize Details</label>
-              <input className="ct-input" placeholder='e.g. "1st: ₹50K, 2nd: ₹25K"' value={prize} onChange={e=>setPrize(e.target.value)} />
-            </div>
-          </div>
-        </div>
-      )}
-
-      {step === 4 && (
-        <div className="ct-section ct-success">
-          <div className="ct-trophy">🏆</div>
-          <div className="ct-success-title">Your Kabaddi Tournament is Live!</div>
-          <div className="ct-tip">Awesome job setting up {name}. Next, you need to invite teams, set up your groups, and generate the schedule.</div>
-          
-          <div className="ct-steps">
-            <Link className="ct-step" to={`/tournament/${tid}/add-teams`}>
-              <span className="ct-step-badge">1</span>
-              <span className="ct-step-text">Register & Add Teams</span>
-            </Link>
-            <Link className="ct-step" to={`/tournament/${tid}/add-rounds`}>
-              <span className="ct-step-badge">2</span>
-              <span className="ct-step-text">Add Rounds / Groups</span>
-            </Link>
-            <Link className="ct-step" to={`/tournament/${tid}/add-schedule`}>
-              <span className="ct-step-badge">3</span>
-              <span className="ct-step-text">Generate Schedule</span>
-            </Link>
-          </div>
-
-          <div className="ct-actions">
-            <Link className="ct-btn ct-primary" to={`/tournament/${tid}/dashboard`}>Go to Tournament Dashboard</Link>
-            <Link className="ct-link" to={`/home`}>Back to Home page</Link>
-          </div>
-        </div>
-      )}
-
-      {step !== 4 && (
-        <div className="ct-footer">
-          <div className="ct-footer-left">
-            <button className="ct-btn ct-secondary" onClick={() => { saveStateToDraft(); alert("Draft saved successfully!")}}>Save Draft</button>
-          </div>
-          <div className="ct-footer-right">
-            {step > 1 && <button className="ct-btn ct-secondary" onClick={onBack}>Back</button>}
-            <button 
-              className="ct-btn ct-primary" 
-              disabled={saving || (step === 1 ? !canNextStep1 : step === 2 ? !canNextStep2 : !canSubmit)} 
-              onClick={onNext}
-            >
-              {step === 3 ? (saving ? 'Saving...' : 'Launch Tournament') : 'Continue →'}
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
-  )
 }

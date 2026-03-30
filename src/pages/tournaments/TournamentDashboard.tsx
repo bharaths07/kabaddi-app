@@ -1,611 +1,427 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import "./tournament-details.css";
-import { 
-  Tournament, 
-  TournamentTeam as Team, 
-  TournamentFixture as Fixture, 
-  TournamentStandingRow as StandingRow, 
-  TournamentPlayerStat as PlayerStat 
-} from "../../features/kabaddi/types/kabaddi.types";
-import { getTournament, getTournamentTeams, getTournamentFixtures } from "../../shared/services/tournamentService";
+import {
+  getTournament,
+  Tournament,
+  TTeam,
+  TFixture,
+} from "../../features/kabaddi/state/tournamentStore";
 
-// ─────────────────────────────────────────────────────────────
-// BADGE — maps status string → css class in tournament-details.css
-// ─────────────────────────────────────────────────────────────
-const BADGE_CLASS: Record<string, string> = {
-  "Registration Open": "badge--open",
-  "Live":              "badge--live",
-  "Upcoming":          "badge--upcoming",
-  "Completed":         "badge--completed",
-  confirmed:           "badge--confirmed",
-  invited:             "badge--invited",
-  pending:             "badge--pending",
-  unassigned:          "badge--unassigned",
-  "✓ Scorer":          "badge--confirmed",
-  "No Scorer":         "badge--unassigned",
-};
-
-function Badge({ label }: { label: string }) {
-  return <span className={`badge ${BADGE_CLASS[label] ?? ""}`}>{label}</span>;
+// ─── HELPERS ────────────────────────────────────────────────────
+function fmtDate(d: string | null | undefined) {
+  if (!d) return "TBD";
+  const dt = new Date(d);
+  return isNaN(dt.getTime()) ? d : dt.toLocaleDateString("en-IN", { day: "numeric", month: "short" });
 }
 
-function TeamAvatar({ name, color, size = 38 }: { name: string; color: string; size?: number }) {
-  const sizeClass = size === 28 ? "team-avatar--sm" : "team-avatar--lg";
-  return (
-    <div className={`team-avatar ${sizeClass}`}>
-      {name[0]}
-    </div>
-  );
+// Resolve team name from id
+function teamName(id: string, teams: TTeam[]): string {
+  if (!id || id === "TBD") return "TBD";
+  return teams.find(t => t.id === id)?.name ?? id;
 }
 
-// ─────────────────────────────────────────────────────────────
-// OVERVIEW TAB
-// ─────────────────────────────────────────────────────────────
-function OverviewTab({ onTabChange, tournament, fixtures }: { onTabChange: (tab: string) => void, tournament: Tournament, fixtures: Fixture[] }) {
-  const teamPct  = Math.round((tournament.confirmedTeams   / tournament.totalTeams)   * 100);
-  const matchPct = Math.round((tournament.completedMatches / tournament.totalMatches)  * 100);
-  
-  // Use real fixtures from props, fallback to empty if no fixtures
-  const upcoming = (fixtures || []).filter(f => f.status === "scheduled").slice(0, 3);
-
-  const progressConfigs = [
-    { id: "teams",    label: "Teams Confirmed",  pct: teamPct },
-    { id: "matches",  label: "Matches Played",   pct: matchPct },
-    { id: "scorers",  label: "Scorers Assigned", pct: 57 },
-  ];
-
-  return (
-    <div className="tab-content">
-
-      <div className="stat-cards">
-        {[
-          { label: "Teams",   value: `${tournament.confirmedTeams}/${tournament.totalTeams}`,    icon: "👥" },
-          { label: "Matches", value: `${tournament.completedMatches}/${tournament.totalMatches}`, icon: "🎯" },
-          { label: "Status",  value: tournament.status.replace("Registration ", ""),               icon: "✅" },
-        ].map(s => (
-          <div className="stat-card" key={s.label}>
-            <span className="stat-card__icon">{s.icon}</span>
-            <span className="stat-card__value">{s.value}</span>
-            <span className="stat-card__label">{s.label}</span>
-          </div>
-        ))}
-      </div>
-
-      <div className="section-card">
-        <h3 className="section-title">Tournament Progress</h3>
-        {progressConfigs.map(p => {
-          const level = p.pct >= 80 ? "high" : p.pct >= 50 ? "medium" : "low";
-          return (
-            <div className="progress-row" key={p.label}>
-              <div className="progress-row__labels">
-                <span>{p.label}</span>
-                <span className={`progress-value progress-value--${p.id}`}>{p.pct}%</span>
-              </div>
-              <div className="progress-track">
-                <div className={`progress-fill progress-fill--${p.id} progress-fill--${level}`} />
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Upcoming Matches */}
-      <div className="section-card">
-        <div className="section-header">
-          <h3 className="section-title">Upcoming Matches</h3>
-          <button className="link-btn" onClick={() => onTabChange("fixtures")}>View All →</button>
-        </div>
-        {upcoming.map(m => (
-          <div className="fixture-row" key={m.id}>
-            <div>
-              <p className="fixture-row__teams">
-                {m.teamA} <span className="vs">vs</span> {m.teamB}
-              </p>
-              <p className="fixture-row__meta">📅 {m.date} &nbsp; ⏰ {m.time} &nbsp; 🏟 {m.court}</p>
-            </div>
-            <Badge label={m.scorerStatus === "confirmed" ? "✓ Scorer" : "No Scorer"} />
-          </div>
-        ))}
-      </div>
-
-      {/* Join Code */}
-      <div className="join-code-card">
-        <p className="join-code-card__label">🔗 Tournament Join Code</p>
-        <p className="join-code-card__code">{tournament.joinCode}</p>
-        <p className="join-code-card__sub">Share this code so teams can self-register</p>
-        <div className="join-code-card__actions">
-          <button
-            className="btn btn--outline-white"
-            onClick={() => navigator.clipboard.writeText(tournament.joinCode)}
-          >
-            📋 Copy Code
-          </button>
-          <button className="btn btn--whatsapp">📲 WhatsApp</button>
-        </div>
-      </div>
-
-      {/* Quick Actions */}
-      <div className="section-card">
-        <h3 className="section-title">Quick Actions</h3>
-        <div className="quick-actions">
-          {[
-            { icon: "📅", label: "Schedule Match",   onClick: () => onTabChange("fixtures") },
-            { icon: "📢", label: "Send Announcement" },
-            { icon: "👤", label: "Assign Scorer"     },
-            { icon: "✏️", label: "Edit Tournament"   },
-          ].map(a => (
-            <button className="quick-action-btn" key={a.label} onClick={a.onClick}>
-              <span className="quick-action-btn__icon">{a.icon}</span>
-              <span>{a.label}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-
-    </div>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────
-// TEAMS TAB
-// ─────────────────────────────────────────────────────────────
-function TeamsTab({ teams }: { teams: Team[] }) {
-  const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
-  const [filter, setFilter] = useState<"all" | "confirmed" | "invited" | "pending">("all");
-
-  const filtered = filter === "all" ? teams : teams.filter(t => t.status === filter);
-
-  return (
-    <div className="tab-content">
-
-
-      <div className="filter-pills">
-        {(["all", "confirmed", "invited", "pending"] as const).map(f => (
-          <button
-            key={f}
-            onClick={() => setFilter(f)}
-            className={`filter-pill ${filter === f ? "filter-pill--active" : ""}`}
-          >
-            {f.charAt(0).toUpperCase() + f.slice(1)}
-          </button>
-        ))}
-      </div>
-
-      {filtered.map(team => (
-        <div className="team-card" key={team.id}>
-          <TeamAvatar name={team.name} color={team.color} />
-          <div className="team-card__info">
-            <p className="team-card__name">{team.name}</p>
-            <p className="team-card__meta">
-              👤 {team.captain} &nbsp;·&nbsp; 🏃 {team.players} Players
-            </p>
-          </div>
-          <div className="team-card__right">
-            <Badge label={team.status.charAt(0).toUpperCase() + team.status.slice(1)} />
-            <Link
-              to={`/teams/${team.name.toLowerCase().replace(/\s+/g, '-')}`}
-              className="link-btn team-card__link"
-            >
-              View ›
-            </Link>
-          </div>
-        </div>
-      ))}
-
-      <button
-        className="add-dashed-btn"
-        onClick={() => navigate(`/tournament/${id}/add-teams`)}
-      >
-        + Add Team
-      </button>
-
-    </div>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────
-// FIXTURES TAB
-// ─────────────────────────────────────────────────────────────
-function FixturesTab({ fixtures, setFixtures }: { fixtures: Fixture[], setFixtures: (f: any) => void }) {
-  const { id: tournamentId } = useParams<{ id: string }>();
-  const navigate = useNavigate();
-  const [assigningMatch, setAssigningMatch] = useState<Fixture | null>(null);
-  const [searchQuery, setSearchQuery]       = useState("");
-  const [showAddSingle, setShowAddSingle]   = useState(false);
-
-  // Form state for a single match
-  const [newMatch, setNewMatch] = useState({
-    teamA: "", teamB: "", date: "", time: "", round: "Round 1", court: "Court 1"
+// Calc standings from fixtures
+function calcStandings(teams: TTeam[], fixtures: TFixture[]) {
+  const map: Record<string, { name: string; color: string; P: number; W: number; L: number; pts: number; scored: number; conceded: number }> = {};
+  teams.forEach(t => { map[t.id] = { name: t.name, color: t.color, P: 0, W: 0, L: 0, pts: 0, scored: 0, conceded: 0 }; });
+  fixtures.filter(f => f.status === "completed" && f.scoreA !== undefined && f.scoreB !== undefined).forEach(f => {
+    const sA = f.scoreA!, sB = f.scoreB!;
+    if (map[f.teamAId]) { map[f.teamAId].P++; map[f.teamAId].scored += sA; map[f.teamAId].conceded += sB; }
+    if (map[f.teamBId]) { map[f.teamBId].P++; map[f.teamBId].scored += sB; map[f.teamBId].conceded += sA; }
+    if (sA > sB) {
+      if (map[f.teamAId]) { map[f.teamAId].W++; map[f.teamAId].pts += 2; }
+      if (map[f.teamBId]) map[f.teamBId].L++;
+    } else if (sB > sA) {
+      if (map[f.teamBId]) { map[f.teamBId].W++; map[f.teamBId].pts += 2; }
+      if (map[f.teamAId]) map[f.teamAId].L++;
+    } else {
+      if (map[f.teamAId]) { map[f.teamAId].pts++; }
+      if (map[f.teamBId]) { map[f.teamBId].pts++; }
+    }
   });
-
-  const rounds = [...new Set(fixtures.map(f => f.round))];
-
-  const SUGGESTED = [
-    { name: "Rahul Sharma", phone: "+91 9876543210" },
-    { name: "Vikram Patil", phone: "+91 9823456789" },
-    { name: "Ankit Mehta",  phone: "+91 9811234567" },
-  ];
-
-  const onAddSingle = () => {
-    if (!newMatch.teamA || !newMatch.teamB) return;
-    const f: Fixture = {
-      id: fixtures.length + 1,
-      round: newMatch.round,
-      teamA: newMatch.teamA,
-      teamB: newMatch.teamB,
-      date: newMatch.date,
-      time: newMatch.time,
-      court: newMatch.court,
-      scorer: null,
-      scorerStatus: "unassigned",
-      status: "scheduled",
-      result: ""
-    };
-    setFixtures([...fixtures, f]);
-    setShowAddSingle(false);
-  };
-
-  return (
-    <div className="tab-content">
-      <div className="fixture-toolbar">
-        <button 
-          className="btn btn--outline" 
-          onClick={() => setShowAddSingle(true)}
-        >
-          + Quick Add
-        </button>
-        <button 
-          className="btn btn--primary" 
-          onClick={() => navigate(`/tournament/${tournamentId}/add-schedule`)}
-        >
-          📅 Schedule Wizard
-        </button>
-      </div>
-
-      {showAddSingle && (
-        <div className="section-card quick-add-card">
-          <h4 className="quick-add-title">Quick Schedule Single Match</h4>
-          <div className="quick-add-grid">
-            <label className="visually-hidden" htmlFor="teamA">Team A</label>
-            <input id="teamA" className="input" placeholder="Team A" value={newMatch.teamA} onChange={e=>setNewMatch({...newMatch, teamA: e.target.value})} />
-            
-            <label className="visually-hidden" htmlFor="teamB">Team B</label>
-            <input id="teamB" className="input" placeholder="Team B" value={newMatch.teamB} onChange={e=>setNewMatch({...newMatch, teamB: e.target.value})} />
-            
-            <label className="visually-hidden" htmlFor="matchDate">Match Date</label>
-            <input id="matchDate" className="input" type="date" value={newMatch.date} onChange={e=>setNewMatch({...newMatch, date: e.target.value})} />
-            
-            <label className="visually-hidden" htmlFor="matchTime">Match Time</label>
-            <input id="matchTime" className="input" type="time" value={newMatch.time} onChange={e=>setNewMatch({...newMatch, time: e.target.value})} />
-          </div>
-          <div className="quick-add-actions">
-            <button className="btn btn--primary btn--sm" onClick={onAddSingle}>Add to Schedule</button>
-            <button className="btn btn--ghost btn--sm" onClick={() => setShowAddSingle(false)}>Cancel</button>
-          </div>
-        </div>
-      )}
-
-      {rounds.map(round => (
-        <div key={round}>
-          <p className="round-label">{round}</p>
-          {fixtures.filter(f => f.round === round).map(fixture => (
-            <div
-              key={fixture.id}
-              className={`fixture-card ${fixture.status === "completed" ? "fixture-card--done" : ""}`}
-            >
-              {/* top meta row */}
-              <div className="fixture-card__meta">
-                <span>📅 {fixture.date} &nbsp; ⏰ {fixture.time} &nbsp; 🏟 {fixture.court}</span>
-                {fixture.status === "completed" && <Badge label="Completed" />}
-                {fixture.status === "live"      && <Badge label="Live"      />}
-              </div>
-
-              {/* versus row */}
-              <div className="fixture-card__versus">
-                <span className="fixture-card__team">{fixture.teamA}</span>
-                <span className="fixture-card__vs-box">
-                  {fixture.status === "completed" ? fixture.result : "VS"}
-                </span>
-                <span className="fixture-card__team fixture-card__team--right">{fixture.teamB}</span>
-              </div>
-
-              {/* scorer row */}
-              {fixture.status !== "completed" && (
-                <div className="fixture-card__scorer-row">
-                  <span>
-                    👤 Scorer:&nbsp;
-                    <strong className={`scorer-name ${fixture.scorer ? "" : "scorer-name--missing"}`}>
-                      {fixture.scorer ?? "Not Assigned"}
-                    </strong>
-                  </span>
-                  <button
-                    className={`btn btn--sm ${fixture.scorerStatus === "confirmed" ? "btn--success" : "btn--primary"}`}
-                    onClick={() => { setAssigningMatch(fixture); setSearchQuery(""); }}
-                  >
-                    {fixture.scorer ? "Change" : "Assign Scorer"}
-                  </button>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      ))}
-
-      {/* Assign Scorer Bottom Sheet */}
-      {assigningMatch && (
-        <>
-          <div className="overlay" onClick={() => setAssigningMatch(null)} />
-          <div className="bottom-sheet">
-            <div className="bottom-sheet__handle" />
-            <h3 className="bottom-sheet__title">Assign Scorer</h3>
-            <p className="bottom-sheet__sub">
-              {assigningMatch.teamA} vs {assigningMatch.teamB}
-            </p>
-            <div className="search-box">
-              <label className="visually-hidden" htmlFor="scorerSearch">Search Scorer</label>
-              <span>🔍</span>
-              <input
-                id="scorerSearch"
-                type="text"
-                className="search-box__input"
-                placeholder="Search by name or phone"
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-              />
-            </div>
-            <p className="suggested-label">SUGGESTED</p>
-            {SUGGESTED.filter(s =>
-              s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-              s.phone.includes(searchQuery)
-            ).map(scorer => (
-              <div className="scorer-row" key={scorer.name}>
-                <div>
-                  <p className="scorer-row__name">{scorer.name}</p>
-                  <p className="scorer-row__phone">{scorer.phone}</p>
-                </div>
-                <button
-                  className="btn btn--primary btn--sm"
-                  onClick={() => setAssigningMatch(null)}
-                >
-                  Assign
-                </button>
-              </div>
-            ))}
-            <button className="btn btn--outline btn--full bottom-sheet__invite-btn">
-              + Invite New Scorer
-            </button>
-          </div>
-        </>
-      )}
-
-    </div>
-  );
+  return Object.values(map).sort((a, b) => b.pts - a.pts || (b.scored - b.conceded) - (a.scored - a.conceded));
 }
 
-// ─────────────────────────────────────────────────────────────
-// STANDINGS TAB
-// ─────────────────────────────────────────────────────────────
-function StandingsTab() {
+function getStatusConfig(status: string) {
+  switch (status) {
+    case "ongoing":   return { label: "LIVE",     cls: "status--live",      pulse: true };
+    case "completed": return { label: "ENDED",    cls: "status--completed", pulse: false };
+    default:          return { label: "UPCOMING", cls: "status--upcoming",  pulse: false };
+  }
+}
+
+// ─── SMART BANNER ──────────────────────────────────────────────────
+function SmartBanner({ t, navigate }: { t: Tournament; navigate: (p: string) => void }) {
+  if (t.teams.length === 0) return (
+    <div className="tdc-banner tdc-banner--warn">
+      <span>⚠️ No teams added yet — add teams to begin</span>
+      <button className="tdc-banner-btn" onClick={() => navigate(`/tournaments/${t.id}/setup`)}>Go to Setup →</button>
+    </div>
+  );
+  if (t.fixtures.length === 0) return (
+    <div className="tdc-banner tdc-banner--info">
+      <span>📅 Generate the match schedule to enable match start</span>
+      <button className="tdc-banner-btn" onClick={() => navigate(`/tournaments/${t.id}/setup`)}>Setup →</button>
+    </div>
+  );
+  return null;
+}
+
+// ─── STATS STRIP ───────────────────────────────────────────────────
+function StatsStrip({ t }: { t: Tournament }) {
+  const completed = t.fixtures.filter(f => f.status === "completed").length;
+  const live      = t.fixtures.filter(f => f.status === "live").length;
   return (
-    <div className="tab-content">
-      <div className="standings-table">
-
-        <div className="standings-header">
-          {["#", "Team", "P", "W", "L", "Pts", "+/-"].map(h => (
-            <span key={h} className={`standings-col ${h === "Team" ? "standings-col--team" : ""}`}>
-              {h}
-            </span>
-          ))}
-        </div>
-
-        {[]}
-        <div className="empty-state">
-          <div className="empty-state__icon">🏆</div>
-          <p className="empty-state__text">Standings will appear after the first match is completed.</p>
-        </div>
-
+    <div className="tdc-stats-strip">
+      <div className="tdc-stat-item">
+        <span className="tdc-stat-value">{t.teams.length}</span>
+        <span className="tdc-stat-label">Teams</span>
       </div>
-
-      <div className="info-box">
-        ℹ️ Top <strong>2 teams</strong> qualify for knockouts.
-        Tiebreaker: Point difference → Head to head.
+      <div className="tdc-stat-divider" />
+      <div className="tdc-stat-item">
+        <span className="tdc-stat-value">{completed}<span className="tdc-stat-sub">/{t.fixtures.length}</span></span>
+        <span className="tdc-stat-label">Played</span>
+      </div>
+      <div className="tdc-stat-divider" />
+      <div className="tdc-stat-item">
+        <span className={`tdc-stat-value ${live > 0 ? "tdc-stat-live" : ""}`}>{live > 0 ? live : "—"}</span>
+        <span className="tdc-stat-label">Live Now</span>
+      </div>
+      <div className="tdc-stat-divider" />
+      <div className="tdc-stat-item">
+        <span className="tdc-stat-value">{t.fixtures.length - completed}</span>
+        <span className="tdc-stat-label">Remaining</span>
       </div>
     </div>
   );
 }
 
-// ─────────────────────────────────────────────────────────────
-// STATS TAB
-// ─────────────────────────────────────────────────────────────
-function StatsTab() {
-  const [type, setType] = useState<"raiders" | "tacklers">("raiders");
-  const data: any[] = []; // Stats will be dynamic later
+// ─── QUICK ACTIONS ──────────────────────────────────────────────────
+function QuickActions({ t, navigate }: { t: Tournament; navigate: (p: string) => void }) {
+  const hasFixtures = t.fixtures.length > 0;
+  return (
+    <div className="tdc-quick-actions">
+      <button
+        className="tdc-qa-btn tdc-qa-btn--primary"
+        disabled={!hasFixtures}
+        onClick={() => navigate(`/kabaddi/create/teams`)}
+        title={!hasFixtures ? "Generate schedule first" : "Start a match"}
+      >
+        <span className="tdc-qa-icon">🚀</span>
+        <span>Start Match</span>
+      </button>
+      <button className="tdc-qa-btn" onClick={() => navigate(`/tournaments/${t.id}/setup`)}>
+        <span className="tdc-qa-icon">📅</span>
+        <span>Schedule</span>
+      </button>
+      <button className="tdc-qa-btn" onClick={() => navigate(`/tournaments/${t.id}/add-teams`)}>
+        <span className="tdc-qa-icon">👥</span>
+        <span>Add Teams</span>
+      </button>
+      <button className="tdc-qa-btn" onClick={() => navigate(`/tournaments/${t.id}/setup`)}>
+        <span className="tdc-qa-icon">⚙️</span>
+        <span>Setup</span>
+      </button>
+    </div>
+  );
+}
+
+// ─── MATCH CARD ────────────────────────────────────────────────────
+function MatchCard({ f, teams, navigate }: { f: TFixture; teams: TTeam[]; navigate: (p: string) => void }) {
+  const isLive      = f.status === "live";
+  const isCompleted = f.status === "completed";
+  const nameA = teamName(f.teamAId, teams);
+  const nameB = teamName(f.teamBId, teams);
+  const colorA = teams.find(t => t.id === f.teamAId)?.color ?? "#FF5722";
+  const colorB = teams.find(t => t.id === f.teamBId)?.color ?? "#3182CE";
 
   return (
-    <div className="tab-content">
-      <div className="toggle-group">
-        <button
-          className={`toggle-btn ${type === "raiders" ? "toggle-btn--active" : ""}`}
-          onClick={() => setType("raiders")}
-        >
-          ⚡ Top Raiders
-        </button>
-        <button
-          className={`toggle-btn ${type === "tacklers" ? "toggle-btn--active" : ""}`}
-          onClick={() => setType("tacklers")}
-        >
-          🛡 Top Tacklers
-        </button>
+    <div className={`tdc-match-card ${isLive ? "tdc-match-card--live" : ""} ${isCompleted ? "tdc-match-card--done" : ""}`}>
+      {isLive && <div className="tdc-live-badge"><span className="tdc-live-dot" />LIVE</div>}
+      <div className="tdc-match-teams">
+        <div className="tdc-match-team">
+          <div className="tdc-team-dot" style={{ background: colorA }} />
+          <span className="tdc-team-name">{nameA}</span>
+        </div>
+        <div className="tdc-match-score-box">
+          {isLive || isCompleted
+            ? <span className="tdc-score">{f.scoreA ?? 0} - {f.scoreB ?? 0}</span>
+            : <span className="tdc-vs">VS</span>
+          }
+        </div>
+        <div className="tdc-match-team tdc-match-team--right">
+          <span className="tdc-team-name">{nameB}</span>
+          <div className="tdc-team-dot" style={{ background: colorB }} />
+        </div>
       </div>
+      <div className="tdc-match-meta">
+        {f.date && <span>📅 {fmtDate(f.date)}</span>}
+        {f.time && <span>⏰ {f.time}</span>}
+        {f.court && <span>🏟 {f.court}</span>}
+      </div>
+      <div className="tdc-match-actions">
+        {isLive && <button className="tdc-btn tdc-btn--live" onClick={() => navigate(`/matches/${f.id}/live`)}>🔴 Go to Live Scoring</button>}
+        {!isLive && !isCompleted && <button className="tdc-btn tdc-btn--start" onClick={() => navigate(`/kabaddi/create/teams`)}>▶ Start Match</button>}
+        {isCompleted && <button className="tdc-btn tdc-btn--summary" onClick={() => navigate(`/matches/${f.id}/summary`)}>📊 View Summary</button>}
+      </div>
+    </div>
+  );
+}
 
-      {data.length === 0 ? (
-        <div className="empty-state">
-          <div className="empty-state__icon">📈</div>
-          <p className="empty-state__text">Player stats will be updated as matches are played.</p>
+// ─── MATCHES SECTION ────────────────────────────────────────────────
+function MatchesSection({ t, navigate }: { t: Tournament; navigate: (p: string) => void }) {
+  const [tab, setTab] = useState<"upcoming" | "live" | "completed">("upcoming");
+  const live      = t.fixtures.filter(f => f.status === "live");
+  const upcoming  = t.fixtures.filter(f => f.status === "scheduled");
+  const completed = t.fixtures.filter(f => f.status === "completed");
+  const visible   = tab === "live" ? live : tab === "upcoming" ? upcoming : completed;
+
+  useEffect(() => {
+    if (live.length > 0) setTab("live");
+    else if (upcoming.length > 0) setTab("upcoming");
+    else setTab("completed");
+  }, [t.fixtures.length]);
+
+  return (
+    <div className="tdc-section">
+      <div className="tdc-section-header">
+        <h2 className="tdc-section-title">Matches</h2>
+      </div>
+      <div className="tdc-match-tabs">
+        {(["upcoming", "live", "completed"] as const).map(tb => (
+          <button key={tb} onClick={() => setTab(tb)} className={`tdc-match-tab ${tab === tb ? "tdc-match-tab--active" : ""}`}>
+            {tb === "live" && live.length > 0 && <span className="tdc-tab-live-dot" />}
+            {tb.charAt(0).toUpperCase() + tb.slice(1)}
+            <span className="tdc-tab-count">{tb === "live" ? live.length : tb === "upcoming" ? upcoming.length : completed.length}</span>
+          </button>
+        ))}
+      </div>
+      {visible.length === 0 ? (
+        <div className="tdc-empty">
+          <div className="tdc-empty-icon">{tab === "live" ? "🎙" : tab === "upcoming" ? "📅" : "🏁"}</div>
+          <p>{tab === "live" ? "No live matches right now." : tab === "upcoming" ? "No upcoming matches. Generate a schedule first." : "No completed matches yet."}</p>
         </div>
       ) : (
-        data.map((player, i) => (
-          <div className="stat-player-card" key={player.name}>
-            <span className="stat-player-card__medal">
-              {["🥇", "🥈", "🥉"][i]}
-            </span>
-            <Link
-              to={`/players/${player.name.toLowerCase().replace(/\s+/g, '-')}`}
-              className="stat-player-card__info stat-player-card__info-link"
-            >
-              <p className="stat-player-card__name">{player.name}</p>
-              <p className="stat-player-card__team">{player.team}</p>
-            </Link>
-            <div className="stat-player-card__score">
-              <span className="stat-player-card__value">{player.value}</span>
-              <span className="stat-player-card__unit">
-                {type === "raiders" ? "Raid Pts" : "Tackle Pts"}
-              </span>
-            </div>
-          </div>
-        ))
+        visible.map(f => <MatchCard key={f.id} f={f} teams={t.teams} navigate={navigate} />)
       )}
     </div>
   );
 }
 
-// ─────────────────────────────────────────────────────────────
-// MAIN EXPORT
-// ─────────────────────────────────────────────────────────────
-const TABS = [
-  { id: "overview",  label: "Overview",  icon: "⚡" },
-  { id: "teams",     label: "Teams",     icon: "👥" },
-  { id: "fixtures",  label: "Fixtures",  icon: "📅" },
-  { id: "standings", label: "Standings", icon: "🏆" },
-  { id: "stats",     label: "Stats",     icon: "📈" },
-];
+// ─── POINTS TABLE ────────────────────────────────────────────────────
+function PointsTable({ t }: { t: Tournament }) {
+  const rows = calcStandings(t.teams, t.fixtures);
+  const hasData = t.fixtures.some(f => f.status === "completed");
+  return (
+    <div className="tdc-section">
+      <h2 className="tdc-section-title">Points Table</h2>
+      {!hasData ? (
+        <div className="tdc-empty tdc-empty--sm">
+          <div className="tdc-empty-icon">🏆</div>
+          <p>Standings update after first match</p>
+        </div>
+      ) : (
+        <div className="tdc-standings-table">
+          <div className="tdc-standings-head">
+            <span className="tdc-col-rank">#</span>
+            <span className="tdc-col-team">Team</span>
+            <span className="tdc-col-num">P</span>
+            <span className="tdc-col-num">W</span>
+            <span className="tdc-col-num">L</span>
+            <span className="tdc-col-pts">Pts</span>
+          </div>
+          {rows.map((r, i) => (
+            <div key={r.name} className={`tdc-standings-row ${i === 0 ? "tdc-standings-row--top" : ""}`}>
+              <span className="tdc-col-rank">{i + 1}</span>
+              <span className="tdc-col-team">
+                <span className="tdc-team-dot-sm" style={{ background: r.color }} />{r.name}
+              </span>
+              <span className="tdc-col-num">{r.P}</span>
+              <span className="tdc-col-num">{r.W}</span>
+              <span className="tdc-col-num">{r.L}</span>
+              <span className="tdc-col-pts tdc-pts">{r.pts}</span>
+            </div>
+          ))}
+        </div>
+      )}
+      <div className="tdc-standings-rule">Tiebreaker: Points → Score Diff → H2H</div>
+    </div>
+  );
+}
 
+// ─── TEAMS LIST ────────────────────────────────────────────────────
+function TeamsList({ t, navigate }: { t: Tournament; navigate: (p: string) => void }) {
+  return (
+    <div className="tdc-section">
+      <div className="tdc-section-header">
+        <h2 className="tdc-section-title">Teams</h2>
+        <button className="tdc-link-btn" onClick={() => navigate(`/tournaments/${t.id}/setup`)}>Manage →</button>
+      </div>
+      {t.teams.length === 0 ? (
+        <div className="tdc-empty tdc-empty--sm">
+          <p>No teams yet.</p>
+          <button className="tdc-btn tdc-btn--start" onClick={() => navigate(`/tournaments/${t.id}/setup`)}>+ Add Teams</button>
+        </div>
+      ) : (
+        <div className="tdc-teams-list">
+          {t.teams.map(team => (
+            <div key={team.id} className="tdc-team-row">
+              <div className="tdc-team-avatar" style={{ background: team.color }}>{team.name[0]}</div>
+              <div className="tdc-team-info">
+                <span className="tdc-team-row-name">{team.name}</span>
+                <span className="tdc-team-row-meta">{team.players.length} players · {team.captain || "No captain"}</span>
+              </div>
+              <span className={`tdc-team-status tdc-team-status--${team.registered ? "confirmed" : "pending"}`}>
+                {team.registered ? "ready" : "pending"}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── TOURNAMENT INFO ────────────────────────────────────────────────
+function TournamentInfo({ t }: { t: Tournament }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="tdc-section tdc-info-section">
+      <button className="tdc-info-toggle" onClick={() => setOpen(o => !o)}>
+        <span>⚙️ Tournament Info</span>
+        <span className="tdc-info-arrow">{open ? "▲" : "▼"}</span>
+      </button>
+      {open && (
+        <div className="tdc-info-grid">
+          {[
+            { label: "Format",    value: t.format },
+            { label: "Venue",     value: t.venue },
+            { label: "Start",     value: fmtDate(t.startDate) },
+            { label: "Half",      value: `${t.halfDuration} min` },
+            { label: "Players",   value: `${t.playersOnCourt} on court` },
+            { label: "Organizer", value: t.organizer },
+          ].map(r => (
+            <div key={r.label} className="tdc-info-row">
+              <span className="tdc-info-label">{r.label}</span>
+              <span className="tdc-info-value">{r.value || "—"}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── MAIN EXPORT ────────────────────────────────────────────────────
 export default function TournamentDashboard() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-
-  const [activeTab, setActiveTab] = useState<string>("overview");
-  const [menuOpen, setMenuOpen] = useState(false);
   const [tournament, setTournament] = useState<Tournament | null>(null);
-  const [teams, setTeams] = useState<Team[]>([]);
-  const [fixtures, setFixtures] = useState<Fixture[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading,    setLoading]    = useState(true);
+  const [menuOpen,   setMenuOpen]   = useState(false);
+  const [copied,     setCopied]     = useState(false);
 
   useEffect(() => {
-    if (!id) return;
-    (async () => {
-      setLoading(true);
-      try {
-        const t = await getTournament(id);
-        if (t) {
-          setTournament(t);
-          const [teamsData, fixturesData] = await Promise.all([
-            getTournamentTeams(t.id),
-            getTournamentFixtures(t.id),
-          ]);
-          setTeams(teamsData);
-          setFixtures(fixturesData);
-        } else {
-          setTournament(null);
-        }
-      } catch (err) {
-        console.error('Error in dashboard initialization:', err);
-        setTournament(null);
-      } finally {
-        setLoading(false);
-      }
-    })();
+    if (!id) { setLoading(false); return; }
+    const t = getTournament(id);
+    setTournament(t);
+    setLoading(false);
   }, [id]);
 
-  if (loading) return <div className="dashboard-message">Loading...</div>;
-
-  if (!tournament) return <div className="dashboard-message dashboard-message--error">Tournament not found</div>;
-
-  const renderTab = () => {
-    switch (activeTab) {
-      case "overview":  return <OverviewTab onTabChange={setActiveTab} tournament={tournament} fixtures={fixtures} />;
-      case "teams":     return <TeamsTab teams={teams} />;
-      case "fixtures":  return <FixturesTab fixtures={fixtures} setFixtures={setFixtures} />;
-      case "standings": return <StandingsTab />;
-      case "stats":     return <StatsTab />;
-      default:          return null;
+  const copyCode = () => {
+    if (id) {
+      navigator.clipboard.writeText(id);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
     }
   };
 
+  if (loading) return <div className="tdc-loading"><div className="tdc-spinner" /><p>Loading...</p></div>;
+  if (!tournament) return (
+    <div className="tdc-loading">
+      <div className="tdc-empty-icon" style={{ fontSize: 48, marginBottom: 12 }}>🏆</div>
+      <p style={{ fontWeight: 700, color: "#718096" }}>Tournament not found.</p>
+      <button style={{ marginTop: 16, padding: "10px 24px", background: "#FF5722", color: "#fff", border: "none", borderRadius: 10, fontWeight: 800, cursor: "pointer" }} onClick={() => navigate("/tournaments")}>
+        ← Back to Tournaments
+      </button>
+    </div>
+  );
+
+  const statusCfg = getStatusConfig(tournament.status);
+  const liveCount = tournament.fixtures.filter(f => f.status === "live").length;
+
   return (
-    <div className="dashboard">
+    <div className="tdc-page" onClick={() => menuOpen && setMenuOpen(false)}>
 
-      {/* ── HEADER ── */}
-      <div className="dashboard__header">
-
-        <div className="dashboard__header-row">
-          <button className="btn btn--back" onClick={() => navigate(-1)}>
-            ← Back
-          </button>
-          <div className="menu-wrapper">
-            <button className="btn btn--menu" onClick={() => setMenuOpen(o => !o)}>
-              ⋮
+      {/* HEADER */}
+      <div className="tdc-header">
+        <div className="tdc-header-top">
+          <button className="tdc-back-btn" onClick={() => navigate(-1)}>← Back</button>
+          <div className="tdc-header-actions">
+            <button className="tdc-share-btn" onClick={copyCode}>
+              {copied ? "✓ Copied!" : "🔗 Share ID"}
             </button>
-            {menuOpen && (
-              <div className="dropdown-menu">
-                {[
-                  { icon: "✏️", label: "Edit Tournament",    danger: false },
-                  { icon: "📢", label: "Send Announcement",  danger: false },
-                  { icon: "🔗", label: "Share Link",         danger: false },
-                  { icon: "🚫", label: "Close Registration", danger: false },
-                  { icon: "🗑", label: "Delete Tournament",  danger: true  },
-                ].map(item => (
-                  <button
-                    key={item.label}
-                    onClick={() => setMenuOpen(false)}
-                    className={`dropdown-item ${item.danger ? "dropdown-item--danger" : ""}`}
-                  >
-                    {item.icon} {item.label}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-
-        <div className="dashboard__hero">
-          <div className="dashboard__trophy">🏅</div>
-          <div>
-            <h1 className="dashboard__name">{tournament.name}</h1>
-            <p className="dashboard__venue">📍 {tournament.venue}</p>
-            <div className="dashboard__badges">
-              <Badge label={tournament.status} />
-              <Badge label={tournament.level} />
-              <span className="dashboard__date-range">
-                {tournament.startDate} – {tournament.endDate}
-              </span>
+            <div className="tdc-menu-wrapper" onClick={e => e.stopPropagation()}>
+              <button className="tdc-menu-btn" onClick={() => setMenuOpen(o => !o)}>⋮</button>
+              {menuOpen && (
+                <div className="tdc-dropdown">
+                  <button className="tdc-dropdown-item" onClick={() => { navigate(`/tournaments/${id}/setup`); setMenuOpen(false); }}>⚙️ Setup Dashboard</button>
+                  <button className="tdc-dropdown-item" onClick={() => setMenuOpen(false)}>✏️ Edit Tournament</button>
+                  <button className="tdc-dropdown-item" onClick={() => setMenuOpen(false)}>📢 Announce</button>
+                  <button className="tdc-dropdown-item tdc-dropdown-item--danger" onClick={() => setMenuOpen(false)}>🗑 Delete</button>
+                </div>
+              )}
             </div>
           </div>
         </div>
 
-      </div>
-
-      {/* ── TAB BAR ── */}
-      <div className="tab-bar">
-        {TABS.map(tab => (
+        <div className="tdc-hero">
+          <div className="tdc-hero-left">
+            <div className="tdc-trophy-wrap">🏆</div>
+            <div>
+              <h1 className="tdc-name">{tournament.name}</h1>
+              <p className="tdc-venue">📍 {tournament.venue || tournament.cityState}</p>
+              <div className="tdc-badges">
+                <span className={`tdc-status ${statusCfg.cls}`}>
+                  {statusCfg.pulse && <span className="tdc-pulse" />}
+                  {statusCfg.label}
+                </span>
+                <span className="tdc-badge-info">{tournament.format}</span>
+                <span className="tdc-badge-info">{tournament.teams.length} Teams</span>
+              </div>
+            </div>
+          </div>
           <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`tab-btn ${activeTab === tab.id ? "tab-btn--active" : ""}`}
+            className={`tdc-start-hero-btn ${tournament.fixtures.length === 0 ? "tdc-start-hero-btn--disabled" : ""}`}
+            disabled={tournament.fixtures.length === 0}
+            onClick={() => navigate(`/kabaddi/create/teams`)}
           >
-            <span className="tab-btn__icon">{tab.icon}</span>
-            <span className="tab-btn__label">{tab.label}</span>
+            {liveCount > 0 ? `🔴 ${liveCount} Live` : "🚀 Start Match"}
           </button>
-        ))}
+        </div>
       </div>
 
-      {/* ── CONTENT ── */}
-      <div className="dashboard__content">
-        {renderTab()}
-      </div>
+      {/* SMART BANNER */}
+      <SmartBanner t={tournament} navigate={navigate} />
 
+      {/* STATS */}
+      <StatsStrip t={tournament} />
+
+      {/* QUICK ACTIONS */}
+      <QuickActions t={tournament} navigate={navigate} />
+
+      {/* 2-COL BODY */}
+      <div className="tdc-body">
+        <div className="tdc-col-left">
+          <MatchesSection t={tournament} navigate={navigate} />
+          <TournamentInfo t={tournament} />
+        </div>
+        <div className="tdc-col-right">
+          <PointsTable t={tournament} />
+          <TeamsList t={tournament} navigate={navigate} />
+        </div>
+      </div>
     </div>
   );
 }
