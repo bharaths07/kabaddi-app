@@ -1,13 +1,13 @@
 import React, { useEffect, useState, useMemo } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { supabase } from '@shared/lib/supabase'
-import '../features/kabaddi/components/matches/match-details.css'
+import './match-summary.css'
 
 interface MatchData {
   id: string
   tournament_name: string
-  home_team: { name: string; short: string; color: string }
-  guest_team: { name: string; short: string; color: string }
+  home_team: { id: string; name: string; short: string; color: string }
+  guest_team: { id: string; name: string; short: string; color: string }
   home_score: number
   guest_score: number
   status: string
@@ -37,32 +37,57 @@ export default function MatchSummary() {
       if (!id) return
       setLoading(true)
       try {
-        // 1. Fetch match details
+        // 1. Try kabaddi_matches first
         const { data: matchData, error: matchError } = await supabase
           .from('kabaddi_matches')
           .select(`
             id, home_score, guest_score, status, created_at,
-            home_team:teams!team_home_id(name, short, color),
-            guest_team:teams!team_guest_id(name, short, color),
+            home_team:teams!team_home_id(id, name, short, color),
+            guest_team:teams!team_guest_id(id, name, short, color),
             tournament:tournaments!tournament_id(name)
           `)
           .eq('id', id)
-          .single()
+          .maybeSingle()
 
-        if (matchError) throw matchError
+        if (matchData) {
+          setMatch({
+            id: matchData.id,
+            tournament_name: (matchData.tournament as any)?.name || 'Standalone Match',
+            home_team: (matchData.home_team as any),
+            guest_team: (matchData.guest_team as any),
+            home_score: matchData.home_score || 0,
+            guest_score: matchData.guest_score || 0,
+            status: matchData.status,
+            created_at: matchData.created_at
+          })
+        } else {
+          // 2. Try fixtures (Tournament)
+          const { data: fixture } = await supabase
+            .from('fixtures')
+            .select(`
+              id, status, scheduled_at, result,
+              home:teams!team_home_id(id, name, short, color),
+              guest:teams!team_guest_id(id, name, short, color),
+              tournaments(name)
+            `)
+            .eq('id', id)
+            .maybeSingle();
+          
+          if (fixture) {
+            const scores = fixture.result?.split('-') || [0, 0];
+            setMatch({
+              id: fixture.id,
+              tournament_name: fixture.tournaments?.name || 'Tournament',
+              home_team: (fixture.home as any),
+              guest_team: (fixture.guest as any),
+              home_score: parseInt(scores[0]) || 0,
+              guest_score: parseInt(scores[1]) || 0,
+              status: fixture.status,
+              created_at: fixture.scheduled_at
+            });
+          }
+        }
 
-        setMatch({
-          id: matchData.id,
-          tournament_name: (matchData.tournament as any)?.name || 'Local Tournament',
-          home_team: (matchData.home_team as any) || { name: 'Home Team', short: 'HT', color: '#ef4444' },
-          guest_team: (matchData.guest_team as any) || { name: 'Guest Team', short: 'GT', color: '#0ea5e9' },
-          home_score: matchData.home_score || 0,
-          guest_score: matchData.guest_score || 0,
-          status: matchData.status,
-          created_at: matchData.created_at
-        })
-
-        // 2. Fetch player stats for this match
         const { data: statsData, error: statsError } = await supabase
           .from('player_match_stats')
           .select(`
@@ -82,7 +107,7 @@ export default function MatchSummary() {
             super_10: s.super_10 || false,
             high_5: s.high_5 || false
           }))
-          setStats(mappedStats.sort((a: any, b: any) => b.total_points - a.total_points))
+          setStats(mappedStats.sort((a: PlayerStat, b: PlayerStat) => b.total_points - a.total_points))
         }
       } catch (err) {
         console.error('Error fetching match summary:', err)
@@ -90,116 +115,116 @@ export default function MatchSummary() {
         setLoading(false)
       }
     }
-
     fetchData()
   }, [id])
 
-  const resultText = useMemo(() => {
-    if (!match) return ''
-    if (match.home_score > match.guest_score) return `${match.home_team.name} won`
-    if (match.guest_score > match.home_score) return `${match.guest_team.name} won`
-    return 'Match Drawn'
-  }, [match])
+  const mvp = useMemo(() => stats.length > 0 ? stats[0] : null, [stats])
 
-  if (loading) return <div style={{ padding: 40, textAlign: 'center', color: '#64748b' }}>Loading summary...</div>
-  if (!match) return <div style={{ padding: 40, textAlign: 'center', color: '#64748b' }}>Match not found</div>
+  const teamStats = useMemo(() => {
+    if (!match || stats.length === 0) return null
+    return {
+      home: {
+        raid: stats.filter(s => s.team_id === match.home_team.id).reduce((acc, s) => acc + s.raid_points, 0),
+        tackle: stats.filter(s => s.team_id === match.home_team.id).reduce((acc, s) => acc + s.tackle_points, 0),
+      },
+      guest: {
+        raid: stats.filter(s => s.team_id === match.guest_team.id).reduce((acc, s) => acc + s.raid_points, 0),
+        tackle: stats.filter(s => s.team_id === match.guest_team.id).reduce((acc, s) => acc + s.tackle_points, 0),
+      }
+    }
+  }, [match, stats])
+
+  if (loading) return <div className="ms-page"><div className="hp-empty-state">Loading summary...</div></div>
+  if (!match) return <div className="ms-page"><div className="hp-empty-state">Match not found</div></div>
+
+  const isHomeWinner = match.home_score > match.guest_score
+  const isGuestWinner = match.guest_score > match.home_score
+  const isDraw = match.home_score === match.guest_score
 
   return (
-    <div className="md-page" style={{ background: '#f8fafc', minHeight: '100vh', paddingBottom: 40 }}>
-      {/* Header / Hero */}
-      <div className="md-hero" style={{ background: 'linear-gradient(135deg, #4c1d95 0%, #1e1b4b 100%)', padding: '40px 20px', borderRadius: 0 }}>
-        <div className="md-topmeta" style={{ color: 'rgba(255,255,255,0.7)', fontWeight: 700 }}>
-          {match.tournament_name} • {new Date(match.created_at).toLocaleDateString()}
-        </div>
-        
-        <div style={{ background: 'rgba(255,255,255,0.1)', padding: '6px 16px', borderRadius: 20, width: 'fit-content', margin: '16px auto', fontSize: 12, fontWeight: 900, color: '#fbbf24' }}>
-          {match.status.toUpperCase()}
-        </div>
-
-        <div className="md-row" style={{ marginTop: 20 }}>
-          <div className="md-team">
-            <div className="md-avatar" style={{ background: match.home_team.color, width: 80, height: 80, fontSize: 28 }}>{match.home_team.short}</div>
-            <div className="md-name" style={{ color: '#fff', fontSize: 20, marginTop: 12 }}>{match.home_team.name}</div>
+    <div className="ms-page">
+      <div className="ms-hero">
+        <div className="ms-result-badge">Match Finished</div>
+        <div className="ms-score-row">
+          <div className="ms-team-box">
+            <div className="ms-avatar" style={{ background: match.home_team.color }}>{match.home_team.short}</div>
+            <div className="ms-team-name">{match.home_team.name}</div>
           </div>
-          
-          <div className="md-score">
-            <div className="md-scoreline" style={{ color: '#fff', fontSize: 52, letterSpacing: -2 }}>
-              {match.home_score} <span className="md-sep" style={{ opacity: 0.3 }}>-</span> {match.guest_score}
+          <div className="ms-score-display">
+            <div className="ms-score-numbers">
+              <span>{match.home_score}</span>
+              <span className="ms-score-sep">-</span>
+              <span>{match.guest_score}</span>
             </div>
-            <div style={{ color: 'rgba(255,255,255,0.8)', fontWeight: 800, fontSize: 14, marginTop: 10 }}>
-              {resultText}
+            <div className="ms-winner-text" style={{ color: isDraw ? '#94a3b8' : (isHomeWinner ? '#4ade80' : '#4ade80') }}>
+              {isDraw ? 'Match Drawn' : `🏆 ${isHomeWinner ? match.home_team.name : match.guest_team.name} Wins!`}
             </div>
           </div>
-
-          <div className="md-team right">
-            <div className="md-avatar" style={{ background: match.guest_team.color, width: 80, height: 80, fontSize: 28 }}>{match.guest_team.short}</div>
-            <div className="md-name" style={{ color: '#fff', fontSize: 20, marginTop: 12 }}>{match.guest_team.name}</div>
+          <div className="ms-team-box">
+            <div className="ms-avatar" style={{ background: match.guest_team.color }}>{match.guest_team.short}</div>
+            <div className="ms-team-name">{match.guest_team.name}</div>
           </div>
         </div>
       </div>
 
-      <div style={{ maxWidth: 800, margin: '0 auto', padding: '24px 16px', display: 'flex', flexDirection: 'column', gap: 24 }}>
-        
-        {/* Top Performers */}
-        <div style={{ background: '#fff', borderRadius: 24, padding: 24, border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
-          <h3 style={{ margin: '0 0 20px 0', fontSize: 18, fontWeight: 900, color: '#1e293b', borderLeft: '4px solid #f97316', paddingLeft: 12 }}>Top Performers</h3>
-          
-          {stats.length > 0 ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {stats.slice(0, 5).map((p, idx) => (
-                <Link to={`/players/${p.player_id}`} key={idx} className="md-lineup-card" style={{ padding: 16 }}>
-                  <div className="md-lineup-avatar">
-                    <div className="md-pavatar sm" style={{ background: '#6366f1', color: '#fff' }}>
-                      {p.player_name.slice(0, 2).toUpperCase()}
-                    </div>
-                  </div>
-                  <div className="md-lineup-info">
-                    <div className="md-lineup-name" style={{ fontSize: 16 }}>{p.player_name}</div>
-                    <div className="md-lineup-role">
-                      {p.raid_points} Raid • {p.tackle_points} Tackle
-                    </div>
-                  </div>
-                  <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontWeight: 900, fontSize: 18, color: '#1e293b' }}>{p.total_points}</div>
-                    <div style={{ fontSize: 10, fontWeight: 800, color: '#94a3b8' }}>TOTAL PTS</div>
-                  </div>
-                  {(p.super_10 || p.high_5) && (
-                    <div style={{ marginLeft: 12, background: '#fef3c7', color: '#d97706', padding: '4px 8px', borderRadius: 8, fontSize: 10, fontWeight: 900 }}>
-                      {p.super_10 ? 'SUPER 10' : 'HIGH 5'}
-                    </div>
-                  )}
-                </Link>
-              ))}
+      <div className="ms-container">
+        {mvp && (
+          <div className="ms-card ms-mvp-card">
+            <div className="ms-mvp-avatar">👑</div>
+            <div className="ms-mvp-info">
+              <h4>Top Performer</h4>
+              <h2>{mvp.player_name}</h2>
+              <p>{mvp.total_points} Total Points • {mvp.raid_points} Raid • {mvp.tackle_points} Tackle</p>
+            </div>
+          </div>
+        )}
+
+        <div className="ms-card">
+          <div className="ms-section-title">📊 TEAM PERFORMANCE</div>
+          {teamStats ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+              <div className="ms-stats-grid">
+                <div className="stat-val">{teamStats.home.raid}</div>
+                <div className="stat-label">RAID POINTS</div>
+                <div className="stat-val">{teamStats.guest.raid}</div>
+              </div>
+              <div className="ms-stats-grid">
+                <div className="stat-val">{teamStats.home.tackle}</div>
+                <div className="stat-label">TACKLE POINTS</div>
+                <div className="stat-val">{teamStats.guest.tackle}</div>
+              </div>
             </div>
           ) : (
-            <div style={{ textAlign: 'center', padding: '20px 0', color: '#94a3b8', fontSize: 14 }}>
-              Detailed player stats not available for this match.
-            </div>
+            <p style={{ textAlign: 'center', color: '#94a3b8', fontSize: 13 }}>Standard team stats not available.</p>
           )}
         </div>
 
-        {/* Actions */}
-        <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
-          <button 
-            onClick={() => navigate(`/matches/${match.id}/live`)}
-            style={{ flex: 1, height: 52, borderRadius: 16, border: '1px solid #e2e8f0', background: '#fff', color: '#1e293b', fontWeight: 900, fontSize: 15, cursor: 'pointer' }}
-          >
-            Match Timeline
-          </button>
-          <button 
-            style={{ flex: 1, height: 52, borderRadius: 16, border: 'none', background: '#f97316', color: '#fff', fontWeight: 900, fontSize: 15, cursor: 'pointer', boxShadow: '0 4px 12px rgba(249, 115, 22, 0.2)' }}
-          >
-            Share Summary
-          </button>
+        <div className="ms-card">
+          <div className="ms-section-title">👤 PLAYER STATISTICS</div>
+          <div className="ms-player-list">
+            {stats.length > 0 ? stats.map((s, idx) => (
+              <div key={s.player_id} className="ms-player-row">
+                <div className="p-rank">#{idx + 1}</div>
+                <div className="p-info">
+                  <div className="p-name">{s.player_name}</div>
+                  <div className="p-details">
+                    {s.raid_points} Raid • {s.tackle_points} Tackle
+                    {s.super_10 && <span style={{ color: '#f59e0b', fontWeight: 800, marginLeft: 8 }}>SUPER 10</span>}
+                    {s.high_5 && <span style={{ color: '#f59e0b', fontWeight: 800, marginLeft: 8 }}>HIGH 5</span>}
+                  </div>
+                </div>
+                <div className="p-score">{s.total_points}</div>
+              </div>
+            )) : (
+              <p style={{ textAlign: 'center', color: '#94a3b8', fontSize: 13 }}>No player data recorded.</p>
+            )}
+          </div>
         </div>
 
-        <button 
-          onClick={() => navigate('/')}
-          style={{ height: 52, borderRadius: 16, border: 'none', background: 'transparent', color: '#64748b', fontWeight: 800, fontSize: 14, cursor: 'pointer' }}
-        >
-          ← Back to Dashboard
-        </button>
-
+        <div className="ms-actions">
+          <button className="btn-ms btn-ms-secondary" onClick={() => navigate('/home')}>Back to Home</button>
+          <button className="btn-ms btn-ms-primary" onClick={() => window.print()}>Share Summary</button>
+        </div>
       </div>
     </div>
   )

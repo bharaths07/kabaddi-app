@@ -1,0 +1,116 @@
+openapi: 3.0.0
+info:
+  title: Play Legends API
+  description: API for the Play Legends sports management platform.
+  version: 1.0.0
+servers:
+  - url: https://<project-ref>.supabase.co/rest/v1
+    description: Supabase API
+paths:
+  /auth/v1/signup:
+    post:
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+                phone:
+                  type: string
+      responses:
+        '200':
+          description: User created
+  /auth/v1/token:
+    post:
+      summary: Login and get access token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+                grant_type:
+                  type: string
+                  enum: [password, refresh_token]
+      responses:
+        '200':
+          description: Access token returned
+  /teams:
+    get:
+      summary: List all teams
+      parameters:
+        - in: query
+          name: select
+          schema:
+            type: string
+          description: Columns to select
+      responses:
+        '200':
+          description: List of teams
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Team'
+    post:
+      summary: Create a new team
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Team'
+      responses:
+        '201':
+          description: Team created
+
+components:
+  schemas:
+    Team:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        sport_id:
+          type: string
+        members:
+          type: array
+          items:
+            type: object
+            properties:
+              player_id:
+                type: string
+              role:
+                type: string
+                enum: [captain, vice-captain, member]
+    Match:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        home_team_id:
+          type: string
+        away_team_id:
+          type: string
+        date:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum: [scheduled, live, completed]

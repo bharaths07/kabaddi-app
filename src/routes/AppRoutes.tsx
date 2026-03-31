@@ -7,6 +7,7 @@ import { PublicOnlyRoute, ProtectedRoute } from '../shared/components/RouteGuard
 // ── Pages ──────────────────────────────────────────────────────
 import Home from '../pages/Home'
 import FeedPage from '../pages/feedandnews/FeedPage'
+import NewsPage from '../pages/feedandnews/NewsPage'
 import ErrorPage from '../pages/ErrorPage'
 import Settings from '../pages/Settings'
 import PlanUpgrade from '../pages/PlanUpgrade'
@@ -20,7 +21,6 @@ import SignupPage from '../pages/auth/SignupPage'
 import VerifyOTP from '../pages/auth/VerifyOTP'
 import OnboardingPage from '../pages/auth/OnboardingPage'
 import AuthCallback from '../pages/auth/AuthCallback'
-import ProfilePage from '../pages/PlayerProfilePage'
 import LogoutPage from '../pages/Logout'
 import EditProfilePage from '../pages/EditProfilePage'
 
@@ -74,6 +74,9 @@ export const router = createBrowserRouter([
   { path: '/onboarding', element: <ProtectedRoute><OnboardingPage /></ProtectedRoute> },
   { path: '/auth/callback', element: <AuthCallback /> },
 
+  // ── Public Player Profiles (no auth required) ───────────────────
+  { path: '/player/:id', element: <PlayerProfilePage /> },
+
   // ── Standalone / Full-Screen Routes (No Layout) ─────────────────
   { path: '/matches/:id/live', element: <ProtectedRoute><MatchScoringPage /></ProtectedRoute> },
   { path: '/kabaddi/match/:id/score', element: <ProtectedRoute><MatchScoringPage /></ProtectedRoute> },
@@ -104,12 +107,11 @@ export const router = createBrowserRouter([
       { path: 'notifications', element: <Notifications /> },
 
       // ── News / Feed ──────────────────────────────────────────
-      { path: 'news', element: <FeedPage /> },
+      { path: 'news', element: <NewsPage /> },
       { path: 'feed', element: <FeedPage /> },
-      { path: 'feed/create', element: <FeedPage /> },
 
       // ── User ──────────────────────────────────────────────────
-      { path: 'profile', element: <ProfilePage /> },
+      { path: 'profile', element: <PlayerProfilePage /> },
       { path: 'me/posters', element: <MyPostersPage /> },
       { path: 'players/:id', element: <PlayerProfilePage /> },
       { path: 'profile/edit', element: <EditProfilePage /> },
@@ -174,6 +176,10 @@ function RedirectWithId() {
   const { id } = useParams();
   const location = useLocation();
   // If e.g. /tournament/t-123/add-rounds, we want /tournaments/t-123/add-rounds
-  const subPath = location.pathname.split(`/tournament/${id}/`)[1] || '';
+  // Handle both with and without trailing slash after ID
+  const tournamentBase = `/tournament/${id}/`;
+  const subPath = location.pathname.includes(tournamentBase) 
+    ? location.pathname.split(tournamentBase)[1] 
+    : '';
   return <Navigate to={`/tournaments/${id}/${subPath}`} replace />;
 }

@@ -1,158 +1,233 @@
-import React, { useEffect, useMemo, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
-import { Search, QrCode } from 'lucide-react'
-import './select-team.css'
+import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
+import {
+  getStoredTeams, saveTeams, startNewMatch, getCreationState,
+  type TeamData
+} from '../../state/matchCreationStore'
 import { setTeam } from '../../state/createDraft'
-import { supabase } from '@shared/lib/supabase'
+import './create-match.css'
 
-type Team = { id: string; name: string; location: string; captain: string; avatar?: string }
+function TeamAvatar({ team, size = 52 }: { team: TeamData; size?: number }) {
+  return (
+    <div className="cm-team-avatar" style={{
+      width: size, height: size, fontSize: size * 0.28,
+      background: `linear-gradient(135deg,${team.color},${team.color}bb)`,
+      boxShadow: `0 4px 14px ${team.color}44`,
+    }}>
+      {team.short}
+    </div>
+  )
+}
 
-export default function KabaddiSelectTeam() {
-  const { slot } = useParams()
+export default function SelectTeamsScreen() {
   const navigate = useNavigate()
-  const goBack = () => {
-    if (slot === 'b') {
-      navigate('/kabaddi/create/select-team/a')
-    } else {
-      navigate('/kabaddi/create')
-    }
-  }
-  const [tab, setTab] = useState<'your' | 'opponents' | 'add'>('your')
-  const [q, setQ] = useState('')
-
-  const [yourTeams, setYourTeams] = useState<Team[]>([
-    { id: 't1', name: 'SKBC Varadanayakanahalli', location: 'Bengaluru (Bangalore)', captain: 'Govi V G' },
-    { id: 't2', name: 'SKBC VN Halli', location: 'Bengaluru (Bangalore)', captain: 'Shankar' },
-    { id: 't3', name: 'CSE A', location: 'Bengaluru (Bangalore)', captain: 'Praveen Kumar' },
-    { id: 't4', name: 'CSE B', location: 'Bengaluru (Bangalore)', captain: 'Chandan' }
-  ])
-
-  const [opponents] = useState<Team[]>([
-    { id: 'o1', name: 'Rangers', location: 'Nelmangala', captain: 'Narasimha' },
-    { id: 'o2', name: 'Ananthapura Royals', location: 'Nelmangala', captain: 'Chandra' },
-    { id: 'o3', name: 'Falcons', location: 'Bengaluru', captain: 'Babu' }
-  ])
+  const [teams, setTeams] = useState<TeamData[]>([])
+  const [teamA, setTeamA] = useState<TeamData | null>(null)
+  const [teamB, setTeamB] = useState<TeamData | null>(null)
+  const [search, setSearch] = useState('')
+  const [selecting, setSelecting] = useState<'A' | 'B' | null>(null)
+  const [showCreate, setShowCreate] = useState(false)
+  const [newName, setNewName] = useState('')
+  const [newShort, setNewShort] = useState('')
+  const [newColor, setNewColor] = useState('#0ea5e9')
 
   useEffect(() => {
-    let cancelled = false
-    const fetchTeams = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('teams')
-          .select('id, name, short, status')
-        if (error || !data || cancelled) return
-        const mapped: Team[] = data.map((t: any) => ({
-          id: t.id,
-          name: t.name,
-          location: '',
-          captain: t.status || '—',
-        }))
-        if (!cancelled && mapped.length > 0) {
-          setYourTeams(mapped)
-        }
-      } catch (e) {
-        console.error('Team fetch error:', e)
-      }
-    }
-    fetchTeams()
-    return () => {
-      cancelled = true
-    }
+    const t = getStoredTeams()
+    setTeams(t)
+    // restore if coming back
+    const state = getCreationState()
+    if (state?.teamA) setTeamA(state.teamA)
+    if (state?.teamB) setTeamB(state.teamB)
   }, [])
 
-  const list = tab === 'your' ? yourTeams : opponents
-  const filtered = list.filter(t => t.name.toLowerCase().includes(q.toLowerCase()))
+  const filtered = teams.filter(t =>
+    t.name.toLowerCase().includes(search.toLowerCase()) ||
+    t.short.toLowerCase().includes(search.toLowerCase())
+  )
 
-  const title = tab === 'add' ? 'Create your team' : (slot === 'a' ? 'Select team a' : 'Select team b')
-
-  const handlePick = (id: string) => {
-    const picked = list.find(t => t.id === id)
-    if (picked) setTeam((slot === 'a' ? 'a' : 'b'), { id: picked.id, name: picked.name })
-    navigate('/kabaddi/create')
-  }
-
-  const [teamName, setTeamName] = useState('')
-  const [city, setCity] = useState('')
-  const [captainPhone, setCaptainPhone] = useState('')
-  const [captainName, setCaptainName] = useState('')
-  const [addSelf, setAddSelf] = useState(false)
-
-  const canSubmit = teamName.trim().length > 0 && city.trim().length > 0
-
-  const onCreateTeam = () => {
-    if (!canSubmit) return
-    const newTeam: Team = {
-      id: `t${Date.now()}`,
-      name: teamName.trim(),
-      location: city.trim(),
-      captain: captainName.trim() || '—'
+  const handleSelect = (team: TeamData) => {
+    if (selecting === 'A') {
+      if (teamB?.id === team.id) return // can't pick same
+      setTeamA(team)
+      setSelecting(null)
+    } else if (selecting === 'B') {
+      if (teamA?.id === team.id) return
+      setTeamB(team)
+      setSelecting(null)
     }
-    setYourTeams(prev => [newTeam, ...prev])
-    setTeamName('')
-    setCity('')
-    setCaptainPhone('')
-    setCaptainName('')
-    setAddSelf(false)
-    setTab('your')
+    setSearch('')
   }
+
+  const handleNext = () => {
+    if (!teamA || !teamB) return
+    startNewMatch()
+    saveTeams(teamA, teamB)
+    setTeam('a', { id: teamA.id, name: teamA.name })
+    setTeam('b', { id: teamB.id, name: teamB.name })
+    navigate('/kabaddi/create/setup')
+  }
+
+  const COLORS = ['#0ea5e9', '#7c3aed', '#16a34a', '#ea580c', '#db2777', '#d97706', '#0284c7', '#ef4444']
 
   return (
-    <div className="st-page">
-      <div className="st-header">
-        <button className="st-back" onClick={goBack}>←</button>
-        <div className="st-title">{title}</div>
-        <div className="st-right">
-          <button className="st-icon" aria-label="Scan team QR" title="Scan team QR"><QrCode size={18} /></button>
-          <button className="st-icon" aria-label="Search teams" title="Search teams"><Search size={18} /></button>
-        </div>
+    <div className="cm-page">
+      {/* Header */}
+      <div className="cm-header">
+        <button className="cm-back" onClick={() => navigate(-1)}>← Back</button>
+        <div className="cm-header-title">Select Teams</div>
+        <div className="cm-step-badge">1 of 4</div>
       </div>
 
-      <div className="st-tabs">
-        <button className={`st-tab ${tab === 'your' ? 'active' : ''}`} onClick={() => setTab('your')}>Your Teams</button>
-        <button className={`st-tab ${tab === 'opponents' ? 'active' : ''}`} onClick={() => setTab('opponents')}>Opponents</button>
-        <button className={`st-tab ${tab === 'add' ? 'active' : ''}`} onClick={() => setTab('add')}>Add</button>
-      </div>
-
-      {tab !== 'add' ? (
-        <>
-          <div className="st-filter">
-            <input className="st-input" placeholder="Quick search" value={q} onChange={e => setQ(e.target.value)} />
-            <button className="st-add" onClick={() => setTab('add')}>+ Add team</button>
+      {/* Step bar */}
+      <div className="cm-steps">
+        {['Teams', 'Setup', 'Lineup', 'Toss'].map((s, i) => (
+          <div key={s} className={`cm-step ${i === 0 ? 'active' : ''}`}>
+            <div className="cm-step-dot">{i + 1}</div>
+            <div className="cm-step-label">{s}</div>
           </div>
-          <div className="st-list">
-            {filtered.map(t => (
-              <div key={t.id} className="st-card" onClick={() => handlePick(t.id)}>
-                <div className="st-avatar">{t.name.slice(0,2).toUpperCase()}</div>
-                <div className="st-info">
-                  <div className="st-name">{t.name}</div>
-                  <div className="st-meta">📍 {t.location}  ·  C {t.captain}</div>
+        ))}
+      </div>
+
+      <div className="cm-body">
+        {/* VS card */}
+        <div className="cm-vs-card">
+          <div className="cm-team-slot" onClick={() => setSelecting('A')}>
+            {teamA ? (
+              <>
+                <TeamAvatar team={teamA} />
+                <div className="cm-team-slot-name">{teamA.name}</div>
+                <div className="cm-team-slot-change">Tap to change</div>
+              </>
+            ) : (
+              <>
+                <div className="cm-team-slot-empty">A</div>
+                <div className="cm-team-slot-name">Select Team A</div>
+              </>
+            )}
+          </div>
+
+          <div className="cm-vs-badge">VS</div>
+
+          <div className="cm-team-slot" onClick={() => setSelecting('B')}>
+            {teamB ? (
+              <>
+                <TeamAvatar team={teamB} />
+                <div className="cm-team-slot-name">{teamB.name}</div>
+                <div className="cm-team-slot-change">Tap to change</div>
+              </>
+            ) : (
+              <>
+                <div className="cm-team-slot-empty">B</div>
+                <div className="cm-team-slot-name">Select Team B</div>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Team picker */}
+        {selecting && (
+          <div className="cm-picker">
+            <div className="cm-picker-header">
+              <span className="cm-picker-title">
+                Selecting Team {selecting}
+              </span>
+              <button className="cm-picker-close" onClick={() => setSelecting(null)}>✕</button>
+            </div>
+
+            <div className="cm-search-wrap">
+              <input
+                className="cm-search"
+                placeholder="Search teams..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                autoFocus
+              />
+            </div>
+
+            <div className="cm-team-list">
+              {filtered.map(team => {
+                const disabled = (selecting === 'A' && teamB?.id === team.id) || (selecting === 'B' && teamA?.id === team.id)
+                return (
+                  <div
+                    key={team.id}
+                    className={`cm-team-row ${disabled ? 'disabled' : ''}`}
+                    onClick={() => !disabled && handleSelect(team)}
+                  >
+                    <TeamAvatar team={team} size={40} />
+                    <div className="cm-team-row-info">
+                      <div className="cm-team-row-name">{team.name}</div>
+                      <div className="cm-team-row-short">{team.short}</div>
+                    </div>
+                    {disabled && <span className="cm-team-row-taken">Already selected</span>}
+                  </div>
+                )
+              })}
+
+              {/* Create new team */}
+              <div className="cm-team-row create-row" onClick={() => setShowCreate(true)}>
+                <div className="cm-create-icon">+</div>
+                <div className="cm-team-row-info">
+                  <div className="cm-team-row-name">Create New Team</div>
+                  <div className="cm-team-row-short">Add a team quickly</div>
                 </div>
-                <button className="st-qr" aria-label="Show team QR" title="Show team QR"><QrCode size={16} /></button>
               </div>
-            ))}
+            </div>
           </div>
-        </>
-      ) : (
-        <div className="st-add-form">
-          <div className="st-logo-card">
-            <div className="st-logo-circle">Add</div>
-            <div className="st-logo-sub">Team logo</div>
+        )}
+
+        {/* Create team mini form */}
+        {showCreate && (
+          <div className="cm-create-form">
+            <div className="cm-create-form-title">Create Team</div>
+            <input className="cm-input" placeholder="Team name e.g. SKBC Warriors" value={newName} onChange={e => setNewName(e.target.value)} />
+            <input className="cm-input" placeholder="Short name e.g. SKBC" maxLength={5} value={newShort} onChange={e => setNewShort(e.target.value.toUpperCase())} />
+            <div className="cm-color-label">Team Color</div>
+            <div className="cm-color-row">
+              {COLORS.map(c => (
+                <div key={c} className={`cm-color-dot ${newColor === c ? 'selected' : ''}`}
+                  style={{ background: c }} onClick={() => setNewColor(c)} />
+              ))}
+            </div>
+            <div className="cm-create-form-actions">
+              <button className="cm-btn-secondary" onClick={() => setShowCreate(false)}>Cancel</button>
+              <button className="cm-btn-primary" onClick={() => {
+                if (!newName.trim()) return
+                const team: TeamData = {
+                  id: `t-${Date.now()}`,
+                  name: newName.trim(),
+                  short: newShort || newName.slice(0, 3).toUpperCase(),
+                  color: newColor,
+                }
+                const updated = [...teams, team]
+                setTeams(updated)
+                try { localStorage.setItem('pl.teams', JSON.stringify(updated)) } catch { }
+                handleSelect(team)
+                setShowCreate(false)
+                setNewName(''); setNewShort(''); setNewColor('#0ea5e9')
+              }}>Create & Select</button>
+            </div>
           </div>
-          <div className="st-form">
-            <input className="st-input" placeholder="Team name *" value={teamName} onChange={e => setTeamName(e.target.value)} />
-            <input className="st-input" placeholder="City / town *" value={city} onChange={e => setCity(e.target.value)} />
-            <input className="st-input" placeholder="+91 Team captain/coordinator number (optional)" value={captainPhone} onChange={e => setCaptainPhone(e.target.value)} />
-            <input className="st-input" placeholder="Team captain name (optional)" value={captainName} onChange={e => setCaptainName(e.target.value)} />
-            <label className="st-check">
-              <input type="checkbox" checked={addSelf} onChange={e => setAddSelf(e.target.checked)} />
-              <span>Add myself in team</span>
-            </label>
+        )}
+      </div>
+
+      {/* Next button */}
+      <div className="cm-footer">
+        {teamA && teamB && (
+          <div className="cm-footer-preview">
+            <TeamAvatar team={teamA} size={32} />
+            <span className="cm-footer-vs">vs</span>
+            <TeamAvatar team={teamB} size={32} />
+            <span className="cm-footer-names">{teamA.short} vs {teamB.short}</span>
           </div>
-          <div className="st-sticky">
-            <button className="st-add-submit" disabled={!canSubmit} onClick={onCreateTeam}>Add team</button>
-          </div>
-        </div>
-      )}
+        )}
+        <button
+          className={`cm-next-btn ${teamA && teamB ? 'ready' : ''}`}
+          disabled={!teamA || !teamB}
+          onClick={handleNext}
+        >
+          Next: Match Setup →
+        </button>
+      </div>
     </div>
   )
 }

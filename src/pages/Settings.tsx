@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import './settings.css'
 import { getSettings, updateSettings, syncSettingsToSupabase } from '../shared/state/settingsStore'
 import { useAuth } from '../shared/context/AuthContext'
+import { sendPasswordReset } from '../shared/lib/auth'
 
 type Tab = 'general' | 'account' | 'privacy' | 'notifications' | 'about'
 
@@ -45,6 +46,24 @@ export default function Settings() {
   const handleLogout = async () => {
     await signOut()
     navigate('/login')
+  }
+
+  const handlePasswordReset = async () => {
+    if (!user?.email) return
+    try {
+      await sendPasswordReset(user.email)
+      alert(`Password reset email sent to ${user.email}`)
+    } catch (err: any) {
+      alert('Failed to send reset email: ' + err.message)
+    }
+  }
+
+  const handleCheckUpdates = () => {
+    alert('You are already using the latest version of KabaddiPulse (v1.2.4-beta).')
+  }
+
+  const handleSupport = () => {
+    window.location.href = 'mailto:support@kabaddipulse.com?subject=Support Request'
   }
 
   const renderTabContent = () => {
@@ -97,7 +116,7 @@ export default function Settings() {
             </div>
             <div className="st-section">
               <div className="st-section-title">Account Security</div>
-              <button className="st-btn-outline" onClick={() => navigate('/settings/security')}>Change Password</button>
+              <button className="st-btn-outline" onClick={handlePasswordReset}>Change Password</button>
               <button className="st-btn-danger" onClick={handleLogout}>Log Out</button>
             </div>
           </div>
@@ -161,12 +180,12 @@ export default function Settings() {
                 <span className="st-label">Last Updated</span>
                 <span className="st-value">Oct 24, 2025</span>
               </div>
-              <button className="st-btn-outline">Check for Updates</button>
+              <button className="st-btn-outline" onClick={handleCheckUpdates}>Check for Updates</button>
             </div>
             <div className="st-section">
               <div className="st-section-title">Support</div>
-              <button className="st-btn-outline">Help Center</button>
-              <button className="st-btn-outline">Contact Us</button>
+              <button className="st-btn-outline" onClick={handleSupport}>Help Center</button>
+              <button className="st-btn-outline" onClick={handleSupport}>Contact Us</button>
             </div>
           </div>
         )

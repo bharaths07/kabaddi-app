@@ -1,7 +1,8 @@
-export type KabaddiFormat = 'standard' | 'short' | 'tournament' | 'custom'
+export type KabaddiFormat = 'standard' | 'short' | 'tournament' | 'custom' | 'quick'
 export type TieBreakerMode = 'extra_time' | 'golden_raid'
 
 export interface KabaddiMatchConfig {
+  title?: string
   format: KabaddiFormat
   halfDurationMinutes: number
   periodMins?: number
@@ -25,6 +26,6 @@ export interface KabaddiMatchConfig {
     referee?: string
     umpire?: string
     scorer?: string
-    technicalOfficial?: string
+    timekeeper?: string
   }
 }

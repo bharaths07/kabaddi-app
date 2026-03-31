@@ -72,6 +72,16 @@ export async function getProfile(userId: string) {
   return data
 }
 
+export async function getProfileByPlayerId(playerId: string) {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('player_id', playerId)
+    .single()
+  if (error && error.code !== 'PGRST116') throw error
+  return data
+}
+
 export async function createOrUpdateProfile(userId: string, data: {
   full_name?: string
   phone?: string
@@ -79,6 +89,12 @@ export async function createOrUpdateProfile(userId: string, data: {
   city?: string
   state?: string
   avatar_url?: string
+  banner_url?: string
+  player_id?: string
+  role?: string
+  team_name?: string
+  jersey_number?: string
+  bio?: string
   date_of_birth?: string
   is_profile_complete?: boolean
 }) {
@@ -89,6 +105,17 @@ export async function createOrUpdateProfile(userId: string, data: {
   })
   if (error) throw error
   return { ok: true as const }
+}
+
+export async function uploadBanner(userId: string, file: File): Promise<string> {
+  const ext = file.name.split('.').pop()
+  const path = `${userId}/banner.${ext}`
+  const { error: uploadError } = await supabase.storage
+    .from('user-banners')
+    .upload(path, file, { upsert: true })
+  if (uploadError) throw uploadError
+  const { data } = supabase.storage.from('user-banners').getPublicUrl(path)
+  return data.publicUrl
 }
 
 export async function uploadAvatar(userId: string, file: File): Promise<string> {

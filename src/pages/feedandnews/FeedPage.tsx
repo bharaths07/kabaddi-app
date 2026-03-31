@@ -24,6 +24,18 @@ interface FeedPost {
   author_avatar?: string
   tournament_name?: string
   liked_by_me?: boolean
+  comments_count?: number
+}
+
+interface FeedComment {
+  id: string
+  post_id: string
+  user_id: string
+  text: string
+  created_at: string
+  author_name?: string
+  author_avatar?: string
+  author_color?: string
 }
 
 const TYPE_CONFIG: Record<PostType, { emoji: string; label: string; bg: string; color: string }> = {
@@ -205,11 +217,11 @@ function CreatePostModal({ onClose, onPosted }: { onClose: () => void; onPosted:
   )
 }
 
-// ── Post Card ─────────────────────────────────────────────────────
-function PostCard({ post, onLike, onShare }: {
+function PostCard({ post, onLike, onShare, onComment }: {
   post: FeedPost
   onLike: (id: string, liked: boolean) => void
   onShare: (post: FeedPost) => void
+  onComment: (post: FeedPost) => void
 }) {
   const cfg = TYPE_CONFIG[post.type] || TYPE_CONFIG.announcement
   const [likeAnim, setLikeAnim] = useState(false)
@@ -264,11 +276,135 @@ function PostCard({ post, onLike, onShare }: {
           <span className="feed-like-icon">{post.liked_by_me ? '❤️' : '🤍'}</span>
           <span className="feed-action-count">{post.likes_count}</span>
         </button>
+        <button className="feed-action-btn" onClick={() => onComment(post)}>
+          <span className="feed-comment-icon">💬</span>
+          <span className="feed-action-count">{post.comments_count || 0}</span>
+        </button>
         <button className="feed-action-btn" onClick={() => onShare(post)}>
           <span>↗</span>
-          <span className="feed-action-label">Share</span>
         </button>
         <div className="feed-post-date">{new Date(post.created_at).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' })}</div>
+      </div>
+    </div>
+  )
+}
+
+// ── Comments Sheet ────────────────────────────────────────────────
+function CommentsSheet({ post, onClose }: { post: FeedPost; onClose: () => void }) {
+  const { user, profile } = useAuth()
+  const [comments, setComments] = useState<FeedComment[]>([])
+  const [loading, setLoading] = useState(true)
+  const [newComment, setNewComment] = useState('')
+  const [posting, setPosting] = useState(false)
+  const scrollRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => { fetchComments() }, [post.id])
+
+  const fetchComments = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('feed_comments')
+        .select(`
+          id, post_id, user_id, text, created_at,
+          profiles(full_name, avatar_url)
+        `)
+        .eq('post_id', post.id)
+        .order('created_at', { ascending: true })
+
+      if (error) throw error
+      const mapped: FeedComment[] = (data || []).map((c: any) => ({
+        id: c.id,
+        post_id: c.post_id,
+        user_id: c.user_id,
+        text: c.text,
+        created_at: c.created_at,
+        author_name: c.profiles?.full_name || 'Anonymous',
+        author_avatar: c.profiles?.avatar_url,
+        author_color: getColor(c.user_id)
+      }))
+      setComments(mapped)
+    } finally {
+      setLoading(false)
+      setTimeout(() => scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' }), 100)
+    }
+  }
+
+  const handlePost = async () => {
+    if (!newComment.trim() || !user || posting) return
+    setPosting(true)
+    const text = newComment.trim()
+    
+    // Optimistic
+    const tempId = `temp-${Date.now()}`
+    const tempComment: FeedComment = {
+      id: tempId,
+      post_id: post.id,
+      user_id: user.id,
+      text,
+      created_at: new Date().toISOString(),
+      author_name: profile?.full_name || 'You',
+      author_color: getColor(user.id)
+    }
+    setComments(prev => [...prev, tempComment])
+    setNewComment('')
+
+    try {
+      const { error } = await supabase.from('feed_comments').insert({
+        post_id: post.id,
+        user_id: user.id,
+        text
+      })
+      if (error) throw error
+    } catch {
+      setComments(prev => prev.filter(c => c.id !== tempId))
+    } finally {
+      setPosting(false)
+      setTimeout(() => scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' }), 50)
+    }
+  }
+
+  return (
+    <div className="feed-modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className="feed-comments-sheet">
+        <div className="feed-modal-header">
+          <div className="feed-modal-title">Comments ({comments.length})</div>
+          <button className="feed-modal-close" onClick={onClose}>✕</button>
+        </div>
+
+        <div className="feed-comments-list" ref={scrollRef}>
+          {loading ? (
+            <div className="feed-spinner-wrap"><span className="feed-spinner dark"/></div>
+          ) : comments.length === 0 ? (
+            <div className="feed-comments-empty">No comments yet. Be the first to reply!</div>
+          ) : (
+            comments.map(c => (
+              <div key={c.id} className="feed-comment">
+                <div className="feed-comment-avatar" style={{ 
+                  background: c.author_avatar ? `url(${c.author_avatar}) center/cover` : c.author_color 
+                }}>
+                  {!c.author_avatar && initials(c.author_name || 'Anonymous')}
+                </div>
+                <div className="feed-comment-body">
+                  <div className="feed-comment-author">{c.author_name} · <span className="feed-comment-time">{timeAgo(c.created_at)}</span></div>
+                  <div className="feed-comment-text">{c.text}</div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        <div className="feed-comment-input-wrap">
+          <input 
+            className="feed-comment-input" 
+            placeholder="Add a comment..."
+            value={newComment}
+            onChange={e => setNewComment(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && handlePost()}
+          />
+          <button className="feed-comment-send" disabled={!newComment.trim() || posting} onClick={handlePost}>
+            {posting ? '...' : '→'}
+          </button>
+        </div>
       </div>
     </div>
   )
@@ -335,6 +471,7 @@ export default function FeedPage() {
   const [tab, setTab]               = useState<'all' | 'my-team' | 'tournaments'>('all')
   const [showCreate, setShowCreate] = useState(false)
   const [sharePost, setSharePost]   = useState<FeedPost | null>(null)
+  const [commentPost, setCommentPost] = useState<FeedPost | null>(null)
   const [error, setError]           = useState('')
   const PAGE_SIZE = 10
 
@@ -351,7 +488,7 @@ export default function FeedPage() {
         .from('feed_posts')
         .select(`
           id, user_id, type, caption, image_url,
-          likes_count, created_at, tournament_id, match_id,
+          likes_count, comments_count, created_at, tournament_id, match_id,
           profiles!inner(full_name, avatar_url),
           tournaments(name)
         `)
@@ -395,6 +532,7 @@ export default function FeedPage() {
         author_avatar:   p.profiles?.avatar_url,
         tournament_name: p.tournaments?.name,
         liked_by_me:     likedIds.has(p.id),
+        comments_count:  p.comments_count || 0,
       }))
 
       setPosts(reset ? mapped : [...posts, ...mapped])
@@ -508,6 +646,7 @@ export default function FeedPage() {
             <PostCard key={post.id} post={post}
               onLike={handleLike}
               onShare={setSharePost}
+              onComment={setCommentPost}
             />
           ))
         )}
@@ -529,6 +668,12 @@ export default function FeedPage() {
       )}
       {sharePost && (
         <ShareSheet post={sharePost} onClose={() => setSharePost(null)}/>
+      )}
+      {commentPost && (
+        <CommentsSheet post={commentPost} onClose={() => {
+          setCommentPost(null)
+          fetchPosts(true) // Refresh to get updated comment counts
+        }}/>
       )}
     </div>
   )

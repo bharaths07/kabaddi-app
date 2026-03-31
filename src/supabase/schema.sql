@@ -232,3 +232,103 @@ drop trigger if exists on_feed_like on public.feed_likes;
 create trigger on_feed_like
   after insert or delete on public.feed_likes
   for each row execute function public.handle_feed_like();
+
+-- 7. Add comments_count to feed_posts (if not exists)
+alter table public.feed_posts add column if not exists comments_count int default 0;
+
+-- 8. Create feed_comments table
+create table if not exists public.feed_comments (
+  id uuid primary key default gen_random_uuid(),
+  post_id uuid references public.feed_posts(id) on delete cascade not null,
+  user_id uuid references public.profiles(id) on delete cascade not null,
+  text text not null,
+  created_at timestamptz default now() not null
+);
+
+alter table public.feed_comments enable row level security;
+
+create policy "Everyone can view comments"
+  on public.feed_comments for select
+  using (true);
+
+create policy "Authenticated users can comment"
+  on public.feed_comments for insert
+  with check (auth.uid() = user_id);
+
+create policy "Users can delete their own comments"
+  on public.feed_comments for delete
+  using (auth.uid() = user_id);
+
+-- 9. Trigger to maintain comments_count
+create or replace function public.handle_feed_comment()
+returns trigger as $$
+begin
+  if (TG_OP = 'INSERT') then
+    update public.feed_posts
+    set comments_count = comments_count + 1
+    where id = new.post_id;
+    return new;
+  elsif (TG_OP = 'DELETE') then
+    update public.feed_posts
+    set comments_count = comments_count - 1
+    where id = old.post_id;
+    return old;
+  end if;
+  return null;
+end;
+$$ language plpgsql security definer;
+
+create trigger on_feed_comment
+  after insert or delete on public.feed_comments
+  for each row execute function public.handle_feed_comment();
+
+-- 10. Create news_posts table (Official read-only updates)
+create table if not exists public.news_posts (
+  id uuid primary key default gen_random_uuid(),
+  type text not null check (type in ('announcement', 'result', 'update')),
+  title text not null,
+  body text,
+  image_url text,
+  tournament_id uuid references public.tournaments(id) on delete set null,
+  match_id uuid references public.fixtures(id) on delete set null,
+  created_by uuid references public.profiles(id) on delete set null,
+  created_at timestamptz default now() not null
+);
+
+alter table public.news_posts enable row level security;
+
+create policy "Everyone can view news"
+  on public.news_posts for select
+  using (true);
+
+create policy "Only organizers/admins can create news"
+  on public.news_posts for insert
+  with check (
+    exists (
+      select 1 from public.profiles
+      where id = auth.uid()
+      -- and role in ('organizer', 'admin') -- Add role check if Roles table exists
+    )
+  );
+
+-- 11. Ensure Foreign Key Relationships for PostgREST joins
+-- This helps if tables were created without naming the constraints or if cache is stale
+alter table if exists public.feed_posts 
+  drop constraint if exists feed_posts_user_id_fkey,
+  add constraint feed_posts_user_id_fkey foreign key (user_id) references public.profiles(id) on delete cascade;
+
+alter table if exists public.feed_comments
+  drop constraint if exists feed_comments_user_id_fkey,
+  add constraint feed_comments_user_id_fkey foreign key (user_id) references public.profiles(id) on delete cascade;
+
+alter table if exists public.news_posts
+  drop constraint if exists news_posts_created_by_fkey,
+  add constraint news_posts_created_by_fkey foreign key (created_by) references public.profiles(id) on delete set null;
+
+-- 12. Pro Profile System Columns
+alter table public.profiles add column if not exists banner_url text;
+alter table public.profiles add column if not exists player_id text unique;
+alter table public.profiles add column if not exists role text;
+alter table public.profiles add column if not exists team_name text;
+alter table public.profiles add column if not exists jersey_number text;
+alter table public.profiles add column if not exists bio text;

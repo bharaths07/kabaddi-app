@@ -1,4 +1,5 @@
 // tournamentStore.ts — manages full tournament state in localStorage
+import { syncFullTournament } from '../../../shared/services/tournamentService'
 
 export type TFormat = 'league' | 'knockout' | 'league_ko' | 'double_elim'
 export type TStatus = 'draft' | 'registration' | 'ongoing' | 'completed'
@@ -117,6 +118,9 @@ export function saveTournament(t: Tournament) {
     const all = getAllTournaments().filter(x => x.id !== t.id)
     all.unshift(t)
     try { localStorage.setItem(KEY, JSON.stringify(all)) } catch { }
+    
+    // Background sync to Supabase (non-blocking)
+    syncFullTournament(t).catch((err: any) => console.error('Cloud sync failed:', err))
 }
 
 export function updateTournament(id: string, patch: Partial<Tournament>) {

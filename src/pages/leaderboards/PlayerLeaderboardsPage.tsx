@@ -1,239 +1,240 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { supabase } from '@shared/lib/supabase'
-import '../../features/kabaddi/pages/leaderboards.css'
+import { getTopPlayers } from '@shared/services/tournamentService'
+import './rankings.css'
+import '../../pages/home.css'
 
 type TabKey = 'raiders' | 'defenders' | 'allrounders'
 
-type PlayerRow = {
+export type PlayerRow = {
   rank: number
   id: string
   name: string
+  role: string
   team: string
   team_id: string
   matches: number
+  totalPts: number
   raidPoints: number
+  totalRaids: number
+  successfulRaids: number
   superRaids: number
-  raidSuccessPct: number
   tackles: number
   tacklePoints: number
   superTackles: number
-  tackleSuccessPct: number
-  totalPoints: number
+
+  // New Metrics from the JS Formula
+  nppr: number
+  strikeRate: number
+  dodSuccessRate: number
+  allOutContributions: number
+  score: number // Combined 5-factor rating
+  trend: number
 }
 
 export default function PlayerLeaderboardsPage() {
   const [tab, setTab] = useState<TabKey>('raiders')
-  const [tournament, setTournament] = useState('all')
-  const [season, setSeason] = useState('KPL 2026')
-  const [playerSort, setPlayerSort] = useState<'raidPoints' | 'tacklePoints' | 'totalPoints' | 'successRate' | 'avg'>('totalPoints')
-  const [teamFilter, setTeamFilter] = useState<string>('all')
+  const [playerSort, setPlayerSort] = useState<'score' | 'efficiency' | 'pressure'>('score')
   const [loading, setLoading] = useState(true)
   const [players, setPlayers] = useState<PlayerRow[]>([])
-  const [teams, setTeams] = useState<{id: string, name: string}[]>([])
 
   useEffect(() => {
     async function fetchData() {
       setLoading(true)
       try {
-        // 1. Fetch teams for filter
-        const { data: teamsData } = await supabase.from('teams').select('id, name')
-        if (teamsData) setTeams(teamsData)
+        const data = await getTopPlayers()
+        // Map service results to the local PlayerRow structure
+        const mapped = data.map((p, i) => ({
+          ...p,
+          rank: i + 1,
+          role: p.role?.toLowerCase().includes('raider') ? 'raiders' : 
+                p.role?.toLowerCase().includes('defender') ? 'defenders' : 'allrounders'
+        }))
+        setPlayers(mapped)
 
-        // 2. Fetch aggregated stats
-        // In a production app, we'd use a database view or a more complex query
-        // For now, we'll fetch all player_match_stats and aggregate in JS for accuracy
-        let query = supabase
-          .from('player_match_stats')
-          .select(`
-            player_id, raid_points, tackle_points, super_raids, super_tackles,
-            player:players(name, team:teams(name, id))
-          `)
-
-        const { data: statsData, error } = await query
-        if (error) throw error
-
-        if (statsData) {
-          const aggregation: Record<string, any> = {}
-          
-          statsData.forEach((s: any) => {
-            const pid = s.player_id
-            if (!aggregation[pid]) {
-              aggregation[pid] = {
-                id: pid,
-                name: s.player?.name || 'Unknown',
-                team: s.player?.team?.name || 'No Team',
-                team_id: s.player?.team?.id || '',
-                matches: 0,
-                raidPoints: 0,
-                superRaids: 0,
-                tackles: 0,
-                tacklePoints: 0,
-                superTackles: 0,
-                totalPoints: 0
-              }
-            }
-            const p = aggregation[pid]
-            p.matches += 1
-            p.raidPoints += (s.raid_points || 0)
-            p.superRaids += (s.super_raids || 0)
-            p.tacklePoints += (s.tackle_points || 0)
-            p.superTackles += (s.super_tackles || 0)
-            p.totalPoints += (s.raid_points || 0) + (s.tackle_points || 0)
-          })
-
-          const result: PlayerRow[] = Object.values(aggregation).map(p => ({
-            ...p,
-            rank: 0,
-            raidSuccessPct: p.matches > 0 ? (p.raidPoints / (p.matches * 10)) * 100 : 0, // Mock calculation
-            tackleSuccessPct: p.matches > 0 ? (p.tacklePoints / (p.matches * 5)) * 100 : 0 // Mock calculation
-          }))
-
-          setPlayers(result)
-        }
       } catch (err) {
         console.error('Leaderboard fetch error:', err)
       } finally {
         setLoading(false)
       }
     }
-
     fetchData()
-  }, [tournament, season])
-
-  const boards: Array<{ key: TabKey; label: string }> = [
-    { key: 'raiders', label: 'Raiders' },
-    { key: 'defenders', label: 'Defenders' },
-    { key: 'allrounders', label: 'All-Rounders' }
-  ]
+  }, [])
 
   const filteredAndSortedPlayers = useMemo(() => {
     let list = [...players]
-    
-    // Filter by team
-    if (teamFilter !== 'all') {
-      list = list.filter(p => p.team_id === teamFilter)
-    }
 
-    // Filter by tab (basic role filter if needed, but here we just sort by primary stat)
+    // Tab filtering logically isolates players making contributions in that specific category
     if (tab === 'raiders') {
-      list = list.filter(p => p.raidPoints > 0)
+      list = list.filter(p => p.role === 'raiders')
     } else if (tab === 'defenders') {
-      list = list.filter(p => p.tacklePoints > 0)
+      list = list.filter(p => p.role === 'defenders')
+    } else {
+      list = list.filter(p => p.role === 'allrounders')
     }
 
-    // Sort
+    // Advanced Sorting Dropdown
     list.sort((a, b) => {
-      if (playerSort === 'raidPoints') return b.raidPoints - a.raidPoints
-      if (playerSort === 'tacklePoints') return b.tacklePoints - a.tacklePoints
-      if (playerSort === 'successRate') {
-        const sa = tab === 'defenders' ? a.tackleSuccessPct : a.raidSuccessPct
-        const sb = tab === 'defenders' ? b.tackleSuccessPct : b.raidSuccessPct
-        return sb - sa
-      }
-      if (playerSort === 'avg') return (b.totalPoints / b.matches) - (a.totalPoints / a.matches)
-      return b.totalPoints - a.totalPoints
+      if (playerSort === 'efficiency') return b.nppr - a.nppr
+      if (playerSort === 'pressure') return b.dodSuccessRate - a.dodSuccessRate
+      return b.score - a.score // Default to primary 'score'
     })
 
     return list.map((p, i) => ({ ...p, rank: i + 1 }))
-  }, [players, teamFilter, tab, playerSort])
+  }, [players, tab, playerSort])
+
+  function getBadge(p: PlayerRow) {
+    if (p.superRaids >= 8) return <span className="pk-badge">SR King</span>
+    if (p.superTackles >= 14) return <span className="pk-badge wall">Wall</span>
+    if (p.dodSuccessRate > 65) return <span className="pk-badge clutch">Clutch</span>
+    return null
+  }
+
+  // Calculate top contextual stats
+  const totalLeagueRaidPts = players.reduce((sum, p) => sum + p.raidPoints, 0)
+  const avgLeagueStrikeRate = players.length ? (players.reduce((sum, p) => sum + p.strikeRate, 0) / players.length).toFixed(1) : 0
+  const avgPressure = players.length ? (players.reduce((sum, p) => sum + p.dodSuccessRate, 0) / players.length).toFixed(0) : 0
 
   return (
-    <>
-      <div className="lb-tabs" style={{ background: 'none', padding: 0 }}>
-        {boards.map(b => (
-          <button key={b.key} className={`lb-tab ${tab === b.key ? 'active' : ''}`} onClick={() => setTab(b.key)}>
-            {b.label}
-          </button>
-        ))}
-      </div>
+    <div className="hp-page" style={{ paddingTop: '24px', paddingBottom: '60px' }}>
+      <div className="pk-rankings-container">
 
-      <div className="lb-filters">
-        <div className="lb-filter">
-          <label className="lb-label">Tournament</label>
-          <select className="lb-select" value={tournament} onChange={e => setTournament(e.target.value)}>
-            <option value="all">All Tournaments</option>
-          </select>
-        </div>
-        <div className="lb-filter">
-          <label className="lb-label">Season</label>
-          <select className="lb-select" value={season} onChange={e => setSeason(e.target.value)}>
-            <option value="KPL 2026">KPL 2026</option>
-          </select>
-        </div>
-
-        <div className="lb-filter">
-          <label className="lb-label">Team</label>
-          <select className="lb-select" value={teamFilter} onChange={e => setTeamFilter(e.target.value)}>
-            <option value="all">All Teams</option>
-            {teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
-          </select>
-        </div>
-
-        <div className="lb-filter">
-          <label className="lb-label">Sort By</label>
-          <select className="lb-select" value={playerSort} onChange={e => setPlayerSort(e.target.value as any)}>
-            <option value="totalPoints">Total Points</option>
-            <option value="raidPoints">Raid Points</option>
-            <option value="tacklePoints">Tackle Points</option>
-            <option value="successRate">Success Rate</option>
-            <option value="avg">Avg. Points</option>
-          </select>
-        </div>
-      </div>
-
-      {loading ? (
-        <div className="lb-table">
-          <div style={{ padding: 40, textAlign: 'center', color: '#64748b' }}>Updating Leaderboards...</div>
-        </div>
-      ) : (
-        <div className="lb-table">
-          <div className={`lb-row lb-head ${tab}`}>
-            <div className="lb-cell rank">#</div>
-            <div className="lb-cell player">Player</div>
-            <div className="lb-cell team">Team</div>
-            <div className="lb-cell">
-              {tab === 'raiders' ? 'Raid Pts' : tab === 'defenders' ? 'Tackle Pts' : 'Total Pts'}
-            </div>
-            <div className="lb-cell">
-              {tab === 'raiders' ? 'Super Raids' : tab === 'defenders' ? 'Super Tackles' : 'Raid Pts'}
-            </div>
-            <div className="lb-cell">Matches</div>
+        {/* Header Block */}
+        <div className="pk-header-row">
+          <div>
+            <h1 style={{ fontSize: '32px', fontWeight: 900, margin: '0 0 6px 0', color: '#0f172a' }}>Player Rankings</h1>
+            <div style={{ color: '#64748b', fontWeight: 600, fontSize: '15px' }}>Top performer rankings mapped by our 5-factor scoring model.</div>
           </div>
 
-          {filteredAndSortedPlayers.length > 0 ? (
-            filteredAndSortedPlayers.map(p => (
-              <div key={p.id} className={`lb-row ${tab}`}>
-                <div className="lb-cell rank">{p.rank}</div>
-                <div className="lb-cell player">
-                  <div className="lb-player-cell">
-                    <div className="lb-avatar">{p.name.slice(0, 2).toUpperCase()}</div>
-                    <Link to={`/players/${p.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-                      {p.name}
-                    </Link>
+        </div>
+
+        {/* Top Feature Stats */}
+        <div className="pk-top-stats">
+          <div className="pk-top-stat-card">
+            <div className="pk-tsc-icon" style={{ color: '#F59E0B' }}>🏃</div>
+            <div className="pk-tsc-info">
+              <span className="pk-tsc-label">Total Raid Points</span>
+              <span className="pk-tsc-val">{totalLeagueRaidPts}</span>
+            </div>
+          </div>
+          <div className="pk-top-stat-card">
+            <div className="pk-tsc-icon" style={{ color: '#0ea5e9' }}>🎯</div>
+            <div className="pk-tsc-info">
+              <span className="pk-tsc-label">Avg Strike Rate</span>
+              <span className="pk-tsc-val">{avgLeagueStrikeRate}%</span>
+            </div>
+          </div>
+          <div className="pk-top-stat-card">
+            <div className="pk-tsc-icon" style={{ color: '#ea580c' }}>💪</div>
+            <div className="pk-tsc-info">
+              <span className="pk-tsc-label">Pressure Perform</span>
+              <span className="pk-tsc-val">{avgPressure}%</span>
+            </div>
+          </div>
+          <div className="pk-top-stat-card">
+            <div className="pk-tsc-icon" style={{ color: '#10b981' }}>💀</div>
+            <div className="pk-tsc-info">
+              <span className="pk-tsc-label">Do-or-Die Avg</span>
+              <span className="pk-tsc-val">{avgPressure}%</span> {/* Duplicated intention for UI density */}
+            </div>
+          </div>
+        </div>
+
+        {/* Filters and Tabs */}
+        <div className="pk-filters-bar">
+          <div className="pk-tabs">
+            <button className={`pk-tab ${tab === 'raiders' ? 'active' : ''}`} onClick={() => setTab('raiders')}>RAIDERS</button>
+            <button className={`pk-tab ${tab === 'defenders' ? 'active' : ''}`} onClick={() => setTab('defenders')}>DEFENDERS</button>
+            <button className={`pk-tab ${tab === 'allrounders' ? 'active' : ''}`} onClick={() => setTab('allrounders')}>ALL-ROUNDERS</button>
+          </div>
+
+          <div className="pk-selects">
+            <span style={{ fontSize: '14px', fontWeight: 800, color: '#64748b', display: 'flex', alignItems: 'center' }}>Sort by:</span>
+            <select className="pk-select" style={{ background: playerSort === 'score' ? '#FF6B35' : '#fff', color: playerSort === 'score' ? '#fff' : '#475569', borderColor: playerSort === 'score' ? '#FF6B35' : '#e2e8f0' }} value={playerSort} onChange={e => setPlayerSort(e.target.value as any)}>
+              <option value="score">SCORE</option>
+              <option value="efficiency">EFFICIENCY</option>
+              <option value="pressure">PRESSURE</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Leaderboard Table / Interactive Grid */}
+        {loading ? (
+          <div className="hp-empty-state">Compiling Rankings...</div>
+        ) : filteredAndSortedPlayers.length === 0 ? (
+          <div className="hp-empty-state">No players found in this category.</div>
+        ) : (
+          <div>
+            {/* Podium Rendering (Top 3) */}
+            {filteredAndSortedPlayers.slice(0, 3).map(p => (
+              <Link to={`/players/${p.id}`} key={p.id} className={`pk-podium-row rank-${p.rank}`}>
+                <div className="pk-podium-rank"><span>#</span>{p.rank}</div>
+                <div className="pk-podium-avatar">{p.name.slice(0, 2).toUpperCase()}</div>
+                <div className="pk-podium-info">
+                  <h3 className="pk-podium-name">
+                    {p.name}
+                    {getBadge(p)}
+                  </h3>
+                  <div className="pk-podium-role">{tab === 'raiders' ? 'Raider' : tab === 'defenders' ? 'Defender' : 'All-Rounder'} • {p.team}</div>
+                </div>
+
+                <div className="pk-podium-stats">
+                  <div className="pk-podium-stat">
+                    <span className="pk-podium-stat-val">{p.nppr}</span>
+                    <span className="pk-podium-stat-label">NPpR</span>
+                  </div>
+                  <div className="pk-podium-stat">
+                    <span className="pk-podium-stat-val">{p.strikeRate}%</span>
+                    <span className="pk-podium-stat-label">Strike Rate</span>
+                  </div>
+                  <div className="pk-podium-stat" style={{ minWidth: '90px', alignItems: 'flex-end' }}>
+                    <span className="pk-podium-stat-label">Rating</span>
+                    <span className="pk-podium-stat-val" style={{ display: 'flex', alignItems: 'center' }}>
+                      {p.score}
+                      <span className={`pk-trend ${p.trend > 0 ? 'up' : p.trend < 0 ? 'down' : 'neutral'}`}>
+                        {Math.abs(p.trend)}
+                      </span>
+                    </span>
                   </div>
                 </div>
-                <div className="lb-cell team">
-                  <Link to={`/teams/${p.team_id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-                    {p.team}
-                  </Link>
-                </div>
-                <div className="lb-cell" style={{ fontWeight: 800 }}>
-                  {tab === 'raiders' ? p.raidPoints : tab === 'defenders' ? p.tacklePoints : p.totalPoints}
-                </div>
-                <div className="lb-cell">
-                  {tab === 'raiders' ? p.superRaids : tab === 'defenders' ? p.superTackles : p.raidPoints}
-                </div>
-                <div className="lb-cell">{p.matches}</div>
+              </Link>
+            ))}
+
+            {/* List Headers */}
+            {filteredAndSortedPlayers.length > 3 && (
+              <div className="pk-list-header">
+                <div className="pk-list-col col-rank">#</div>
+                <div className="pk-list-col col-player">Player</div>
+                <div className="pk-list-col col-stat">NPpR</div>
+                <div className="pk-list-col col-stat" style={{ minWidth: '100px' }}>Strike Rate</div>
+                <div className="pk-list-col col-stat" style={{ flex: 1, textAlign: 'right' }}>Score</div>
               </div>
-            ))
-          ) : (
-            <div style={{ padding: 40, textAlign: 'center', color: '#64748b' }}>
-              No player stats found for the selected filters.
-            </div>
-          )}
-        </div>
-      )}
-    </>
+            )}
+
+            {/* Normal Rows (4th onwards) */}
+            {filteredAndSortedPlayers.slice(3).map(p => (
+              <Link to={`/players/${p.id}`} key={p.id} className="pk-list-row">
+                <div className="pk-list-col col-rank">{p.rank}.</div>
+                <div className="pk-list-col col-player">
+                  <div className="pk-list-avatar">{p.name.slice(0, 2).toUpperCase()}</div>
+                  <div>
+                    <div className="pk-list-name">{p.name} {getBadge(p)}</div>
+                    <div className="pk-list-role">{tab === 'raiders' ? 'Raider' : tab === 'defenders' ? 'Defender' : 'All-Rounder'}</div>
+                  </div>
+                </div>
+                <div className="pk-list-col col-stat">{p.nppr}</div>
+                <div className="pk-list-col col-stat" style={{ minWidth: '100px' }}>{p.strikeRate}%</div>
+                <div className="pk-list-col col-stat" style={{ flex: 1, textAlign: 'right', display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
+                  <span style={{ fontSize: '18px', fontWeight: 900 }}>{p.score}</span>
+                  <span className={`pk-trend ${p.trend > 0 ? 'up' : p.trend < 0 ? 'down' : 'neutral'}`}>
+                    {Math.abs(p.trend)}
+                  </span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
   )
 }

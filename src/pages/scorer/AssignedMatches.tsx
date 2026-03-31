@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useAuth } from '../../shared/context/AuthContext'
 import { getAssignedFixturesFor, updateScorerStatus, canScoreFixture } from '../../shared/services/fixturesService'
 
 type AssignedFixture = {
@@ -13,15 +14,21 @@ type AssignedFixture = {
 }
 
 export default function AssignedMatches() {
-  const userId = 'current-user'
+  const { user } = useAuth()
+  const userId = user?.id
   const [items, setItems] = useState<AssignedFixture[]>([])
   const [filter, setFilter] = useState<'all'|'upcoming'|'live'|'completed'>('all')
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    getAssignedFixturesFor(userId)
-      .then(data => setItems(data))
-      .finally(() => setLoading(false))
+    async function loadStats() {
+      if (userId) {
+        const data = await getAssignedFixturesFor(userId!)
+        if (data) setItems(data)
+      }
+      setLoading(false)
+    }
+    loadStats()
   }, [userId])
 
   const visible = useMemo(() => {
@@ -29,6 +36,7 @@ export default function AssignedMatches() {
   }, [items, filter])
 
   const onAccept = async (m: AssignedFixture) => {
+    if (!userId) return
     await updateScorerStatus(m.id, userId, 'accepted')
     setItems(prev => prev.map(x => x.id === m.id ? { ...x, scorerStatus: 'accepted' } : x))
   }

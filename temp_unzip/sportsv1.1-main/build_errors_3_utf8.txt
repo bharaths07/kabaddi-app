@@ -1,0 +1,27 @@
+﻿src/features/auth/pages/DualPanelLoginScreen.tsx(6,3): error TS6133: 'ArrowRight' is declared but its value is never read.
+src/features/auth/pages/DualPanelLoginScreen.tsx(9,3): error TS6133: 'BarChart2' is declared but its value is never read.
+src/features/auth/pages/DualPanelLoginScreen.tsx(10,3): error TS6133: 'CheckCircle' is declared but its value is never read.
+src/features/auth/pages/DualPanelLoginScreen.tsx(21,1): error TS6133: 'Checkbox' is declared but its value is never read.
+src/features/auth/pages/DualPanelLoginScreen.tsx(39,10): error TS6133: 'rememberMe' is declared but its value is never read.
+src/features/auth/pages/DualPanelLoginScreen.tsx(39,22): error TS6133: 'setRememberMe' is declared but its value is never read.
+src/features/auth/pages/DualPanelLoginScreen.tsx(139,9): error TS6133: 'toggleRegister' is declared but its value is never read.
+src/features/certificates/api/certificateService.ts(97,5): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/features/certificates/api/certificateService.ts(106,5): error TS2322: Type 'Record<string, unknown> | undefined' is not assignable to type '{ [key: string]: any; matchName?: string | undefined; sportName?: string | undefined; location?: string | undefined; organizerName?: string | undefined; teamName?: string | undefined; }'.
+  Type 'undefined' is not assignable to type '{ [key: string]: any; matchName?: string | undefined; sportName?: string | undefined; location?: string | undefined; organizerName?: string | undefined; teamName?: string | undefined; }'.
+src/features/matches/api/scoreEngine.ts(113,9): error TS2578: Unused '@ts-expect-error' directive.
+src/features/system/api/cardGames/index.ts(83,33): error TS2322: Type '{}' is not assignable to type 'number'.
+src/features/system/api/cardGames/index.ts(94,87): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'number'.
+src/features/system/api/cardGames/index.ts(104,16): error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+src/features/system/api/cardGames/index.ts(116,25): error TS2365: Operator '+' cannot be applied to types '{}' and 'number'.
+src/features/system/api/cardGames/index.ts(140,17): error TS2339: Property 'length' does not exist on type '{}'.
+src/features/system/api/cardGames/index.ts(153,15): error TS2740: Type '{}' is missing the following properties from type '{ rank: string; }[]': length, pop, push, concat, and 28 more.
+src/features/system/api/cardGames/index.ts(163,7): error TS2322: Type '({ event }: RuleContext) => {}' is not assignable to type 'RuleCalculator'.
+  Type '{}' is not assignable to type 'number'.
+src/shared/components/TeamConfirmAnimation/TeamConfirmAnimation.stories.tsx(1,37): error TS2307: Cannot find module '@storybook/react' or its corresponding type declarations.
+src/test/cricheroesIntegration.test.ts(2,46): error TS2307: Cannot find module '../services/cricheroesIntegrationService' or its corresponding type declarations.
+src/test/cricheroesIntegration.test.ts(5,35): error TS2307: Cannot find module '../services/adapters/cricheroesAdapter' or its corresponding type declarations.
+src/test/cricheroesIntegration.test.ts(6,28): error TS2307: Cannot find module '../domain/tournament' or its corresponding type declarations.
+src/test/cricheroesIntegration.test.ts(8,23): error TS2307: Cannot find module '../domain/match' or its corresponding type declarations.
+src/test/SettingsScreen.test.tsx(4,32): error TS2307: Cannot find module '../modules/system/SettingsScreen' or its corresponding type declarations.
+src/test/TournamentListFilter.test.tsx(4,38): error TS2307: Cannot find module '../modules/tournament/TournamentListScreen' or its corresponding type declarations.

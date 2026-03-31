@@ -1,125 +1,240 @@
-import React, { useEffect, useMemo, useState } from 'react'
-import './toss.css'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getCurrentMatch, setStatus, setToss } from '../../state/matchStore'
+import { getCreationState, saveToss } from '../../state/matchCreationStore'
+import { upsertFromDraft, setToss as setLiveToss } from '../../state/matchStore'
+import { getConfig as getDraftConfig } from '../../state/createDraft'
+import './create-match.css'
 
-export default function KabaddiToss() {
+type CoinFace = 'heads' | 'tails'
+
+export default function TossScreen() {
   const navigate = useNavigate()
-  const match = useMemo(() => getCurrentMatch(), [])
-  const [caller, setCaller] = useState<'a' | 'b'>('a')
-  const [callChoice, setCallChoice] = useState<'heads' | 'tails'>('heads')
+  const state = getCreationState()
+  const [calledBy, setCalledBy] = useState<'A' | 'B'>('A')
+  const [calledChoice, setCalledChoice] = useState<CoinFace>('heads')
   const [flipping, setFlipping] = useState(false)
-  const [result, setResult] = useState<'heads' | 'tails' | null>(null)
-  const teamAName = match?.teamAId || 'Team A'
-  const teamBName = match?.teamBId || 'Team B'
+  const [result, setResult] = useState<CoinFace | null>(null)
+  const [decision, setDecision] = useState<'raid_first' | 'court_side'>('raid_first')
+  const [flipCount, setFlipCount] = useState(0)
 
   useEffect(() => {
-    if (!match) navigate('/kabaddi/create')
-  }, [match, navigate])
+    if (!state?.teamA || !state?.teamB) navigate('/kabaddi/create/teams')
+  }, [])
 
-  const flip = () => {
+  const winner = result
+    ? (calledChoice === result ? calledBy : calledBy === 'A' ? 'B' : 'A')
+    : null
+
+  const raidingFirst = winner
+    ? (decision === 'raid_first' ? winner : winner === 'A' ? 'B' : 'A')
+    : null
+
+  const flipCoin = () => {
     if (flipping) return
     setFlipping(true)
     setResult(null)
+    setFlipCount(c => c + 1)
     setTimeout(() => {
-      const r = Math.random() < 0.5 ? 'heads' : 'tails'
+      const r: CoinFace = Math.random() < 0.5 ? 'heads' : 'tails'
       setResult(r)
       setFlipping(false)
-    }, 1500)
+    }, 1800)
   }
 
-  const winnerTeam = useMemo(() => {
-    if (!result || !match) return null
-    const callerTeamId = caller === 'a' ? match.teamAId : match.teamBId
-    const otherTeamId = caller === 'a' ? match.teamBId : match.teamAId
-    const winner = callChoice === result ? callerTeamId : otherTeamId
-    return winner
-  }, [result, caller, callChoice, match])
-
-  const [decision, setDecision] = useState<'raid_first' | 'court_side'>('raid_first')
-  const [courtSide, setCourtSide] = useState<'left' | 'right'>('left')
-
-  const confirm = () => {
-    if (!match || !winnerTeam || !result) return
-    const calledByTeamId = caller === 'a' ? match.teamAId : match.teamBId
-    const otherTeamId = caller === 'a' ? match.teamBId : match.teamAId
-    const firstRaidTeamId = decision === 'raid_first' ? winnerTeam : (winnerTeam === match.teamAId ? otherTeamId : match.teamAId)
-    setToss({
-      calledByTeamId,
-      calledChoice: callChoice,
-      result,
-      winnerTeamId: winnerTeam,
+  const handleStart = async () => {
+    if (!winner || !raidingFirst || !teamA || !teamB) return
+    
+    // 1. Save to wizard store
+    saveToss({
+      calledBy,
+      calledChoice,
+      result: result!,
+      winner,
       decision,
-      firstRaidTeamId,
-      courtSideChoice: decision === 'court_side' ? courtSide : undefined
+      raidingFirst,
     })
-    setStatus('live')
-    navigate(`/matches/${match.id}/live`)
+
+    // 2. Finalize and bridge to scoring system (matchStore)
+    const draftConfig = getDraftConfig()
+    const match = await upsertFromDraft({
+      teamAId: teamA.id,
+      teamBId: teamB.id,
+      config: draftConfig || {}
+    })
+
+    if (match) {
+      setLiveToss({
+        calledByTeamId: winner === 'A' ? teamA.id : teamB.id, // This is actually calledBy, but matchStore expects winner/decision context
+        calledChoice: calledChoice,
+        result: result!,
+        winnerTeamId: winner === 'A' ? teamA.id : teamB.id,
+        decision,
+        firstRaidTeamId: raidingFirst === 'A' ? teamA.id : teamB.id
+      })
+      
+      // Navigate to live scorer with the NEW match ID (could be Supabase UUID)
+      navigate(`/matches/${match.id}/live`)
+    } else {
+      // Fallback to local ID if upsert fails
+      const matchId = state?.matchId || 'local'
+      navigate(`/matches/${matchId}/live`)
+    }
   }
 
-  if (!match) return null
+  const teamA = state?.teamA
+  const teamB = state?.teamB
+  const callerTeam = calledBy === 'A' ? teamA : teamB
+  const winnerTeam = winner === 'A' ? teamA : teamB
+  const raidingTeam = raidingFirst === 'A' ? teamA : teamB
 
   return (
-    <div className="ts-page">
-      <div className="ts-header">
-        <button className="ts-back" onClick={() => navigate('/kabaddi/create/start')}>←</button>
-        <div className="ts-title">Start a Match</div>
-        <div />
+    <div className="cm-page">
+      <div className="cm-header">
+        <button className="cm-back" onClick={() => navigate('/kabaddi/create/lineup')}>← Back</button>
+        <div className="cm-header-title">Toss</div>
+        <div className="cm-step-badge">4 of 4</div>
       </div>
 
-      <div className="ts-teams">
-        <div className="ts-team">
-          <div className="ts-avatar">{String(teamAName).slice(0,2).toUpperCase()}</div>
-          <div className="ts-name">{teamAName}</div>
-        </div>
-        <div className="ts-vs">VS</div>
-        <div className="ts-team">
-          <div className="ts-avatar">{String(teamBName).slice(0,2).toUpperCase()}</div>
-          <div className="ts-name">{teamBName}</div>
-        </div>
+      <div className="cm-steps">
+        {['Teams', 'Setup', 'Lineup', 'Toss'].map((s, i) => (
+          <div key={s} className={`cm-step ${i === 3 ? 'active' : i < 3 ? 'done' : ''}`}>
+            <div className="cm-step-dot">{i < 3 ? '✓' : i + 1}</div>
+            <div className="cm-step-label">{s}</div>
+          </div>
+        ))}
       </div>
 
-      <div className="ts-section">
-        <div className="ts-label">Who calls the toss?</div>
-        <div className="ts-chips">
-          <button className={`ts-chip ${caller==='a'?'active':''}`} onClick={()=>setCaller('a')}>Team A</button>
-          <button className={`ts-chip ${caller==='b'?'active':''}`} onClick={()=>setCaller('b')}>Team B</button>
+      <div className="cm-body">
+        {/* Teams display */}
+        <div className="cm-toss-teams">
+          <div className="cm-toss-team" style={{ borderColor: teamA?.color }}>
+            <div className="cm-toss-team-badge" style={{ background: teamA?.color }}>{teamA?.short}</div>
+            <div className="cm-toss-team-name">{teamA?.name}</div>
+          </div>
+          <div className="cm-toss-vs">VS</div>
+          <div className="cm-toss-team" style={{ borderColor: teamB?.color }}>
+            <div className="cm-toss-team-badge" style={{ background: teamB?.color }}>{teamB?.short}</div>
+            <div className="cm-toss-team-name">{teamB?.name}</div>
+          </div>
         </div>
-        <div className="ts-label">Call</div>
-        <div className="ts-chips">
-          <button className={`ts-chip ${callChoice==='heads'?'active':''}`} onClick={()=>setCallChoice('heads')}>Heads</button>
-          <button className={`ts-chip ${callChoice==='tails'?'active':''}`} onClick={()=>setCallChoice('tails')}>Tails</button>
-        </div>
-      </div>
 
-      <div className="ts-section">
-        <div className="ts-label">Toss</div>
-        <div className={`ts-coin ${flipping?'flip':''}`} onClick={flip}>{flipping ? '' : (result ? result.toUpperCase() : 'Flip Toss')}</div>
-        {result && (
-          <div className="ts-result">
-            <div>Result: {result.toUpperCase()}</div>
-            <div>Winner: {winnerTeam}</div>
+        {/* Who calls */}
+        <div className="cm-section">
+          <div className="cm-section-title">Who calls the toss?</div>
+          <div className="cm-toss-caller">
+            <button
+              className={`cm-caller-btn ${calledBy === 'A' ? 'active' : ''}`}
+              style={calledBy === 'A' ? { borderColor: teamA?.color, background: `${teamA?.color}15` } : {}}
+              onClick={() => setCalledBy('A')}
+            >
+              {teamA?.name}
+            </button>
+            <button
+              className={`cm-caller-btn ${calledBy === 'B' ? 'active' : ''}`}
+              style={calledBy === 'B' ? { borderColor: teamB?.color, background: `${teamB?.color}15` } : {}}
+              onClick={() => setCalledBy('B')}
+            >
+              {teamB?.name}
+            </button>
+          </div>
+        </div>
+
+        {/* Call choice */}
+        <div className="cm-section">
+          <div className="cm-section-title">{callerTeam?.name} calls</div>
+          <div className="cm-coin-choice">
+            <button
+              className={`cm-choice-btn ${calledChoice === 'heads' ? 'active' : ''}`}
+              onClick={() => setCalledChoice('heads')}
+            >
+              <div className="cm-coin-face heads">H</div>
+              Heads
+            </button>
+            <button
+              className={`cm-choice-btn ${calledChoice === 'tails' ? 'active' : ''}`}
+              onClick={() => setCalledChoice('tails')}
+            >
+              <div className="cm-coin-face tails">T</div>
+              Tails
+            </button>
+          </div>
+        </div>
+
+        {/* Coin */}
+        <div className="cm-coin-section">
+          <div
+            className={`cm-coin ${flipping ? 'flipping' : ''} ${result ? 'landed' : ''}`}
+            key={flipCount}
+            onClick={flipCoin}
+          >
+            <div className="cm-coin-inner">
+              <div className="cm-coin-front">H</div>
+              <div className="cm-coin-back">T</div>
+            </div>
+          </div>
+
+          {!result && !flipping && (
+            <button className="cm-flip-btn" onClick={flipCoin}>
+              Flip Coin
+            </button>
+          )}
+
+          {flipping && (
+            <div className="cm-flip-status">Flipping...</div>
+          )}
+
+          {result && (
+            <div className="cm-result-banner">
+              <div className="cm-result-face">{result === 'heads' ? 'Heads!' : 'Tails!'}</div>
+              <div className="cm-result-winner" style={{ color: winnerTeam?.color }}>
+                🎉 {winnerTeam?.name} wins the toss!
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Winner's decision */}
+        {winner && (
+          <div className="cm-section">
+            <div className="cm-section-title">{winnerTeam?.name} chooses to...</div>
+            <div className="cm-decision-btns">
+              <button
+                className={`cm-decision-btn ${decision === 'raid_first' ? 'active' : ''}`}
+                onClick={() => setDecision('raid_first')}
+              >
+                <div className="cm-decision-icon">🏉</div>
+                <div className="cm-decision-label">Raid First</div>
+                <div className="cm-decision-sub">Attack in 1st half</div>
+              </button>
+              <button
+                className={`cm-decision-btn ${decision === 'court_side' ? 'active' : ''}`}
+                onClick={() => setDecision('court_side')}
+              >
+                <div className="cm-decision-icon">🏟️</div>
+                <div className="cm-decision-label">Choose Side</div>
+                <div className="cm-decision-sub">Pick court side</div>
+              </button>
+            </div>
+
+            {raidingTeam && (
+              <div className="cm-raid-first-banner" style={{ borderColor: raidingTeam.color, background: `${raidingTeam.color}10` }}>
+                <span style={{ color: raidingTeam.color, fontWeight: 900 }}>{raidingTeam.name}</span>
+                <span> raids first</span>
+              </div>
+            )}
           </div>
         )}
       </div>
 
-      <div className="ts-section">
-        <div className="ts-label">Winner decision</div>
-        <div className="ts-chips">
-          <button className={`ts-chip ${decision==='raid_first'?'active':''}`} onClick={()=>setDecision('raid_first')}>Raid First</button>
-          <button className={`ts-chip ${decision==='court_side'?'active':''}`} onClick={()=>setDecision('court_side')}>Choose Court Side</button>
-        </div>
-        {decision==='court_side' && (
-          <div className="ts-chips">
-            <button className={`ts-chip ${courtSide==='left'?'active':''}`} onClick={()=>setCourtSide('left')}>Left</button>
-            <button className={`ts-chip ${courtSide==='right'?'active':''}`} onClick={()=>setCourtSide('right')}>Right</button>
-          </div>
-        )}
-      </div>
-
-      <div className="ts-footer">
-        <button className="ts-secondary" onClick={()=>navigate('/kabaddi/create/start')}>Back</button>
-        <button className="ts-primary" disabled={!result || !winnerTeam} onClick={confirm}>Start Match</button>
+      <div className="cm-footer">
+        <button
+          className={`cm-next-btn ${result ? 'ready' : ''}`}
+          disabled={!result}
+          onClick={handleStart}
+          style={{ background: result ? 'linear-gradient(135deg,#16a34a,#15803d)' : '' }}
+        >
+          🏉 Start Match
+        </button>
       </div>
     </div>
   )

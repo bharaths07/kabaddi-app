@@ -1,9 +1,1160 @@
-.kc-page{display:flex;flex-direction:column;gap:8px;padding:16px;align-items:center}
-.kc-header{width:100%;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(135deg,#E0F2FE 0%,#ECFDF5 60%,#FEF9C3 100%);color:var(--text-primary);border-radius:10px;padding:10px 12px;border:1px solid var(--bg-border)}
-.kc-title{font-weight:800}
-.kc-back,.kc-help{background:transparent;border:1px solid var(--bg-border);color:var(--text-secondary);font-size:18px;cursor:pointer;border-radius:8px;padding:4px 8px}
-.kc-sub{width:100%;max-width:420px;color:var(--text-secondary);font-size:12px;margin-top:6px}
-.kc-stack{display:flex;flex-direction:column;align-items:center;gap:12px;margin-top:24px}
-.kc-circle{width:72px;height:72px;border-radius:50%;background:var(--bg-elevated);border:1px solid var(--bg-border);display:flex;align-items:center;justify-content:center;color:var(--text-primary);font-size:24px;font-weight:800;cursor:pointer}
-.kc-select{background:var(--color-sky);color:#fff;border:none;border-radius:8px;padding:10px 14px;cursor:pointer;box-shadow:var(--shadow-sky);font-weight:900}
-.kc-vs{width:36px;height:36px;border-radius:8px;border:1px solid var(--bg-border);color:var(--text-muted);display:flex;align-items:center;justify-content:center;margin:8px 0}
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@700;900&family=Nunito:wght@600;700;800;900&display=swap');
+
+* {
+    box-sizing: border-box;
+}
+
+.cm-page {
+    min-height: 100vh;
+    background: #f8fafc;
+    font-family: 'Nunito', sans-serif;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ── Header ────────────────────────────────────────────────────── */
+.cm-header {
+    background: #0c1832;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+}
+
+.cm-back {
+    background: rgba(255, 255, 255, .1);
+    border: 1px solid rgba(255, 255, 255, .15);
+    border-radius: 8px;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 800;
+    padding: 6px 12px;
+    cursor: pointer;
+    font-family: 'Nunito', sans-serif;
+    white-space: nowrap;
+}
+
+.cm-header-title {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 900;
+    font-size: 20px;
+    color: #fff;
+    flex: 1;
+}
+
+.cm-step-badge {
+    font-size: 12px;
+    color: rgba(255, 255, 255, .5);
+    font-weight: 800;
+    background: rgba(255, 255, 255, .08);
+    border-radius: 20px;
+    padding: 4px 10px;
+}
+
+/* ── Step indicator ────────────────────────────────────────────── */
+.cm-steps {
+    display: flex;
+    background: #0c1832;
+    padding: 0 16px 16px;
+    gap: 0;
+}
+
+.cm-step {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    position: relative;
+}
+
+.cm-step::after {
+    content: '';
+    position: absolute;
+    top: 14px;
+    left: 50%;
+    width: 100%;
+    height: 2px;
+    background: rgba(255, 255, 255, .15);
+}
+
+.cm-step:last-child::after {
+    display: none;
+}
+
+.cm-step.done::after {
+    background: #0ea5e9;
+}
+
+.cm-step-dot {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 900;
+    background: rgba(255, 255, 255, .1);
+    color: rgba(255, 255, 255, .4);
+    z-index: 1;
+    position: relative;
+}
+
+.cm-step.active .cm-step-dot {
+    background: #0ea5e9;
+    color: #fff;
+    box-shadow: 0 0 0 4px rgba(14, 165, 233, .25);
+}
+
+.cm-step.done .cm-step-dot {
+    background: #16a34a;
+    color: #fff;
+}
+
+.cm-step-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, .4);
+    text-transform: uppercase;
+    letter-spacing: .04em;
+}
+
+.cm-step.active .cm-step-label {
+    color: #38bdf8;
+}
+
+.cm-step.done .cm-step-label {
+    color: #4ade80;
+}
+
+/* ── Body / Footer ─────────────────────────────────────────────── */
+.cm-body {
+    flex: 1;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    overflow-y: auto;
+}
+
+.cm-footer {
+    padding: 12px 16px 24px;
+    background: #fff;
+    border-top: 1px solid #e2e8f0;
+}
+
+.cm-footer-hint {
+    font-size: 12px;
+    color: #f59e0b;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 8px;
+}
+
+.cm-footer-preview {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    justify-content: center;
+}
+
+.cm-footer-vs {
+    font-size: 12px;
+    color: #94a3b8;
+    font-weight: 700;
+}
+
+.cm-footer-names {
+    font-size: 13px;
+    font-weight: 900;
+    color: #0f172a;
+}
+
+.cm-next-btn {
+    width: 100%;
+    padding: 15px;
+    border-radius: 14px;
+    border: none;
+    background: #e2e8f0;
+    color: #94a3b8;
+    font-size: 16px;
+    font-weight: 900;
+    font-family: 'Rajdhani', sans-serif;
+    letter-spacing: .04em;
+    cursor: not-allowed;
+    transition: all .2s;
+}
+
+.cm-next-btn.ready {
+    background: linear-gradient(135deg, #0ea5e9, #0284c7);
+    color: #fff;
+    cursor: pointer;
+    box-shadow: 0 4px 18px rgba(14, 165, 233, .30);
+}
+
+.cm-next-btn.ready:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 22px rgba(14, 165, 233, .40);
+}
+
+/* ── Sections ──────────────────────────────────────────────────── */
+.cm-section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.cm-section-title {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 900;
+    font-size: 15px;
+    color: #0f172a;
+    letter-spacing: .01em;
+}
+
+/* ── VS Card (team selection) ──────────────────────────────────── */
+.cm-vs-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 18px;
+    padding: 20px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.cm-team-slot {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    padding: 12px 8px;
+    border-radius: 12px;
+    border: 2px dashed #e2e8f0;
+    transition: all .15s;
+}
+
+.cm-team-slot:hover {
+    border-color: #0ea5e9;
+    background: #f0f9ff;
+}
+
+.cm-team-slot-empty {
+    width: 52px;
+    height: 52px;
+    border-radius: 12px;
+    background: #f1f5f9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 900;
+    font-size: 22px;
+    color: #cbd5e1;
+}
+
+.cm-team-slot-name {
+    font-size: 12px;
+    font-weight: 800;
+    color: #334155;
+    text-align: center;
+    line-height: 1.3;
+}
+
+.cm-team-slot-change {
+    font-size: 10px;
+    color: #94a3b8;
+    font-weight: 700;
+}
+
+.cm-vs-badge {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 900;
+    font-size: 22px;
+    color: #cbd5e1;
+    flex-shrink: 0;
+}
+
+.cm-team-avatar {
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 900;
+    color: #fff;
+}
+
+/* ── Team picker ───────────────────────────────────────────────── */
+.cm-picker {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 18px;
+    overflow: hidden;
+}
+
+.cm-picker-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.cm-picker-title {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 900;
+    font-size: 16px;
+    color: #0f172a;
+}
+
+.cm-picker-close {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: none;
+    background: #f1f5f9;
+    color: #64748b;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.cm-search-wrap {
+    padding: 10px 16px;
+}
+
+.cm-search {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 14px;
+    font-family: 'Nunito', sans-serif;
+    outline: none;
+    background: #f8fafc;
+}
+
+.cm-search:focus {
+    border-color: #0ea5e9;
+}
+
+.cm-team-list {
+    max-height: 280px;
+    overflow-y: auto;
+}
+
+.cm-team-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    cursor: pointer;
+    border-top: 1px solid #f8fafc;
+    transition: background .1s;
+}
+
+.cm-team-row:hover {
+    background: #f8fafc;
+}
+
+.cm-team-row.disabled {
+    opacity: .45;
+    cursor: not-allowed;
+}
+
+.cm-team-row.create-row {
+    color: #0ea5e9;
+}
+
+.cm-team-row-info {
+    flex: 1;
+}
+
+.cm-team-row-name {
+    font-weight: 900;
+    font-size: 14px;
+    color: #0f172a;
+}
+
+.cm-team-row-short {
+    font-size: 11px;
+    color: #94a3b8;
+    font-weight: 700;
+    margin-top: 1px;
+}
+
+.cm-team-row-taken {
+    font-size: 11px;
+    color: #94a3b8;
+    font-weight: 700;
+}
+
+.cm-create-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: #eff6ff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    color: #0ea5e9;
+    font-weight: 900;
+}
+
+/* ── Create form ───────────────────────────────────────────────── */
+.cm-create-form {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 18px;
+    padding: 18px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.cm-create-form-title {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 900;
+    font-size: 18px;
+    color: #0f172a;
+}
+
+.cm-input {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 12px;
+    font-size: 14px;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 600;
+    color: #0f172a;
+    outline: none;
+    background: #fff;
+    transition: border-color .15s;
+}
+
+.cm-input:focus {
+    border-color: #0ea5e9;
+}
+
+.cm-color-label {
+    font-size: 12px;
+    color: #64748b;
+    font-weight: 700;
+}
+
+.cm-color-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.cm-color-dot {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: transform .15s;
+}
+
+.cm-color-dot.selected {
+    border-color: #0f172a;
+    transform: scale(1.2);
+}
+
+.cm-create-form-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.cm-btn-primary {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #0ea5e9, #0284c7);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 900;
+    font-family: 'Rajdhani', sans-serif;
+    cursor: pointer;
+}
+
+.cm-btn-secondary {
+    flex: 1;
+    padding: 12px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 12px;
+    background: #fff;
+    color: #64748b;
+    font-size: 14px;
+    font-weight: 800;
+    font-family: 'Nunito', sans-serif;
+    cursor: pointer;
+}
+
+/* ── Match setup ───────────────────────────────────────────────── */
+.cm-match-banner {
+    background: #0c1832;
+    border-radius: 14px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    justify-content: center;
+}
+
+.cm-banner-team {
+    font-weight: 900;
+    font-size: 14px;
+    text-align: center;
+    flex: 1;
+}
+
+.cm-banner-vs {
+    font-size: 13px;
+    color: rgba(255, 255, 255, .4);
+    font-weight: 700;
+}
+
+.cm-type-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+.cm-type-card {
+    background: #fff;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 14px 10px;
+    text-align: center;
+    cursor: pointer;
+    transition: all .15s;
+}
+
+.cm-type-card.active {
+    border-color: #0ea5e9;
+    background: #eff6ff;
+}
+
+.cm-type-emoji {
+    font-size: 24px;
+    margin-bottom: 6px;
+}
+
+.cm-type-label {
+    font-weight: 900;
+    font-size: 13px;
+    color: #0f172a;
+}
+
+.cm-type-sub {
+    font-size: 11px;
+    color: #94a3b8;
+    font-weight: 700;
+    margin-top: 2px;
+}
+
+.cm-config-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    overflow: hidden;
+}
+
+.cm-config-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    gap: 12px;
+}
+
+.cm-config-divider {
+    height: 1px;
+    background: #f1f5f9;
+    margin: 0 16px;
+}
+
+.cm-config-name {
+    font-weight: 800;
+    font-size: 14px;
+    color: #0f172a;
+}
+
+.cm-config-desc {
+    font-size: 11px;
+    color: #94a3b8;
+    font-weight: 600;
+    margin-top: 2px;
+}
+
+/* Toggle */
+.cm-toggle {
+    width: 44px;
+    height: 24px;
+    border-radius: 12px;
+    background: #e2e8f0;
+    cursor: pointer;
+    position: relative;
+    transition: background .2s;
+    flex-shrink: 0;
+}
+
+.cm-toggle.on {
+    background: #16a34a;
+}
+
+.cm-toggle-thumb {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #fff;
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    transition: transform .2s;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, .15);
+}
+
+.cm-toggle.on .cm-toggle-thumb {
+    transform: translateX(20px);
+}
+
+/* Counter */
+.cm-counter {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+.cm-counter-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: 1.5px solid #e2e8f0;
+    background: #f8fafc;
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    color: #334155;
+    transition: all .1s;
+}
+
+.cm-counter-btn:hover {
+    background: #e2e8f0;
+}
+
+.cm-counter-val {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 900;
+    font-size: 22px;
+    color: #0f172a;
+    min-width: 48px;
+    text-align: center;
+}
+
+.cm-counter-suffix {
+    font-size: 12px;
+    color: #94a3b8;
+    font-weight: 700;
+    margin-left: 2px;
+}
+
+/* ── Lineup ────────────────────────────────────────────────────── */
+.cm-team-tabs {
+    display: flex;
+    background: #fff;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.cm-team-tab {
+    flex: 1;
+    padding: 12px 8px;
+    border: none;
+    background: transparent;
+    border-bottom: 2.5px solid transparent;
+    cursor: pointer;
+    font-family: 'Nunito', sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    transition: all .15s;
+}
+
+.cm-team-tab.active .cm-team-tab-name {
+    color: #0f172a;
+}
+
+.cm-team-tab-name {
+    font-weight: 900;
+    font-size: 13px;
+    color: #94a3b8;
+}
+
+.cm-team-tab-count {
+    font-size: 11px;
+    font-weight: 700;
+    color: #94a3b8;
+}
+
+.cm-team-tab-count.full {
+    color: #16a34a;
+}
+
+.cm-lineup-bar {
+    background: #fff;
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.cm-lineup-stat {
+    text-align: center;
+}
+
+.cm-lineup-stat-num {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 900;
+    font-size: 20px;
+}
+
+.cm-lineup-stat-label {
+    font-size: 10px;
+    color: #94a3b8;
+    font-weight: 700;
+    display: block;
+}
+
+.cm-lineup-divider {
+    width: 1px;
+    height: 28px;
+    background: #e2e8f0;
+}
+
+.cm-add-player-btn {
+    margin-left: auto;
+    padding: 7px 14px;
+    border-radius: 20px;
+    border: 1.5px solid #0ea5e9;
+    background: #eff6ff;
+    color: #0ea5e9;
+    font-size: 12px;
+    font-weight: 800;
+    cursor: pointer;
+    font-family: 'Nunito', sans-serif;
+}
+
+.cm-player-section-label {
+    font-size: 11px;
+    font-weight: 800;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    padding: 4px 0;
+}
+
+.cm-player-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.cm-player-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #fff;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 10px 12px;
+    transition: all .15s;
+}
+
+.cm-player-row.starter {
+    border-color: #16a34a;
+    background: #f0fdf4;
+}
+
+.cm-player-row.sub {
+    border-color: #7c3aed;
+    background: #f5f3ff;
+}
+
+.cm-player-num {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 900;
+    font-size: 16px;
+    min-width: 28px;
+}
+
+.cm-player-name {
+    font-weight: 900;
+    font-size: 14px;
+    color: #0f172a;
+}
+
+.cm-player-role {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: capitalize;
+    margin-top: 1px;
+}
+
+.cm-player-actions {
+    display: flex;
+    gap: 6px;
+    margin-left: auto;
+}
+
+.cm-player-btn {
+    padding: 5px 10px;
+    border-radius: 8px;
+    border: 1.5px solid #e2e8f0;
+    background: #fff;
+    font-size: 12px;
+    font-weight: 800;
+    cursor: pointer;
+    font-family: 'Nunito', sans-serif;
+    transition: all .15s;
+}
+
+.cm-player-btn.start.active {
+    background: #f0fdf4;
+    border-color: #16a34a;
+    color: #16a34a;
+}
+
+.cm-player-btn.sub.active {
+    background: #f5f3ff;
+    border-color: #7c3aed;
+    color: #7c3aed;
+}
+
+/* Role select */
+.cm-role-select {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.cm-role-btn {
+    padding: 6px 12px;
+    border-radius: 20px;
+    border: 1.5px solid #e2e8f0;
+    background: #fff;
+    font-size: 12px;
+    font-weight: 800;
+    cursor: pointer;
+    font-family: 'Nunito', sans-serif;
+    text-transform: capitalize;
+    transition: all .15s;
+}
+
+/* ── Empty state ───────────────────────────────────────────────── */
+.cm-empty {
+    text-align: center;
+    padding: 40px 20px;
+    background: #fff;
+    border-radius: 16px;
+    border: 1px dashed #e2e8f0;
+}
+
+.cm-empty-icon {
+    font-size: 40px;
+    margin-bottom: 10px;
+}
+
+.cm-empty-text {
+    font-size: 14px;
+    color: #94a3b8;
+    font-weight: 700;
+    margin-bottom: 14px;
+}
+
+/* ── Toss screen ───────────────────────────────────────────────── */
+.cm-toss-teams {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 16px;
+}
+
+.cm-toss-team {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 8px;
+    border-radius: 12px;
+    border: 2px solid;
+}
+
+.cm-toss-team-badge {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 900;
+    font-size: 14px;
+    color: #fff;
+}
+
+.cm-toss-team-name {
+    font-size: 12px;
+    font-weight: 800;
+    color: #334155;
+    text-align: center;
+    line-height: 1.3;
+}
+
+.cm-toss-vs {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 900;
+    font-size: 20px;
+    color: #cbd5e1;
+    flex-shrink: 0;
+}
+
+.cm-toss-caller {
+    display: flex;
+    gap: 10px;
+}
+
+.cm-caller-btn {
+    flex: 1;
+    padding: 12px;
+    border-radius: 12px;
+    border: 1.5px solid #e2e8f0;
+    background: #fff;
+    font-size: 13px;
+    font-weight: 800;
+    cursor: pointer;
+    font-family: 'Nunito', sans-serif;
+    text-align: center;
+    transition: all .15s;
+}
+
+.cm-coin-choice {
+    display: flex;
+    gap: 12px;
+}
+
+.cm-choice-btn {
+    flex: 1;
+    padding: 16px;
+    border-radius: 14px;
+    border: 2px solid #e2e8f0;
+    background: #fff;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 800;
+    color: #334155;
+    font-family: 'Nunito', sans-serif;
+    transition: all .15s;
+}
+
+.cm-choice-btn.active {
+    border-color: #0ea5e9;
+    background: #eff6ff;
+    color: #0ea5e9;
+}
+
+.cm-coin-face {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 900;
+    font-size: 20px;
+}
+
+.cm-coin-face.heads {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+.cm-coin-face.tails {
+    background: #e0e7ff;
+    color: #4338ca;
+}
+
+.cm-coin-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 0;
+}
+
+.cm-coin {
+    width: 90px;
+    height: 90px;
+    cursor: pointer;
+    perspective: 600px;
+}
+
+.cm-coin-inner {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.3s;
+}
+
+.cm-coin.flipping .cm-coin-inner {
+    animation: coinFlip 1.8s ease forwards;
+}
+
+@keyframes coinFlip {
+    0% {
+        transform: rotateY(0);
+    }
+
+    100% {
+        transform: rotateY(1440deg);
+    }
+}
+
+.cm-coin-front,
+.cm-coin-back {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 900;
+    font-size: 32px;
+    backface-visibility: hidden;
+}
+
+.cm-coin-front {
+    background: #fbbf24;
+    color: #fff;
+}
+
+.cm-coin-back {
+    background: #6366f1;
+    color: #fff;
+    transform: rotateY(180deg);
+}
+
+.cm-flip-btn {
+    padding: 12px 28px;
+    border-radius: 20px;
+    border: none;
+    background: linear-gradient(135deg, #0ea5e9, #0284c7);
+    color: #fff;
+    font-size: 15px;
+    font-weight: 900;
+    font-family: 'Rajdhani', sans-serif;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(14, 165, 233, .30);
+}
+
+.cm-flip-status {
+    font-size: 14px;
+    color: #94a3b8;
+    font-weight: 700;
+}
+
+.cm-result-banner {
+    text-align: center;
+}
+
+.cm-result-face {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 900;
+    font-size: 28px;
+    color: #0f172a;
+}
+
+.cm-result-winner {
+    font-size: 15px;
+    font-weight: 800;
+    margin-top: 4px;
+}
+
+.cm-decision-btns {
+    display: flex;
+    gap: 12px;
+}
+
+.cm-decision-btn {
+    flex: 1;
+    padding: 16px 12px;
+    border: 2px solid #e2e8f0;
+    border-radius: 14px;
+    background: #fff;
+    cursor: pointer;
+    text-align: center;
+    transition: all .15s;
+    font-family: 'Nunito', sans-serif;
+}
+
+.cm-decision-btn.active {
+    border-color: #0ea5e9;
+    background: #eff6ff;
+}
+
+.cm-decision-icon {
+    font-size: 28px;
+    margin-bottom: 6px;
+}
+
+.cm-decision-label {
+    font-weight: 900;
+    font-size: 14px;
+    color: #0f172a;
+}
+
+.cm-decision-sub {
+    font-size: 11px;
+    color: #94a3b8;
+    font-weight: 700;
+    margin-top: 2px;
+}
+
+.cm-raid-first-banner {
+    padding: 12px 16px;
+    border-radius: 12px;
+    border: 2px solid;
+    text-align: center;
+    font-size: 15px;
+    font-weight: 700;
+    color: #334155;
+}

@@ -1,9 +1,10 @@
 import React, { useEffect, useState, useMemo } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { supabase } from '@shared/lib/supabase'
+import '../../../../pages/home.css' // Import the global SVG layout styles
 import './matches.css'
 
-type MatchStatus = 'live' | 'upcoming' | 'completed' | 'toss_pending' | 'toss_completed'
+type MatchStatus = 'live' | 'upcoming' | 'completed' | 'toss_pending' | 'toss_completed' | 'scheduled'
 
 type MatchListItem = {
   id: string
@@ -14,11 +15,12 @@ type MatchListItem = {
   venue?: string
   currentHalf?: number
   resultText?: string
+  tournament?: string
 }
 
 function MatchesTabs({ active, onChange }: { active: string; onChange: (v: any) => void }) {
   const tabs = [
-    { k: 'top',       label: 'Top Matches' },
+    { k: 'top',       label: 'Top' },
     { k: 'live',      label: 'Live' },
     { k: 'upcoming',  label: 'Upcoming' },
     { k: 'completed', label: 'Completed' },
@@ -34,41 +36,42 @@ function MatchesTabs({ active, onChange }: { active: string; onChange: (v: any) 
   )
 }
 
-function MatchCard({ match }: { match: MatchListItem }) {
-  const navigate = useNavigate()
-  const displayStatus = match.status === 'toss_pending' || match.status === 'toss_completed' ? 'upcoming' : match.status
-  const onOpen = () => {
-    if (match.status === 'completed') navigate(`/matches/${match.id}/summary`)
-    else if (match.status === 'live') navigate(`/matches/${match.id}/live`)
-    else navigate(`/matches/${match.id}`)
-  }
+function LiveCard({ match }: { match: MatchListItem }) {
   return (
-    <div className="mx-card" onClick={onOpen}>
-      <div className="mx-topline">
-        <div className={`mx-status ${displayStatus}`}>
-          {displayStatus === 'live' ? '● Live' : displayStatus.charAt(0).toUpperCase() + displayStatus.slice(1)}
+    <Link to={`/matches/${match.id}/live`} className="hp-live-card">
+      <div className="hp-live-teams">
+        <div className="hp-live-team-col">
+          <div className="hp-live-row">
+            <span className="hp-live-name">{match.teamA.name}</span>
+            <span className="hp-live-score">{match.teamA.score ?? '-'}</span>
+          </div>
+          <div className="hp-live-row">
+            <span className="hp-live-name">{match.teamB.name}</span>
+            <span className="hp-live-score">{match.teamB.score ?? '-'}</span>
+          </div>
         </div>
+        <div className="hp-live-vs">VS</div>
       </div>
-      <div className="mx-versus">
-        <div className="mx-side">
-          <div className="mx-badge">{match.teamA.shortName}</div>
-          <div className="mx-score">{match.teamA.score ?? '-'}</div>
-          <div className="mx-name">{match.teamA.name}</div>
-        </div>
-        <div className="mx-mid">-</div>
-        <div className="mx-side right">
-          <div className="mx-badge">{match.teamB.shortName}</div>
-          <div className="mx-score">{match.teamB.score ?? '-'}</div>
-          <div className="mx-name">{match.teamB.name}</div>
-        </div>
+      <div className="hp-live-meta">Raid: P{match.currentHalf || 1} | Live</div>
+    </Link>
+  )
+}
+
+function RegularCard({ match }: { match: MatchListItem }) {
+  const isCompleted = match.status === 'completed'
+  const navUrl = `/matches/${match.id}${isCompleted ? '/summary' : ''}`
+  return (
+    <Link to={navUrl} className="hp-top-card">
+      <div className="hp-top-title">
+        {match.teamA.shortName} vs {match.teamB.shortName}
       </div>
-      {match.status === 'live' && (
-        <div className="mx-livebar">Half {match.currentHalf || 1} • Live</div>
-      )}
-      {match.status === 'completed' && match.resultText && (
-        <div className="mx-subtle">{match.resultText}</div>
-      )}
-    </div>
+      <div className="hp-top-sub">
+        {isCompleted 
+          ? `Completed • ${match.resultText || match.tournament || 'Match'}`
+          : `${match.tournament || 'Scheduled'} • ${new Date(match.startTime).toLocaleDateString('en-IN', {day:'numeric', month:'short'})}`
+        }
+      </div>
+    </Link>
   )
 }
 
@@ -87,7 +90,8 @@ export default function KabaddiMatchesPage() {
       const { data, error } = await supabase
         .from('kabaddi_matches')
         .select(`
-          id, status, home_score, guest_score, period, created_at,
+          id, status, home_score, guest_score, period, created_at, scheduled_at,
+          tournaments(name),
           home_team:teams!team_home_id(id, name, short),
           guest_team:teams!team_guest_id(id, name, short)
         `)
@@ -103,15 +107,15 @@ export default function KabaddiMatchesPage() {
         const guestShort = m.guest_team?.short || guestName.slice(0, 2).toUpperCase()
 
         const isCompleted = m.status === 'completed'
-        const isLive      = m.status === 'live'
 
         return {
           id: m.id,
           teamA: { id: m.home_team?.id || '', name: homeName,  shortName: homeShort,  score: m.home_score  ?? undefined },
           teamB: { id: m.guest_team?.id || '', name: guestName, shortName: guestShort, score: m.guest_score ?? undefined },
           status: m.status as MatchStatus,
-          startTime: m.created_at,
+          startTime: m.scheduled_at || m.created_at,
           currentHalf: m.period,
+          tournament: m.tournaments?.name,
           resultText: isCompleted
             ? `${(m.home_score || 0) > (m.guest_score || 0) ? homeName : guestName} won`
             : undefined,
@@ -129,37 +133,31 @@ export default function KabaddiMatchesPage() {
   const filtered = useMemo(() => {
     if (active === 'top') {
       const live     = matches.filter(m => m.status === 'live')
-      const upcoming = matches.filter(m => m.status === 'toss_pending' || m.status === 'toss_completed' || m.status === 'upcoming')
-      return [...live, ...upcoming.slice(0, 3)]
+      const upcoming = matches.filter(m => ['toss_pending','toss_completed','upcoming','scheduled'].includes(m.status))
+      return [...live, ...upcoming.slice(0, 5)]
     }
     if (active === 'live')      return matches.filter(m => m.status === 'live')
-    if (active === 'upcoming')  return matches.filter(m => ['toss_pending','toss_completed','upcoming'].includes(m.status))
+    if (active === 'upcoming')  return matches.filter(m => ['toss_pending','toss_completed','upcoming','scheduled'].includes(m.status))
     if (active === 'completed') return matches.filter(m => m.status === 'completed')
     return matches
   }, [active, matches])
 
   return (
-    <div className="mx-page">
+    <div className="hp-page">
       <div className="mx-header">
         <h1 className="mx-title">Matches</h1>
-        <div className="mx-subtitle">Live, upcoming and completed</div>
       </div>
+      
       <MatchesTabs active={active} onChange={setActive} />
-      <div className="mx-list">
+      
+      <div className="hp-section" style={{ paddingTop: '16px' }}>
         {loading ? (
-          Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="mx-card" style={{ opacity: 0.5 }}>
-              <div style={{ height: 12, background: '#e2e8f0', borderRadius: 6, width: '40%', marginBottom: 12 }} />
-              <div style={{ height: 40, background: '#e2e8f0', borderRadius: 8 }} />
-            </div>
-          ))
+          <div className="hp-empty-state">Loading matches...</div>
         ) : filtered.length > 0
-          ? filtered.map(m => <MatchCard key={m.id} match={m} />)
+          ? filtered.map(m => m.status === 'live' ? <LiveCard key={m.id} match={m} /> : <RegularCard key={m.id} match={m} />)
           : (
-            <div className="mx-empty">
-              <div className="mx-empty-icon">📅</div>
-              <div className="mx-empty-title">No {active === 'top' ? '' : active} matches yet</div>
-              <div className="mx-empty-text">Start a match to see it here.</div>
+            <div className="hp-empty-state">
+              No {active === 'top' ? '' : active} matches yet.
             </div>
           )
         }

@@ -8,51 +8,106 @@ type Props = {
   user?: { name: string; phone?: string; email?: string; avatar_url?: string | null };
 }
 
-export default function RightSidebar({ role = 'organizer', user = { name: 'User', phone: '—', email: '—' } }: Props) {
+export default function RightSidebar({ 
+  role = 'organizer', 
+  user = { name: 'bh', phone: '91991688167', email: 'Bggwads496@Gmail.Com' } 
+}: Props) {
   const { toggleSidebar } = useLayout()
-  const initials = (user.name || 'User').split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase()
+  const initials = (user.name || 'User').split(' ').map(w => w[0]).join('').slice(0,2).toLowerCase()
   
   const closeSidebar = () => toggleSidebar()
 
   return (
-    <aside className="gl-sidebar">
-      <div className="gl-sidebar-header">
-        <button className="gl-close-btn" onClick={closeSidebar}>✕</button>
+    <aside className="sb-container">
+      {/* Header Profile Identity */}
+      <div className="sb-header">
+        <button className="sb-close" onClick={closeSidebar}>✕</button>
+        
+        <Link to="/profile" className="sb-profile-block" onClick={closeSidebar} style={{ textDecoration: 'none', cursor: 'pointer' }}>
+          <div className="sb-avatar-wrapper">
+            <div className="sb-avatar">
+              {user.avatar_url ? <img src={user.avatar_url} alt="avatar" style={{width:'100%', height:'100%', borderRadius:'50%'}} /> : initials}
+            </div>
+            <div className="sb-status-dot"></div>
+          </div>
+          <div className="sb-user-info">
+            <h2 className="sb-user-name">{user.name}</h2>
+            <div className="sb-user-phone">
+              {user.phone} <span style={{fontSize: '10px', color: '#94a3b8'}}>▼</span>
+            </div>
+            <div className="sb-user-email">{user.email}</div>
+            <div className="sb-user-badge">Free User</div>
+          </div>
+          <button className="sb-menu-dots">•••</button>
+        </Link>
       </div>
-      
-      <div className="gl-profile">
-        <div className="gl-avatar">
-          {user.avatar_url ? <img src={user.avatar_url} alt="avatar" style={{width:'100%', height:'100%', borderRadius:'50%'}} /> : initials}
+
+      {/* Sections Body */}
+      <div className="sb-body">
+        
+        <div className="sb-section">
+          <div className="sb-section-title">ACTIONS</div>
+          <Link to="/kabaddi/create" className="sb-btn sb-btn-orange" onClick={closeSidebar}>
+            <div className="sb-btn-left">
+              <span className="sb-btn-icon">✚</span>
+              <span>Start Match</span>
+            </div>
+            <span className="sb-btn-arrow">›</span>
+          </Link>
+          <Link to="/tournament/create" className="sb-btn sb-btn-gold" onClick={closeSidebar}>
+            <div className="sb-btn-left">
+              <span className="sb-btn-icon">🏆</span>
+              <span>Create Tournament</span>
+            </div>
+            <span className="sb-btn-arrow">›</span>
+          </Link>
         </div>
-        <div className="gl-user">
-          <div className="gl-username">{user.name}</div>
-          <div className="gl-role">{user.phone} • {user.email}</div>
-          <div className="gl-badges"><span className="gl-badge gl-badge-free">Free User</span></div>
+
+        <div className="sb-section">
+          <div className="sb-section-title">COMMUNITY</div>
+          <Link to="/feed" className="sb-pill" onClick={closeSidebar}>
+            <div style={{display:'flex', alignItems:'center', gap:'12px'}}>
+              <span className="sb-pill-icon">📸</span>
+              <span>Feed</span>
+            </div>
+            <span className="sb-pill-arrow">›</span>
+          </Link>
+          <Link to="/news" className="sb-pill" onClick={closeSidebar}>
+            <div style={{display:'flex', alignItems:'center', gap:'12px'}}>
+              <span className="sb-pill-icon">📰</span>
+              <span>News</span>
+            </div>
+            <span className="sb-pill-arrow">›</span>
+          </Link>
         </div>
-        <Link to="/profile" className="gl-profile-arrow" onClick={closeSidebar} aria-label="Go to Profile">→</Link>
-      </div>
 
-      <Link to="/upgrade" className="gl-pro-banner" onClick={closeSidebar}>
-        <div className="gl-pro-title">Go PRO at ₹199</div>
-        <div className="gl-pro-sub">No autopay • Unlock all features</div>
-        <span className="gl-pro-pill">PRO</span>
-      </Link>
+        <div className="sb-section">
+          <div className="sb-section-title">INSIGHTS</div>
+          <Link to="/leaderboards/teams" className="sb-pill" onClick={closeSidebar}>
+            <div style={{display:'flex', alignItems:'center', gap:'12px'}}>
+              <span className="sb-pill-icon">👥</span>
+              <span>Teams</span>
+            </div>
+            <span className="sb-pill-arrow">›</span>
+          </Link>
+        </div>
 
-      <div className="gl-menu-list">
-        <Link to="/kabaddi/create" className="gl-menu-item" onClick={closeSidebar}>Start a Match <span className="gl-free-pill">Free</span></Link>
-        <Link to="/tournament/create" className="gl-menu-item" onClick={closeSidebar}>Add a Tournament/Series <span className="gl-free-pill">Free</span></Link>
-        <Link to="/matches" className="gl-menu-item" onClick={closeSidebar}>Top Matches</Link>
-        <Link to="/profile" className="gl-menu-item" onClick={closeSidebar}>My Profile</Link>
-        <Link to="/leaderboards" className="gl-menu-item" onClick={closeSidebar}>Leaderboards</Link>
-        <Link to="/feed" className="gl-menu-item" onClick={closeSidebar}>📸 Feed</Link>
-        <Link to="/awards" className="gl-menu-item" onClick={closeSidebar}>Play Kabaddi Awards</Link>
-      </div>
+        <div className="sb-section">
+          <div className="sb-section-title">ACCOUNT</div>
+          <Link to="/settings" className="sb-pill" onClick={closeSidebar}>
+            <div style={{display:'flex', alignItems:'center', gap:'12px'}}>
+              <span className="sb-pill-icon" style={{color:'#64748b'}}>⚙️</span>
+              <span>Settings</span>
+            </div>
+          </Link>
+          <Link to="/logout" className="sb-pill" onClick={closeSidebar}>
+            <div style={{display:'flex', alignItems:'center', gap:'12px'}}>
+              <span className="sb-pill-icon" style={{color:'#dc2626', opacity:0.8}}>🚪</span>
+              <span>Logout</span>
+            </div>
+          </Link>
+        </div>
 
-      <div className="gl-section gl-bottom">
-        <a href="mailto:kabaddipulse.official@gmail.com" className="gl-item" style={{ textDecoration: 'none' }}>✉️ Support Email</a>
-        <a href="https://www.instagram.com/kabaddipulse_official?igsh=MWZobmQyeWpsc2dxZA==" target="_blank" rel="noreferrer" className="gl-item" style={{ textDecoration: 'none' }}>📸 Instagram</a>
-        <Link to="/settings" className="gl-item" onClick={closeSidebar}>⚙️ Settings</Link>
-        <Link to="/logout" className="gl-item" onClick={closeSidebar}>🚪 Logout</Link>
       </div>
     </aside>
   )

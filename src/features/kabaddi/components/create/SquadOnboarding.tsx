@@ -1,198 +1,318 @@
-import React, { useMemo, useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import './squad.css'
-import { getDraft, setSquad } from '../../state/createDraft'
+import {
+    getCreationState, saveLineup, getStoredPlayers, getDefaultPlayers,
+    savePlayerToStore, type PlayerData, type TeamData
+} from '../../state/matchCreationStore'
+import { setSquad as saveDraftSquad } from '../../state/createDraft'
+import './create-match.css'
 
-type Player = { id: string; name: string; phone?: string; isCaptain?: boolean }
-
-export default function SquadOnboarding() {
-  const navigate = useNavigate()
-  const draft = useMemo(() => getDraft(), [])
-
-  const [playersA, setPlayersA] = useState<Player[]>([])
-  const [playersB, setPlayersB] = useState<Player[]>([])
-  const [sheetOpen, setSheetOpen] = useState<{ team: 'a' | 'b' } | null>(null)
-  const [inviteTab, setInviteTab] = useState<'phone' | 'whatsapp' | 'link'>('phone')
-  const [pName, setPName] = useState('')
-  const [pPhone, setPPhone] = useState('')
-
-  const teamAName = draft.teamA?.name || 'Team A'
-  const teamBName = draft.teamB?.name || 'Team B'
-
-  const addPlayer = (team: 'a' | 'b', name: string, phone?: string) => {
-    const make = (prev: Player[]) => {
-      const isFirst = prev.length === 0
-      const p: Player = { id: `${Date.now()}`, name, phone, isCaptain: isFirst }
-      return [p, ...prev]
-    }
-    if (team === 'a') setPlayersA(prev => make(prev))
-    else setPlayersB(prev => make(prev))
-  }
-
-  const makeCaptain = (team: 'a' | 'b', id: string) => {
-    const promote = (list: Player[]) => list.map(p => ({ ...p, isCaptain: p.id === id }))
-    if (team === 'a') setPlayersA(prev => promote(prev))
-    else setPlayersB(prev => promote(prev))
-  }
-
-  const readyA = playersA.length >= 4 && playersA.some(p => p.isCaptain)
-  const readyB = playersB.length >= 4 && playersB.some(p => p.isCaptain)
-  const canStart = readyA && readyB
-
-  const needMoreA = Math.max(0, 4 - playersA.length)
-  const needMoreB = Math.max(0, 4 - playersB.length)
-
-  const onSubmitPhone = () => {
-    const nm = pName.trim()
-    if (!nm) return
-    addPlayer(sheetOpen?.team || 'a', nm, pPhone.trim() || undefined)
-    setPName(''); setPPhone('')
-    setSheetOpen(null)
-  }
-
-  const shareText = `Join our Kabaddi squad for ${sheetOpen?.team === 'a' ? teamAName : teamBName}.`
-  const shareLink = `${window.location.origin}/kabaddi/create/squad?join=${sheetOpen?.team || 'a'}`
-  const waHref = `https://wa.me/?text=${encodeURIComponent(`${shareText} ${shareLink}`)}`
-
-  return (
-    <div className="sq-page">
-      <div className="sq-header">
-        <button className="sq-back" onClick={() => navigate(-1)}>←</button>
-        <div className="sq-title">Squad Onboarding</div>
-        <div />
-      </div>
-
-      <div className="sq-banner">
-        <div className="sq-team">
-          <div className="sq-avatar">{teamAName.slice(0,2).toUpperCase()}</div>
-          <div className="sq-name">{teamAName}</div>
-          <div className="sq-sub">{draft.teamA?.location || 'Varadanayakanahalli'}</div>
-        </div>
-        <div className="sq-vs">vs</div>
-        <div className="sq-team">
-          <div className="sq-avatar">{teamBName.slice(0,2).toUpperCase()}</div>
-          <div className="sq-name">{teamBName}</div>
-          <div className="sq-sub">{draft.teamB?.location || 'Bengaluru'}</div>
-        </div>
-      </div>
-
-      <TeamBlock
-        title={teamAName}
-        location={draft.teamA?.location || 'Varadanayakanahalli'}
-        players={playersA}
-        needMore={needMoreA}
-        onAdd={() => setSheetOpen({ team: 'a' })}
-        onPromote={(id) => makeCaptain('a', id)}
-      />
-
-      <TeamBlock
-        title={teamBName}
-        location={draft.teamB?.location || 'Bengaluru'}
-        players={playersB}
-        needMore={needMoreB}
-        onAdd={() => setSheetOpen({ team: 'b' })}
-        onPromote={(id) => makeCaptain('b', id)}
-      />
-
-      <div className="sq-footer-note">
-        Both teams need at least 4 players with a captain
-      </div>
-      <div className="sq-footer">
-        <button className={`sq-start ${canStart ? 'ready' : ''}`} disabled={!canStart} onClick={()=>{
-          setSquad('a', playersA.map((p, i) => ({ ...p, jerseyNumber: i + 1 })))
-          setSquad('b', playersB.map((p, i) => ({ ...p, jerseyNumber: i + 1 })))
-          navigate('/kabaddi/create/toss')
-        }}>
-          {canStart ? 'Start Match' : 'Complete Squads to Start'}
-        </button>
-      </div>
-
-      {sheetOpen && (
-        <>
-          <div className="sq-overlay" onClick={()=>setSheetOpen(null)} />
-          <div className="sq-sheet">
-            <div className="sq-handle" />
-            <div className="sq-sheet-title">Add Player</div>
-            <div className="sq-tabs">
-              {['phone','whatsapp','link'].map(k => (
-                <button key={k} className={`sq-tab ${inviteTab===k?'active':''}`} onClick={()=>setInviteTab(k as any)}>
-                  {k==='phone'?'Phone':k==='whatsapp'?'WhatsApp':'Link'}
-                </button>
-              ))}
-            </div>
-            {inviteTab==='phone' && (
-              <div className="sq-form">
-                <input className="sq-input" placeholder="Player name *" value={pName} onChange={e=>setPName(e.target.value)} />
-                <input className="sq-input" placeholder="+91 phone (optional)" value={pPhone} onChange={e=>setPPhone(e.target.value)} />
-                <button className="sq-primary" disabled={!pName.trim()} onClick={onSubmitPhone}>Add</button>
-              </div>
-            )}
-            {inviteTab==='whatsapp' && (
-              <div className="sq-share">
-                <a className="sq-wa" href={waHref} target="_blank" rel="noreferrer">Share on WhatsApp</a>
-              </div>
-            )}
-            {inviteTab==='link' && (
-              <div className="sq-share">
-                <div className="sq-linkbox">{shareLink}</div>
-                <div className="sq-share-row">
-                  <button className="sq-secondary" onClick={()=>navigator.clipboard.writeText(shareLink)}>Copy Link</button>
-                  <button className="sq-secondary" onClick={()=>window.open(`mailto:?subject=Join Kabaddi Squad&body=${encodeURIComponent(shareText+' '+shareLink)}`,'_blank')}>Email</button>
-                  <button className="sq-secondary" onClick={()=>window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareLink)}`,'_blank')}>Facebook</button>
-                  <button className="sq-secondary" onClick={()=>window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareLink)}`,'_blank')}>Twitter</button>
-                </div>
-              </div>
-            )}
-          </div>
-        </>
-      )}
-    </div>
-  )
+const ROLES: PlayerData['role'][] = ['raider', 'defender', 'all-rounder', 'captain']
+const ROLE_COLORS: Record<string, string> = {
+    raider: '#0ea5e9',
+    defender: '#16a34a',
+    'all-rounder': '#7c3aed',
+    captain: '#d97706',
 }
 
-function TeamBlock({ title, location, players, needMore, onAdd, onPromote }:{
-  title: string
-  location?: string
-  players: Player[]
-  needMore: number
-  onAdd: () => void
-  onPromote: (id: string) => void
+function PlayerRow({
+    player, state, onToggle
+}: {
+    player: PlayerData
+    state: 'starter' | 'sub' | 'bench'
+    onToggle: (id: string, to: 'starter' | 'sub' | 'bench') => void
 }) {
-  const pct = Math.min(100, Math.round((players.length/7)*100))
-  return (
-    <div className="sq-card">
-      <div className="sq-card-head">
-        <div className="sq-card-title">
-          <div className="sq-mini-avatar">{title.slice(0,2).toUpperCase()}</div>
-          <div className="sq-title-texts">
-            <div className="sq-ctitle">{title}</div>
-            {location && <div className="sq-csub">{location}</div>}
-          </div>
-        </div>
-        <div className="sq-need">{needMore>0 ? `⚠ Need ${needMore} more` : 'Ready'} <span className="sq-count">{players.length}/7 players</span></div>
-      </div>
-      <div className="sq-info">
-        <div className="sq-info-icon">i</div>
-        <div className="sq-info-text">Minimum 4 players required (including 1 captain) to start a match.</div>
-      </div>
-      <div className="sq-progress">
-        <div className="sq-track"><div className="sq-fill" style={{width:`${pct}%`}} /></div>
-      </div>
-      <div className="sq-list">
-        {players.map(p => (
-          <div key={p.id} className="sq-row">
-            <div className="sq-row-left">
-              <div className="sq-pavatar">{p.name.slice(0,2).toUpperCase()}</div>
-              <div className="sq-pinfo">
-                <div className="sq-pname">{p.name} {p.isCaptain && <span className="sq-star">⭐</span>}</div>
-                {p.phone && <div className="sq-psub">+91 {p.phone}</div>}
-              </div>
+    return (
+        <div className={`cm-player-row ${state}`}>
+            <div className="cm-player-num" style={{ color: ROLE_COLORS[player.role] }}>
+                #{player.number}
             </div>
-            {!p.isCaptain && <button className="sq-make" onClick={()=>onPromote(p.id)}>Make Captain</button>}
-          </div>
-        ))}
-      </div>
-      <button className="sq-add" onClick={onAdd}>+ Add Player</button>
-    </div>
-  )
+            <div className="cm-player-info">
+                <div className="cm-player-name">{player.name}</div>
+                <div className="cm-player-role" style={{ color: ROLE_COLORS[player.role] }}>
+                    {player.role}
+                </div>
+            </div>
+            <div className="cm-player-actions">
+                <button
+                    className={`cm-player-btn start ${state === 'starter' ? 'active' : ''}`}
+                    onClick={() => onToggle(player.id, state === 'starter' ? 'bench' : 'starter')}
+                >
+                    {state === 'starter' ? '✓ Start' : 'Start'}
+                </button>
+                <button
+                    className={`cm-player-btn sub ${state === 'sub' ? 'active' : ''}`}
+                    onClick={() => onToggle(player.id, state === 'sub' ? 'bench' : 'sub')}
+                >
+                    {state === 'sub' ? '✓ Sub' : 'Sub'}
+                </button>
+            </div>
+        </div>
+    )
+}
+
+function AddPlayerForm({ teamId, onAdd, onClose }: {
+    teamId: string; onAdd: (p: PlayerData) => void; onClose: () => void
+}) {
+    const [name, setName] = useState('')
+    const [role, setRole] = useState<PlayerData['role']>('raider')
+    const [num, setNum] = useState('')
+
+    return (
+        <div className="cm-add-player-form">
+            <div className="cm-create-form-title">Add Player</div>
+            <input className="cm-input" placeholder="Player name" value={name} onChange={e => setName(e.target.value)} autoFocus />
+            <input className="cm-input" placeholder="Jersey number" type="number" value={num} onChange={e => setNum(e.target.value)} min={1} max={99} />
+            <div className="cm-role-select">
+                {ROLES.map(r => (
+                    <button key={r} className={`cm-role-btn ${role === r ? 'active' : ''}`}
+                        style={role === r ? { background: ROLE_COLORS[r], color: '#fff', borderColor: ROLE_COLORS[r] } : {}}
+                        onClick={() => setRole(r)}>
+                        {r}
+                    </button>
+                ))}
+            </div>
+            <div className="cm-create-form-actions">
+                <button className="cm-btn-secondary" onClick={onClose}>Cancel</button>
+                <button className="cm-btn-primary" onClick={() => {
+                    if (!name.trim()) return
+                    const p: PlayerData = {
+                        id: `p-${Date.now()}`,
+                        name: name.trim(),
+                        role,
+                        number: parseInt(num) || Math.floor(Math.random() * 99) + 1,
+                        teamId,
+                    }
+                    savePlayerToStore(p)
+                    onAdd(p)
+                    onClose()
+                }}>Add Player</button>
+            </div>
+        </div>
+    )
+}
+
+export default function PlayerLineupScreen() {
+    const navigate = useNavigate()
+    const state = getCreationState()
+    const [activeTeam, setActiveTeam] = useState<'A' | 'B'>('A')
+    const [playersA, setPlayersA] = useState<PlayerData[]>([])
+    const [playersB, setPlayersB] = useState<PlayerData[]>([])
+    const [startersA, setStartersA] = useState<Set<string>>(new Set())
+    const [subsA, setSubsA] = useState<Set<string>>(new Set())
+    const [startersB, setStartersB] = useState<Set<string>>(new Set())
+    const [subsB, setSubsB] = useState<Set<string>>(new Set())
+    const [showAddA, setShowAddA] = useState(false)
+    const [showAddB, setShowAddB] = useState(false)
+
+    useEffect(() => {
+        if (!state?.teamA || !state?.teamB) { navigate('/kabaddi/create/teams'); return }
+        // Load players for each team
+        let pA = getStoredPlayers(state.teamA.id)
+        let pB = getStoredPlayers(state.teamB.id)
+        // If no players, use defaults
+        if (pA.length === 0) pA = getDefaultPlayers(state.teamA.id, state.teamA.name)
+        if (pB.length === 0) pB = getDefaultPlayers(state.teamB.id, state.teamB.name)
+        setPlayersA(pA)
+        setPlayersB(pB)
+        // restore saved lineup
+        if (state.lineup) {
+            setStartersA(new Set(state.lineup.teamAStarters))
+            setSubsA(new Set(state.lineup.teamASubs))
+            setStartersB(new Set(state.lineup.teamBStarters))
+            setSubsB(new Set(state.lineup.teamBSubs))
+        }
+    }, [])
+
+    const togglePlayer = (
+        id: string, to: 'starter' | 'sub' | 'bench',
+        starters: Set<string>, setStarters: any,
+        subs: Set<string>, setSubs: any,
+        maxStarters = 7, maxSubs = 5
+    ) => {
+        const newS = new Set(starters)
+        const newSub = new Set(subs)
+        newS.delete(id); newSub.delete(id)
+        if (to === 'starter' && newS.size < maxStarters) newS.add(id)
+        if (to === 'sub' && newSub.size < maxSubs) newSub.add(id)
+        setStarters(newS); setSubs(newSub)
+    }
+
+    const getState = (id: string, starters: Set<string>, subs: Set<string>) =>
+        starters.has(id) ? 'starter' : subs.has(id) ? 'sub' : 'bench'
+
+    const canProceed = startersA.size === 7 && startersB.size === 7
+
+    const handleNext = () => {
+        saveLineup({
+            teamAStarters: [...startersA],
+            teamASubs: [...subsA],
+            teamBStarters: [...startersB],
+            teamBSubs: [...subsB],
+        })
+
+        // Sync with createDraft for the scoring system
+        const mapPlayer = (id: string, list: PlayerData[]) => {
+            const p = list.find(x => x.id === id)
+            return {
+                id: p?.id || id,
+                name: p?.name || 'Player',
+                jerseyNumber: p?.number,
+                isCaptain: p?.role === 'captain'
+            }
+        }
+
+        saveDraftSquad('a', [
+            ...[...startersA].map(id => mapPlayer(id, playersA)),
+            ...[...subsA].map(id => mapPlayer(id, playersA))
+        ])
+        saveDraftSquad('b', [
+            ...[...startersB].map(id => mapPlayer(id, playersB)),
+            ...[...subsB].map(id => mapPlayer(id, playersB))
+        ])
+
+        navigate('/kabaddi/create/preview')
+    }
+
+    const team = activeTeam === 'A' ? state?.teamA : state?.teamB
+    const players = activeTeam === 'A' ? playersA : playersB
+    const starters = activeTeam === 'A' ? startersA : startersB
+    const subs = activeTeam === 'A' ? subsA : subsB
+    const setStarters = activeTeam === 'A' ? setStartersA : setStartersB
+    const setSubs = activeTeam === 'A' ? setSubsA : setSubsB
+
+    return (
+        <div className="cm-page">
+            <div className="cm-header">
+                <button className="cm-back" onClick={() => navigate('/kabaddi/create/setup')}>← Back</button>
+                <div className="cm-header-title">Player Lineup</div>
+                <div className="cm-step-badge">3 of 4</div>
+            </div>
+
+            <div className="cm-steps">
+                {['Teams', 'Setup', 'Lineup', 'Toss'].map((s, i) => (
+                    <div key={s} className={`cm-step ${i === 2 ? 'active' : i < 2 ? 'done' : ''}`}>
+                        <div className="cm-step-dot">{i < 2 ? '✓' : i + 1}</div>
+                        <div className="cm-step-label">{s}</div>
+                    </div>
+                ))}
+            </div>
+
+            {/* Team tabs */}
+            <div className="cm-team-tabs">
+                {(['A', 'B'] as const).map(t => {
+                    const tm = t === 'A' ? state?.teamA : state?.teamB
+                    const sc = t === 'A' ? startersA.size : startersB.size
+                    return (
+                        <button
+                            key={t}
+                            className={`cm-team-tab ${activeTeam === t ? 'active' : ''}`}
+                            style={activeTeam === t ? { borderBottomColor: tm?.color || '#0ea5e9' } : {}}
+                            onClick={() => setActiveTeam(t)}
+                        >
+                            <span className="cm-team-tab-name">{tm?.name || `Team ${t}`}</span>
+                            <span className={`cm-team-tab-count ${sc === 7 ? 'full' : ''}`}>
+                                {sc}/7 starters
+                            </span>
+                        </button>
+                    )
+                })}
+            </div>
+
+            {/* Counter bar */}
+            <div className="cm-lineup-bar">
+                <div className="cm-lineup-stat">
+                    <span className="cm-lineup-stat-num" style={{ color: starters.size === 7 ? '#16a34a' : '#0ea5e9' }}>
+                        {starters.size}/7
+                    </span>
+                    <span className="cm-lineup-stat-label">Starters</span>
+                </div>
+                <div className="cm-lineup-divider" />
+                <div className="cm-lineup-stat">
+                    <span className="cm-lineup-stat-num" style={{ color: '#7c3aed' }}>
+                        {subs.size}/5
+                    </span>
+                    <span className="cm-lineup-stat-label">Substitutes</span>
+                </div>
+                <button
+                    className="cm-add-player-btn"
+                    onClick={() => activeTeam === 'A' ? setShowAddA(true) : setShowAddB(true)}
+                >
+                    + Add Player
+                </button>
+            </div>
+
+            <div className="cm-body">
+                {/* Add player forms */}
+                {showAddA && activeTeam === 'A' && state?.teamA && (
+                    <AddPlayerForm
+                        teamId={state.teamA.id}
+                        onAdd={p => setPlayersA(prev => [...prev, p])}
+                        onClose={() => setShowAddA(false)}
+                    />
+                )}
+                {showAddB && activeTeam === 'B' && state?.teamB && (
+                    <AddPlayerForm
+                        teamId={state.teamB.id}
+                        onAdd={p => setPlayersB(prev => [...prev, p])}
+                        onClose={() => setShowAddB(false)}
+                    />
+                )}
+
+                {/* Players list */}
+                {players.length === 0 ? (
+                    <div className="cm-empty">
+                        <div className="cm-empty-icon">👤</div>
+                        <div className="cm-empty-text">No players added yet</div>
+                        <button className="cm-btn-primary" onClick={() => activeTeam === 'A' ? setShowAddA(true) : setShowAddB(true)}>
+                            Add Players
+                        </button>
+                    </div>
+                ) : (
+                    <div className="cm-player-list">
+                        {/* Starters section */}
+                        {players.filter(p => starters.has(p.id)).length > 0 && (
+                            <div className="cm-player-section-label">Starting 7</div>
+                        )}
+                        {players.filter(p => starters.has(p.id)).map(p => (
+                            <PlayerRow key={p.id} player={p} state="starter"
+                                onToggle={(id, to) => togglePlayer(id, to, starters, setStarters, subs, setSubs)} />
+                        ))}
+                        {/* Subs section */}
+                        {players.filter(p => subs.has(p.id)).length > 0 && (
+                            <div className="cm-player-section-label">Substitutes</div>
+                        )}
+                        {players.filter(p => subs.has(p.id)).map(p => (
+                            <PlayerRow key={p.id} player={p} state="sub"
+                                onToggle={(id, to) => togglePlayer(id, to, starters, setStarters, subs, setSubs)} />
+                        ))}
+                        {/* Bench */}
+                        {players.filter(p => !starters.has(p.id) && !subs.has(p.id)).length > 0 && (
+                            <div className="cm-player-section-label">Available</div>
+                        )}
+                        {players.filter(p => !starters.has(p.id) && !subs.has(p.id)).map(p => (
+                            <PlayerRow key={p.id} player={p} state="bench"
+                                onToggle={(id, to) => togglePlayer(id, to, starters, setStarters, subs, setSubs)} />
+                        ))}
+                    </div>
+                )}
+            </div>
+
+            <div className="cm-footer">
+                {!canProceed && (
+                    <div className="cm-footer-hint">
+                        {startersA.size < 7 && `${state?.teamA?.name}: need ${7 - startersA.size} more starters`}
+                        {startersA.size === 7 && startersB.size < 7 && `${state?.teamB?.name}: need ${7 - startersB.size} more starters`}
+                    </div>
+                )}
+                <button
+                    className={`cm-next-btn ${canProceed ? 'ready' : ''}`}
+                    disabled={!canProceed}
+                    onClick={handleNext}
+                >
+                    Next: Toss →
+                </button>
+            </div>
+        </div>
+    )
 }

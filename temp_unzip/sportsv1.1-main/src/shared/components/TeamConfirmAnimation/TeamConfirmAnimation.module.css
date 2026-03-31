@@ -1,0 +1,227 @@
+.container {
+  --ascent-duration: 400ms;
+  --ascent-distance-mobile: 60px;
+  --ascent-distance-desktop: 80px;
+  --ease-out-cubic: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --details-max-height: 320px;
+  
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(255, 255, 255, 0.98);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.cardWrapper {
+  /* Initial State */
+  transform: translateY(0) scale(1);
+  will-change: transform;
+}
+
+.cardWrapper.ascended {
+  animation: moveUp var(--ascent-duration) var(--ease-out-cubic) forwards;
+}
+
+.teamCard {
+  background: white;
+  border-radius: 16px;
+  padding: 24px 32px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  min-width: 300px;
+}
+
+.teamAvatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  overflow: hidden;
+  background-color: #f0f0f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  color: white;
+  font-size: 20px;
+}
+
+.vsBadge {
+  font-size: 14px;
+  font-weight: 900;
+  color: #cbd5e1;
+  text-transform: uppercase;
+}
+
+.versusLabel {
+  opacity: 0;
+  margin-top: 24px;
+  text-align: center;
+  transform: translateY(10px);
+}
+
+.versusLabel[data-visible="true"] {
+  animation: fadeInLabel 250ms ease-out forwards;
+}
+
+.versusText {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: #FFFFFF;
+  background-color: rgba(0, 0, 0, 0.6);
+  padding: 8px 16px;
+  border-radius: 8px;
+  backdrop-filter: blur(4px);
+}
+
+.detailsPanel {
+  width: 90%;
+  max-width: 360px;
+  background: #f8fafc;
+  border-radius: 16px;
+  margin-top: 20px;
+  overflow: hidden;
+  height: 0;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.05);
+}
+
+.detailsPanel[data-expanded="true"] {
+  animation: slideDown 350ms var(--ease-out-cubic) forwards;
+}
+
+.detailsContent {
+  padding: 24px;
+  opacity: 0;
+  transition: opacity 200ms ease-out;
+}
+
+.detailsPanel[data-expanded="true"] .detailsContent {
+  opacity: 1;
+  transition-delay: 100ms;
+}
+
+.detailRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+  color: #334155;
+  font-size: 14px;
+}
+
+.detailIcon {
+  color: #64748b;
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+}
+
+.statGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.statItem {
+  text-align: center;
+}
+
+.statLabel {
+  font-size: 11px;
+  text-transform: uppercase;
+  color: #64748b;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.statValue {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+/* Animations */
+
+@keyframes moveUp {
+  to {
+    transform: translateY(calc(-1 * var(--ascent-distance-mobile))) scale(1.05);
+  }
+}
+
+@keyframes fadeInLabel {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    height: 0;
+  }
+  to {
+    height: var(--details-max-height); /* Target height */
+  }
+}
+
+/* Desktop overrides */
+@media (min-width: 768px) {
+  @keyframes moveUp {
+    to {
+      transform: translateY(calc(-1 * var(--ascent-distance-desktop))) scale(1.05);
+    }
+  }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  .cardWrapper.ascended,
+  .versusLabel[data-visible="true"],
+  .detailsPanel[data-expanded="true"] {
+    animation: none;
+    transition: none;
+  }
+
+  .cardWrapper.ascended {
+    transform: translateY(calc(-1 * var(--ascent-distance-mobile))) scale(1.05);
+  }
+  
+  @media (min-width: 768px) {
+    .cardWrapper.ascended {
+      transform: translateY(calc(-1 * var(--ascent-distance-desktop))) scale(1.05);
+    }
+  }
+
+  .versusLabel[data-visible="true"] {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .detailsPanel[data-expanded="true"] {
+    height: var(--details-max-height);
+  }
+  
+  .detailsContent {
+    opacity: 1;
+  }
+}

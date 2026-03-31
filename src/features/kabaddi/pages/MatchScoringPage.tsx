@@ -19,20 +19,30 @@ export default function MatchScoringPage() {
     if (m && m.id === id) {
       setMatchDetails({
         id: m.id,
-        owner_id: user?.id, // Creators of local drafts are implicitly the owner
+        owner_id: user?.id || 'local_owner', // Creators of local drafts are implicitly the owner
         scorer_id: m.scorer_id,
         tournament_organizer_id: m.tournament_organizer_id,
         homeTeam: { 
-          name: m.teamAId || 'Team A', 
+          name: m.playersA?.[0]?.name ? (m.teamAId || 'Team A') : 'Home Team', 
           short: 'A', 
           color: '#ef4444',
-          squad: m.playersA?.map(p => ({ ...p, role: p.isCaptain ? 'raider' : 'defender' })) 
+          squad: m.playersA?.map(p => ({ 
+            id: p.id, 
+            name: p.name, 
+            jerseyNumber: p.jerseyNumber, 
+            role: p.isCaptain ? 'captain' : 'player' 
+          })) 
         },
         guestTeam: { 
-          name: m.teamBId || 'Team B', 
+          name: m.playersB?.[0]?.name ? (m.teamBId || 'Team B') : 'Guest Team', 
           short: 'B', 
           color: '#0ea5e9',
-          squad: m.playersB?.map(p => ({ ...p, role: p.isCaptain ? 'raider' : 'defender' })) 
+          squad: m.playersB?.map(p => ({ 
+            id: p.id, 
+            name: p.name, 
+            jerseyNumber: p.jerseyNumber, 
+            role: p.isCaptain ? 'captain' : 'player' 
+          })) 
         },
         periodMins: m.config?.halfDurationMinutes || 20
       })

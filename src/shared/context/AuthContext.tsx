@@ -8,6 +8,12 @@ export interface Profile {
   phone?: string
   email?: string
   avatar_url?: string
+  banner_url?: string
+  player_id?: string
+  role?: string
+  team_name?: string
+  jersey_number?: string
+  bio?: string
   city?: string
   state?: string
   date_of_birth?: string

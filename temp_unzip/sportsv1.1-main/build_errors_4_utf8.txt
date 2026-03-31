@@ -1,0 +1,13 @@
+﻿src/features/certificates/api/certificateService.ts(97,5): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/features/certificates/api/certificateService.ts(106,5): error TS2322: Type 'Record<string, unknown> | undefined' is not assignable to type '{ [key: string]: any; matchName?: string | undefined; sportName?: string | undefined; location?: string | undefined; organizerName?: string | undefined; teamName?: string | undefined; }'.
+  Type 'undefined' is not assignable to type '{ [key: string]: any; matchName?: string | undefined; sportName?: string | undefined; location?: string | undefined; organizerName?: string | undefined; teamName?: string | undefined; }'.
+src/features/system/api/cardGames/index.ts(104,16): error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+src/features/system/api/cardGames/index.ts(116,25): error TS2365: Operator '+' cannot be applied to types '{}' and 'number'.
+src/shared/components/TeamConfirmAnimation/TeamConfirmAnimation.stories.tsx(1,37): error TS2307: Cannot find module '@storybook/react' or its corresponding type declarations.
+src/test/cricheroesIntegration.test.ts(2,46): error TS2307: Cannot find module '../services/cricheroesIntegrationService' or its corresponding type declarations.
+src/test/cricheroesIntegration.test.ts(5,35): error TS2307: Cannot find module '../services/adapters/cricheroesAdapter' or its corresponding type declarations.
+src/test/cricheroesIntegration.test.ts(6,28): error TS2307: Cannot find module '../domain/tournament' or its corresponding type declarations.
+src/test/cricheroesIntegration.test.ts(8,23): error TS2307: Cannot find module '../domain/match' or its corresponding type declarations.
+src/test/SettingsScreen.test.tsx(4,32): error TS2307: Cannot find module '../modules/system/SettingsScreen' or its corresponding type declarations.
+src/test/TournamentListFilter.test.tsx(4,38): error TS2307: Cannot find module '../modules/tournament/TournamentListScreen' or its corresponding type declarations.

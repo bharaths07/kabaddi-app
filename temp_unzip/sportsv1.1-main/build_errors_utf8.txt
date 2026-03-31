@@ -1,0 +1,108 @@
+﻿src/app/AppProviders.tsx(14,1): error TS6133: 'authService' is declared but its value is never read.
+src/app/AppProviders.tsx(1160,9): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/features/auth/pages/DualPanelLoginScreen.tsx(6,3): error TS6133: 'ArrowRight' is declared but its value is never read.
+src/features/auth/pages/DualPanelLoginScreen.tsx(9,3): error TS6133: 'BarChart2' is declared but its value is never read.
+src/features/auth/pages/DualPanelLoginScreen.tsx(10,3): error TS6133: 'CheckCircle' is declared but its value is never read.
+src/features/auth/pages/DualPanelLoginScreen.tsx(21,1): error TS6133: 'Checkbox' is declared but its value is never read.
+src/features/auth/pages/DualPanelLoginScreen.tsx(39,10): error TS6133: 'rememberMe' is declared but its value is never read.
+src/features/auth/pages/DualPanelLoginScreen.tsx(39,22): error TS6133: 'setRememberMe' is declared but its value is never read.
+src/features/auth/pages/DualPanelLoginScreen.tsx(139,9): error TS6133: 'toggleRegister' is declared but its value is never read.
+src/features/certificates/api/certificateService.ts(3,29): error TS2307: Cannot find module '../domain/certificate' or its corresponding type declarations.
+src/features/matches/api/adapters/cricheroesAdapter.ts(1,23): error TS2307: Cannot find module '../../domain/match' or its corresponding type declarations.
+src/features/matches/api/adapters/cricheroesAdapter.ts(2,28): error TS2307: Cannot find module '../../domain/tournament' or its corresponding type declarations.
+src/features/matches/api/adapters/cricheroesAdapter.ts(3,22): error TS2307: Cannot find module '../../domain/team' or its corresponding type declarations.
+src/features/matches/api/adapters/cricheroesAdapter.ts(54,47): error TS7006: Parameter 'm' implicitly has an 'any' type.
+src/features/matches/api/adapters/cricheroesAdapter.ts(63,47): error TS7006: Parameter 'm' implicitly has an 'any' type.
+src/features/matches/api/cricheroesIntegrationService.ts(3,35): error TS2307: Cannot find module './tournamentService' or its corresponding type declarations.
+src/features/matches/api/cricheroesIntegrationService.ts(4,22): error TS2307: Cannot find module '../domain/team' or its corresponding type declarations.
+src/features/matches/api/cricheroesIntegrationService.ts(5,43): error TS2307: Cannot find module '../utils/scheduling/generateRoundRobin' or its corresponding type declarations.
+src/features/matches/api/cricheroesIntegrationService.ts(29,52): error TS7006: Parameter 't' implicitly has an 'any' type.
+src/features/matches/api/scoreEngine.ts(1,35): error TS2307: Cannot find module '../domain/match' or its corresponding type declarations.
+src/features/matches/api/scoreEngine.ts(34,44): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/features/matches/api/scoreEngine.ts(52,45): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/features/matches/api/scoreEngine.ts(57,48): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/features/matches/api/scoreEngine.ts(67,46): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/features/matches/api/scoreEngine.ts(93,42): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/features/matches/api/scoreEngine.ts(104,43): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/features/matches/api/scoreEngine.ts(107,45): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/features/matches/api/scoreEngine.ts(113,11): error TS2578: Unused '@ts-expect-error' directive.
+src/features/matches/api/scoreEngine.ts(115,43): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/features/matches/api/scoreEngine.ts(154,45): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/features/matches/api/scoreEngine.ts(171,53): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/features/matches/api/scoreEngine.ts(176,45): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/features/matches/api/scoreEngine.ts(197,53): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/features/matches/api/scoreEngine.ts(202,46): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/features/matches/api/scoreEngine.ts(215,53): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/features/players/pages/profile/components/GameProfileHighlights.tsx(46,11): error TS2322: Type 'string | null' is not assignable to type 'string | undefined'.
+  Type 'null' is not assignable to type 'string | undefined'.
+src/features/players/pages/profile/components/GameProfileHighlights.tsx(154,66): error TS2551: Property 'thumbnail' does not exist on type 'Highlight'. Did you mean 'thumbnailUrl'?
+src/features/players/pages/profile/components/GameProfilePhotos.tsx(61,11): error TS2322: Type 'string | null' is not assignable to type 'string | undefined'.
+  Type 'null' is not assignable to type 'string | undefined'.
+src/features/system/api/cardGames/index.ts(1,31): error TS2307: Cannot find module '../../domain/cardScoring' or its corresponding type declarations.
+src/features/system/api/cardGames/index.ts(12,21): error TS7031: Binding element 'event' implicitly has an 'any' type.
+src/features/system/api/cardGames/index.ts(17,19): error TS7006: Parameter 'playerId' implicitly has an 'any' type.
+src/features/system/api/cardGames/index.ts(17,31): error TS7031: Binding element 'event' implicitly has an 'any' type.
+src/features/system/api/cardGames/index.ts(23,20): error TS7031: Binding element 'state' implicitly has an 'any' type.
+src/features/system/api/cardGames/index.ts(23,27): error TS7031: Binding element 'event' implicitly has an 'any' type.
+src/features/system/api/cardGames/index.ts(27,43): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/features/system/api/cardGames/index.ts(34,18): error TS7006: Parameter 'state' implicitly has an 'any' type.
+src/features/system/api/cardGames/index.ts(36,27): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/features/system/api/cardGames/index.ts(37,26): error TS7006: Parameter 'r' implicitly has an 'any' type.
+src/features/system/api/cardGames/index.ts(37,48): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/features/system/api/cardGames/index.ts(39,26): error TS7006: Parameter 'r' implicitly has an 'any' type.
+src/features/system/api/cardGames/index.ts(40,24): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/features/system/api/cardGames/index.ts(54,24): error TS7031: Binding element 'state' implicitly has an 'any' type.
+src/features/system/api/cardGames/index.ts(54,31): error TS7031: Binding element 'event' implicitly has an 'any' type.
+src/features/system/api/cardGames/index.ts(59,41): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/features/system/api/cardGames/index.ts(63,40): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/features/system/api/cardGames/index.ts(77,19): error TS7006: Parameter 'playerId' implicitly has an 'any' type.
+src/features/system/api/cardGames/index.ts(77,31): error TS7031: Binding element 'event' implicitly has an 'any' type.
+src/features/system/api/cardGames/index.ts(81,21): error TS7031: Binding element 'event' implicitly has an 'any' type.
+src/features/system/api/cardGames/index.ts(82,19): error TS7006: Parameter 'playerId' implicitly has an 'any' type.
+src/features/system/api/cardGames/index.ts(82,31): error TS7031: Binding element 'event' implicitly has an 'any' type.
+src/features/system/api/cardGames/index.ts(88,20): error TS7031: Binding element 'state' implicitly has an 'any' type.
+src/features/system/api/cardGames/index.ts(88,27): error TS7031: Binding element 'event' implicitly has an 'any' type.
+src/features/system/api/cardGames/index.ts(92,29): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/features/system/api/cardGames/index.ts(92,60): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/features/system/api/cardGames/index.ts(94,31): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/features/system/api/cardGames/index.ts(95,29): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/features/system/api/cardGames/index.ts(95,62): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/features/system/api/cardGames/index.ts(99,21): error TS7031: Binding element 'state' implicitly has an 'any' type.
+src/features/system/api/cardGames/index.ts(99,28): error TS7031: Binding element 'event' implicitly has an 'any' type.
+src/features/system/api/cardGames/index.ts(101,41): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/features/system/api/cardGames/index.ts(109,20): error TS7031: Binding element 'state' implicitly has an 'any' type.
+src/features/system/api/cardGames/index.ts(109,27): error TS7031: Binding element 'event' implicitly has an 'any' type.
+src/features/system/api/cardGames/index.ts(112,41): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/features/system/api/cardGames/index.ts(113,44): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/features/system/api/cardGames/index.ts(119,18): error TS7006: Parameter 'state' implicitly has an 'any' type.
+src/features/system/api/cardGames/index.ts(121,27): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/features/system/api/cardGames/index.ts(122,26): error TS7006: Parameter 'r' implicitly has an 'any' type.
+src/features/system/api/cardGames/index.ts(122,48): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/features/system/api/cardGames/index.ts(135,24): error TS7031: Binding element 'event' implicitly has an 'any' type.
+src/features/system/api/cardGames/index.ts(149,21): error TS7031: Binding element 'event' implicitly has an 'any' type.
+src/features/system/api/cardGames/index.ts(154,19): error TS7006: Parameter 'playerId' implicitly has an 'any' type.
+src/features/system/api/cardGames/index.ts(154,31): error TS7031: Binding element 'event' implicitly has an 'any' type.
+src/features/system/api/cardGames/index.ts(160,20): error TS7031: Binding element 'event' implicitly has an 'any' type.
+src/features/system/api/cardGames/index.ts(161,21): error TS7031: Binding element 'event' implicitly has an 'any' type.
+src/features/system/api/cardGames/index.ts(170,20): error TS7031: Binding element 'event' implicitly has an 'any' type.
+src/features/system/api/cardGames/index.ts(174,18): error TS7006: Parameter 'state' implicitly has an 'any' type.
+src/features/system/api/cardGames/index.ts(176,27): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/features/system/api/cardGames/index.ts(177,26): error TS7006: Parameter 'r' implicitly has an 'any' type.
+src/features/system/api/cardGames/index.ts(177,48): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/features/system/api/cardMatchPersistence.ts(1,40): error TS2307: Cannot find module '../domain/cardScoring' or its corresponding type declarations.
+src/features/system/api/cardMatchSupabaseService.ts(1,26): error TS2307: Cannot find module '../lib/supabase' or its corresponding type declarations.
+src/features/system/api/cardMatchSupabaseService.ts(2,40): error TS2307: Cannot find module '../domain/cardScoring' or its corresponding type declarations.
+src/features/system/api/cardMatchSupabaseService.ts(26,7): error TS2578: Unused '@ts-expect-error' directive.
+src/features/system/api/cardMatchSupabaseService.ts(75,7): error TS2578: Unused '@ts-expect-error' directive.
+src/features/system/pages/media/MediaViewerScreen.tsx(26,25): error TS2551: Property 'thumbnail' does not exist on type 'Highlight'. Did you mean 'thumbnailUrl'?
+src/features/system/pages/media/MediaViewerScreen.tsx(27,59): error TS2551: Property 'thumbnail' does not exist on type 'Highlight'. Did you mean 'thumbnailUrl'?
+src/features/tournaments/components/TournamentHeader.tsx(2,28): error TS2307: Cannot find module '../../../domain/tournament' or its corresponding type declarations.
+src/shared/components/ActivityFeed.tsx(2,26): error TS2307: Cannot find module '../domain/feed' or its corresponding type declarations.
+src/shared/components/TeamConfirmAnimation/TeamConfirmAnimation.stories.tsx(1,37): error TS2307: Cannot find module '@storybook/react' or its corresponding type declarations.
+src/test/cricheroesIntegration.test.ts(2,46): error TS2307: Cannot find module '../services/cricheroesIntegrationService' or its corresponding type declarations.
+src/test/cricheroesIntegration.test.ts(5,35): error TS2307: Cannot find module '../services/adapters/cricheroesAdapter' or its corresponding type declarations.
+src/test/cricheroesIntegration.test.ts(6,28): error TS2307: Cannot find module '../domain/tournament' or its corresponding type declarations.
+src/test/cricheroesIntegration.test.ts(8,23): error TS2307: Cannot find module '../domain/match' or its corresponding type declarations.
+src/test/SettingsScreen.test.tsx(4,32): error TS2307: Cannot find module '../modules/system/SettingsScreen' or its corresponding type declarations.
+src/test/TournamentListFilter.test.tsx(4,38): error TS2307: Cannot find module '../modules/tournament/TournamentListScreen' or its corresponding type declarations.
