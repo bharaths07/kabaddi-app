@@ -4,8 +4,8 @@
   max-width: 1200px;
   margin: 0 auto;
   font-family: 'Rajdhani', sans-serif;
-  color: #fff;
-  background: #0f172a;
+  color: var(--text-primary);
+  background: var(--bg-page);
   min-height: 100vh;
 }
 
@@ -34,14 +34,15 @@
   margin: 0;
   text-transform: uppercase;
   letter-spacing: -1px;
-  background: linear-gradient(to right, #fff, #94a3b8);
+  background: linear-gradient(to right, var(--color-navy), var(--color-primary));
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 .awards-subtitle {
   font-size: 18px;
-  color: #94a3b8;
+  color: var(--text-muted);
   font-weight: 500;
   margin-top: 8px;
 }
@@ -55,9 +56,9 @@
 }
 
 .awards-season-tab {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #94a3b8;
+  background: var(--bg-surface);
+  border: 1px solid var(--bg-border);
+  color: var(--text-muted);
   padding: 10px 24px;
   border-radius: 99px;
   font-weight: 700;
@@ -66,14 +67,16 @@
 }
 
 .awards-season-tab:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--bg-elevated);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
 }
 
 .awards-season-tab-active {
-  background: #0ea5e9;
+  background: var(--color-primary);
   color: #fff;
-  border-color: #0ea5e9;
-  box-shadow: 0 4px 20px rgba(14, 165, 233, 0.4);
+  border-color: var(--color-primary);
+  box-shadow: 0 4px 20px rgba(255, 107, 53, 0.4);
 }
 
 /* Divider */
@@ -87,12 +90,12 @@
 .awards-divider-line {
   flex: 1;
   height: 1px;
-  background: linear-gradient(to right, transparent, rgba(255,255,255,0.1), transparent);
+  background: linear-gradient(to right, transparent, var(--bg-border), transparent);
 }
 
 .awards-divider-text {
   font-weight: 800;
-  color: #64748b;
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 2px;
   font-size: 14px;
@@ -100,10 +103,11 @@
 
 /* Hero MVP Card */
 .hero-award-card {
-  background: #1e293b;
+  background: var(--bg-surface);
   border-radius: 32px;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--bg-border);
+  box-shadow: var(--shadow-lg);
   margin-bottom: 40px;
   transition: transform 0.3s ease;
 }
@@ -123,7 +127,7 @@
   top: -50px;
   width: 300px;
   height: 300px;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--bg-elevated);
   border-radius: 50%;
 }
 
@@ -160,11 +164,12 @@
 }
 
 .hero-award-crown-badge {
-  background: rgba(0, 0, 0, 0.2);
+  background: var(--bg-elevated);
   padding: 6px 16px;
   border-radius: 99px;
   font-size: 12px;
   font-weight: 800;
+  color: #fbbf24;
   text-transform: uppercase;
   letter-spacing: 1px;
 }
@@ -183,7 +188,7 @@
   justify-content: center;
   border-radius: 20px;
   font-weight: 900;
-  border: 4px solid rgba(255, 255, 255, 0.1);
+  border: 4px solid var(--bg-border);
 }
 
 .hero-award-player-info {
@@ -193,17 +198,18 @@
 .hero-award-player-name {
   font-size: 32px;
   font-weight: 900;
+  color: var(--text-primary);
 }
 
 .hero-award-player-team {
   font-size: 16px;
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--color-primary);
 }
 
 .hero-award-player-city {
   font-size: 14px;
-  opacity: 0.6;
+  color: var(--text-muted);
 }
 
 .hero-award-stat-block {
@@ -230,7 +236,7 @@
 
 .hero-award-bottom {
   padding: 32px 48px;
-  background: #1e293b;
+  background: var(--bg-elevated);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -240,7 +246,7 @@
   font-size: 18px;
   font-style: italic;
   font-weight: 500;
-  color: #94a3b8;
+  color: var(--text-muted);
   max-width: 60%;
   margin: 0;
 }
@@ -256,7 +262,7 @@
 
 .hero-award-season {
   font-size: 14px;
-  color: #64748b;
+  color: var(--text-muted);
   font-weight: 700;
 }
 
@@ -268,9 +274,10 @@
 }
 
 .award-card {
-  background: #1e293b;
+  background: var(--bg-surface);
   border-radius: 24px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--bg-border);
+  box-shadow: var(--shadow-sm);
   overflow: hidden;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -293,12 +300,13 @@
 .award-card-title {
   font-size: 18px;
   font-weight: 900;
+  color: var(--text-primary);
   text-transform: uppercase;
 }
 
 .award-card-subtitle {
   font-size: 12px;
-  color: #64748b;
+  color: var(--text-muted);
   font-weight: 700;
 }
 
@@ -314,12 +322,13 @@
 
 .award-card-player-name {
   font-size: 20px;
+  color: var(--text-primary);
   font-weight: 800;
 }
 
 .award-card-player-team {
   font-size: 13px;
-  color: #64748b;
+  color: var(--text-secondary);
   font-weight: 600;
 }
 
@@ -329,6 +338,7 @@
 
 .award-card-stat-value {
   font-size: 28px;
+  color: var(--color-primary);
   font-weight: 900;
 }
 
@@ -336,18 +346,18 @@
   font-size: 10px;
   font-weight: 800;
   text-transform: uppercase;
-  color: #64748b;
+  color: var(--text-muted);
 }
 
 .award-card-footer {
   padding: 20px 24px;
-  background: rgba(0, 0, 0, 0.1);
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  background: var(--bg-elevated);
+  border-top: 1px solid var(--bg-border);
 }
 
 .award-card-reason {
   font-size: 14px;
-  color: #94a3b8;
+  color: var(--text-muted);
   font-style: italic;
   margin: 0 0 16px 0;
   line-height: 1.5;
@@ -361,7 +371,7 @@
 
 .award-card-detail {
   font-size: 12px;
-  color: #64748b;
+  color: var(--text-secondary);
   font-weight: 600;
 }
 
@@ -376,13 +386,14 @@
 /* Info Note */
 .awards-info-note {
   margin-top: 64px;
-  background: rgba(14, 165, 233, 0.05);
-  border: 1px solid rgba(14, 165, 233, 0.1);
+  background: var(--bg-surface);
+  border: 1px solid var(--bg-border);
   border-radius: 20px;
   padding: 24px;
   display: flex;
   gap: 20px;
   align-items: flex-start;
+  box-shadow: var(--shadow-sm);
 }
 
 .awards-info-icon {
@@ -392,13 +403,13 @@
 .awards-info-title {
   font-size: 16px;
   font-weight: 800;
-  color: #0ea5e9;
+  color: var(--color-primary);
   margin-bottom: 4px;
 }
 
 .awards-info-body {
   font-size: 14px;
-  color: #94a3b8;
+  color: var(--text-muted);
   line-height: 1.6;
 }
 

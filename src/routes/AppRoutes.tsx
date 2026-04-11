@@ -13,6 +13,7 @@ import Settings from '../pages/Settings'
 import PlanUpgrade from '../pages/PlanUpgrade'
 import MyPostersPage from '../features/kabaddi/pages/MyPostersPage'
 import PlayerProfilePage from '../features/kabaddi/pages/PlayerProfilePage'
+import PlayerPublicPage from '../features/kabaddi/pages/PlayerPublicPage'
 import KeyStats from '../pages/KeyStats'
 import AboutProject from '../pages/AboutProject'
 import IntroPage from '../pages/IntroPage'
@@ -43,10 +44,12 @@ import TournamentDashboard from '../pages/tournaments/TournamentDashboard'
 import TournamentSetupDashboard from '../pages/tournaments/TournamentSetupDashboard'
 import TournamentPublicView from '../pages/tournaments/TournamentPublicView'
 import RegisterTeamsScreen from '../pages/tournaments/RegisterTeamsScreen'
+import ReviewApplicationsScreen from '../pages/tournaments/ReviewApplicationsScreen'
 import AddRoundsScreen from '../pages/tournaments/AddRoundsScreen'
 import GenerateScheduleScreen from '../pages/tournaments/GenerateScheduleScreen'
 import Awards from '../pages/awards/Awards'
 import Notifications from '../pages/Notifications'
+import SearchPage from '../pages/SearchPage'
 
 // ── Teams Management ──────────────────────────────────────────
 import TeamsPage from '../pages/teams/TeamsPage'
@@ -92,6 +95,7 @@ export const router = createBrowserRouter([
       // ── Home ─────────────────────────────────────────────────
       { path: 'home', element: <Home /> },
       { path: 'about', element: <AboutProject /> },
+      { path: 'search', element: <SearchPage /> },
 
       // ── Leaderboards ──────────────────────────────────────────
       {
@@ -113,7 +117,7 @@ export const router = createBrowserRouter([
       // ── User ──────────────────────────────────────────────────
       { path: 'profile', element: <PlayerProfilePage /> },
       { path: 'me/posters', element: <MyPostersPage /> },
-      { path: 'players/:id', element: <PlayerProfilePage /> },
+      { path: 'players/:id', element: <PlayerPublicPage /> },
       { path: 'profile/edit', element: <EditProfilePage /> },
       { path: 'teams', element: <TeamsPage /> },
       { path: 'teams/:id/manage', element: <TeamDetailsPage /> },
@@ -153,6 +157,7 @@ export const router = createBrowserRouter([
       // Tournament Wizard paths
       { path: 'tournaments/:id/add-teams', element: <RegisterTeamsScreen /> },
       { path: 'tournaments/:id/setup', element: <TournamentSetupDashboard /> },
+      { path: 'tournaments/:id/applications', element: <ReviewApplicationsScreen /> },
       { path: 'tournaments/:id/add-rounds', element: <AddRoundsScreen /> },
       { path: 'tournaments/:id/add-schedule', element: <GenerateScheduleScreen /> },
 
@@ -166,6 +171,10 @@ export const router = createBrowserRouter([
       { path: 'auth/verify-otp', element: <Navigate to="/verify-otp" replace /> },
       { path: 'auth/onboarding', element: <Navigate to="/onboarding" replace /> },
       { path: 'auth/callback', element: <AuthCallback /> },
+
+      // ── Real System Architecture (Slug-based Dynamic Views) ──
+      { path: ':teamSlug', element: <TeamDetailLeaderboardPage /> },
+      { path: ':teamSlug/player/:playerSlug', element: <PlayerPublicPage /> },
     ]
   },
   // Fallback

@@ -7,7 +7,7 @@
 /* ── Page ───────────────────────────────────────────────────────── */
 .intro-page {
   font-family: 'Nunito', sans-serif;
-  background: #f8fafc;
+  background: var(--bg-page);
   color: #0f172a;
   overflow-x: hidden;
   min-height: 100vh;
@@ -233,7 +233,7 @@
   padding: 15px 26px;
   border-radius: 13px;
   border: 1.5px solid #e2e8f0;
-  background: #fff;
+  background: var(--bg-surface);
   color: #334155;
   font-size: 15px;
   font-weight: 700;
@@ -262,7 +262,7 @@
 }
 
 .hero-card {
-  background: #fff;
+  background: var(--bg-surface);
   border-radius: 18px;
   border: 1px solid #e2e8f0;
   box-shadow: 0 8px 40px rgba(0,0,0,0.10);
@@ -278,7 +278,7 @@
   bottom: -24px;
   right: -16px;
   z-index: 2;
-  background: #fff;
+  background: var(--bg-surface);
   border-radius: 14px;
   padding: 14px 18px;
   box-shadow: 0 4px 20px rgba(0,0,0,0.12);
@@ -417,7 +417,7 @@
 
 /* ── Stats strip ─────────────────────────────────────────────────── */
 .intro-stats {
-  background: #fff;
+  background: var(--bg-surface);
   border-top: 1px solid #e2e8f0;
   border-bottom: 1px solid #e2e8f0;
   display: grid;
@@ -462,7 +462,7 @@
   padding: 80px 20px;
 }
 .intro-section-alt {
-  background: #fff;
+  background: var(--bg-surface);
 }
 .intro-section-inner {
   max-width: 1100px;
@@ -514,7 +514,7 @@
 }
 
 .intro-feature-card {
-  background: #fff;
+  background: var(--bg-surface);
   border: 1px solid #e2e8f0;
   border-radius: 18px;
   padding: 24px;
@@ -583,7 +583,7 @@
 .intro-step {
   position: relative;
   padding: 24px;
-  background: #f8fafc;
+  background: var(--bg-page);
   border: 1px solid #e2e8f0;
   border-radius: 18px;
   transition: all 0.2s;
@@ -634,7 +634,7 @@
   display: flex;
   align-items: center;
   gap: 14px;
-  background: #fff;
+  background: var(--bg-surface);
   border: 1px solid #e2e8f0;
   border-radius: 14px;
   padding: 16px 18px;
@@ -722,7 +722,7 @@
 
 /* ── Footer ──────────────────────────────────────────────────────── */
 .intro-footer {
-  background: #f1f5f9;
+  background: var(--bg-elevated);
   border-top: 1px solid #e2e8f0;
   padding: 32px 20px;
 }

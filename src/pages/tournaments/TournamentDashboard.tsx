@@ -7,6 +7,7 @@ import {
   TTeam,
   TFixture,
 } from "../../features/kabaddi/state/tournamentStore";
+import { supabase } from "../../shared/lib/supabase";
 
 // ─── HELPERS ────────────────────────────────────────────────────
 function fmtDate(d: string | null | undefined) {
@@ -323,10 +324,25 @@ export default function TournamentDashboard() {
   const [copied,     setCopied]     = useState(false);
 
   useEffect(() => {
-    if (!id) { setLoading(false); return; }
-    const t = getTournament(id);
-    setTournament(t);
-    setLoading(false);
+    async function load() {
+      if (!id) { setLoading(false); return; }
+      
+      // 1. Try Local
+      const t = getTournament(id);
+      if (t) {
+        setTournament(t);
+        setLoading(false);
+        return;
+      }
+
+      // 2. Try Supabase
+      const { data: dbT } = await supabase.from('tournaments').select('*').eq('id', id).single();
+      if (dbT) {
+        setTournament({ ...dbT, teams: [], fixtures: [], groups: [], rounds: [] } as any);
+      }
+      setLoading(false);
+    }
+    load();
   }, [id]);
 
   const copyCode = () => {

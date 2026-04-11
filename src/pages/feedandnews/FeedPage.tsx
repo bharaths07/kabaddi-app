@@ -642,7 +642,7 @@ export default function FeedPage() {
             </button>
           </div>
         ) : (
-          posts.map(post => (
+          posts.map((post: FeedPost) => (
             <PostCard key={post.id} post={post}
               onLike={handleLike}
               onShare={setSharePost}

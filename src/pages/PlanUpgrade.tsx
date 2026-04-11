@@ -3,6 +3,8 @@ import './plan-upgrade.css'
 import { getPlan, setPlan, upgradePlan } from '../shared/state/planStore'
 import { useAuth } from '../shared/context/AuthContext'
 import { useNavigate } from 'react-router-dom'
+import { paymentService } from '../shared/services/paymentService'
+
 
 type Tier = {
   id: 'free' | 'pro' | 'enterprise'
@@ -45,18 +47,24 @@ export default function PlanUpgrade() {
   }
 
   const simulatePayment = async () => {
-    if (!targetPlan) return
+    if (!targetPlan || !user) return
     setLoading(targetPlan.id)
     setShowModal(false)
     
-    // Simulate Razorpay processing
-    await new Promise(resolve => setTimeout(resolve, 2000))
-    
     try {
-      await upgradePlan(targetPlan.id)
-      setPlan(targetPlan.id)
-      setSelected(targetPlan.id)
-      alert(`Success! You are now on the ${targetPlan.name} plan.`)
+      // 1. Create session
+      const session = await paymentService.createCheckoutSession(targetPlan.id, 499);
+      
+      // 2. Complete payment (includes DB update)
+      const success = await paymentService.completePayment(user.id, session.id, targetPlan.id);
+      
+      if (success) {
+        setPlan(targetPlan.id)
+        setSelected(targetPlan.id)
+        alert(`Success! You are now on the ${targetPlan.name} plan.`)
+      } else {
+        alert('Payment failed. Please try again.')
+      }
     } catch (err) {
       console.error(err)
       alert('Upgrade failed. Please try again.')
@@ -64,6 +72,7 @@ export default function PlanUpgrade() {
       setLoading(null)
     }
   }
+
 
   return (
     <div className="page-wrapper--narrow">

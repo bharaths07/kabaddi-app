@@ -8,13 +8,29 @@ import { setTeam } from '../../state/createDraft'
 import './create-match.css'
 
 function TeamAvatar({ team, size = 52 }: { team: TeamData; size?: number }) {
+  // Logic to map team names to mascot logos for a premium feel
+  const getMascotLogo = (name: string) => {
+    const n = name.toLowerCase();
+    if (n.includes('mavericks') || n.includes('lion')) return '/mascot_lion_logo_1775195654362.png';
+    if (n.includes('tigers') || n.includes('bengal')) return '/mascot_tiger_logo_1775195671659.png';
+    if (n.includes('bulls') || n.includes('delhi')) return '/mascot_bull_logo_1775195685783.png';
+    return null;
+  };
+
+  const mascot = getMascotLogo(team.name);
+
   return (
     <div className="cm-team-avatar" style={{
-      width: size, height: size, fontSize: size * 0.28,
-      background: `linear-gradient(135deg,${team.color},${team.color}bb)`,
-      boxShadow: `0 4px 14px ${team.color}44`,
+      width: size, height: size, fontSize: size * 0.3,
+      background: mascot ? 'var(--bg-surface)' : `linear-gradient(135deg,${team.color},${team.color}cc)`,
+      boxShadow: mascot ? 'var(--shadow-sm)' : `0 4px 14px ${team.color}44`,
+      border: mascot ? '1px solid var(--bg-border)' : 'none'
     }}>
-      {team.short}
+      {mascot ? (
+        <img src={mascot} alt={team.name} />
+      ) : (
+        team.short.slice(0, 2)
+      )}
     </div>
   )
 }
@@ -73,9 +89,9 @@ export default function SelectTeamsScreen() {
     <div className="cm-page">
       {/* Header */}
       <div className="cm-header">
-        <button className="cm-back" onClick={() => navigate(-1)}>← Back</button>
+        <button className="cm-back" onClick={() => navigate(-1)}>BACK</button>
         <div className="cm-header-title">Select Teams</div>
-        <div className="cm-step-badge">1 of 4</div>
+        <div className="cm-step-badge">STEP 1/4</div>
       </div>
 
       {/* Step bar */}
@@ -91,16 +107,16 @@ export default function SelectTeamsScreen() {
       <div className="cm-body">
         {/* VS card */}
         <div className="cm-vs-card">
-          <div className="cm-team-slot" onClick={() => setSelecting('A')}>
+          <div className="cm-team-slot" onClick={() => setSelecting('A')} style={{animation: 'fadeInLeft 0.5s ease-out'}}>
             {teamA ? (
               <>
-                <TeamAvatar team={teamA} />
+                <TeamAvatar team={teamA} size={60} />
                 <div className="cm-team-slot-name">{teamA.name}</div>
                 <div className="cm-team-slot-change">Tap to change</div>
               </>
             ) : (
               <>
-                <div className="cm-team-slot-empty">A</div>
+                <div className="cm-team-slot-empty">+</div>
                 <div className="cm-team-slot-name">Select Team A</div>
               </>
             )}
@@ -108,16 +124,16 @@ export default function SelectTeamsScreen() {
 
           <div className="cm-vs-badge">VS</div>
 
-          <div className="cm-team-slot" onClick={() => setSelecting('B')}>
+          <div className="cm-team-slot" onClick={() => setSelecting('B')} style={{animation: 'fadeInRight 0.5s ease-out'}}>
             {teamB ? (
               <>
-                <TeamAvatar team={teamB} />
+                <TeamAvatar team={teamB} size={60} />
                 <div className="cm-team-slot-name">{teamB.name}</div>
                 <div className="cm-team-slot-change">Tap to change</div>
               </>
             ) : (
               <>
-                <div className="cm-team-slot-empty">B</div>
+                <div className="cm-team-slot-empty">+</div>
                 <div className="cm-team-slot-name">Select Team B</div>
               </>
             )}
@@ -129,9 +145,9 @@ export default function SelectTeamsScreen() {
           <div className="cm-picker">
             <div className="cm-picker-header">
               <span className="cm-picker-title">
-                Selecting Team {selecting}
+                Choose {selecting === 'A' ? 'First Team' : 'Opponent'}
               </span>
-              <button className="cm-picker-close" onClick={() => setSelecting(null)}>✕</button>
+              <button className="cm-picker-close" onClick={() => setSelecting(null)}>CLOSE</button>
             </div>
 
             <div className="cm-search-wrap">
@@ -152,13 +168,14 @@ export default function SelectTeamsScreen() {
                     key={team.id}
                     className={`cm-team-row ${disabled ? 'disabled' : ''}`}
                     onClick={() => !disabled && handleSelect(team)}
+                    style={{borderLeft: disabled ? 'none' : `3px solid ${team.color}`}}
                   >
-                    <TeamAvatar team={team} size={40} />
+                    <TeamAvatar team={team} size={44} />
                     <div className="cm-team-row-info">
                       <div className="cm-team-row-name">{team.name}</div>
-                      <div className="cm-team-row-short">{team.short}</div>
+                      <div className="cm-team-row-short">{team.short} • Official Franchise</div>
                     </div>
-                    {disabled && <span className="cm-team-row-taken">Already selected</span>}
+                    {disabled && <span className="cm-team-row-taken">SELECT ANOTHER</span>}
                   </div>
                 )
               })}
@@ -225,7 +242,7 @@ export default function SelectTeamsScreen() {
           disabled={!teamA || !teamB}
           onClick={handleNext}
         >
-          Next: Match Setup →
+          Setup Playing Conditions 
         </button>
       </div>
     </div>

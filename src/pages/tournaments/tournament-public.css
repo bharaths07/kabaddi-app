@@ -257,3 +257,67 @@
 .pv-empty--sm { padding: 16px; }
 .pv-empty-icon { font-size: 32px; margin-bottom: 8px; }
 .pv-empty p { margin: 0; }
+
+/* ── Phase 7: Registration UI ── */
+.tp-hero-badges {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.tp-status {
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+.tp-status--registration { background: #0ea5e9; color: #fff; }
+.tp-status--draft        { background: #94a3b8; color: #fff; }
+.tp-status--ongoing      { background: #ef4444; color: #fff; }
+.tp-status--completed    { background: #16a34a; color: #fff; }
+
+.tp-hero-badges span:not(.tp-status) {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #cbd5e1;
+}
+
+.tp-action-row {
+  margin-top: 24px;
+}
+
+.tp-apply-btn {
+  background: #fd611a;
+  color: #fff;
+  border: none;
+  padding: 14px 24px;
+  border-radius: 14px;
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 800;
+  font-size: 18px;
+  cursor: pointer;
+  box-shadow: 0 10px 20px -5px rgba(253, 97, 26, 0.4);
+  transition: all 0.2s;
+}
+
+.tp-apply-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 15px 30px -10px rgba(253, 97, 26, 0.6);
+}
+
+.tp-success-badge {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(22, 163, 74, 0.1);
+  color: #16a34a;
+  padding: 12px 20px;
+  border-radius: 14px;
+  font-weight: 800;
+  border: 1px solid rgba(22, 163, 74, 0.2);
+}
+

@@ -1,6 +1,8 @@
 import React from 'react'
 import TopNav from './TopNav'
 import RightSidebar from './RightSidebar'
+import GlobalSearch from './GlobalSearch'
+import BottomNav from './BottomNav'
 import './layout.css'
 import { Outlet } from 'react-router-dom'
 import { LayoutProvider, useLayout } from './LayoutContext'
@@ -69,6 +71,8 @@ function Shell() {
           </ErrorBoundary>
         </main>
         <RightSidebar user={sidebarUser} />
+        <GlobalSearch />
+        <BottomNav />
       </div>
     </div>
   )

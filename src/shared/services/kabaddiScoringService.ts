@@ -7,7 +7,10 @@ type DBMatchRow = {
   home_score: number | null
   guest_score: number | null
   raid_number: number | null
+  current_time: number | null
+  is_timer_running: boolean | null
 }
+
 
 type DBRaidEventRow = {
   id: string
@@ -94,7 +97,10 @@ class KabaddiScoringService {
         homeScore: match.home_score ?? 0,
         guestScore: match.guest_score ?? 0,
         currentRaid: match.raid_number ?? 0,
+        currentTime: match.current_time ?? 1200,
+        isTimerRunning: match.is_timer_running ?? false,
       },
+
     }
 
     this.currentState = update.currentState
@@ -154,6 +160,12 @@ class KabaddiScoringService {
     pointsScored: number
     touchPoints: number
     success: boolean
+    type?: 'raid' | 'tackle' | 'empty' | 'technical'
+    isBonus?: boolean
+    isSuperRaid?: boolean
+    isSuperTackle?: boolean
+    isDoOrDie?: boolean
+    defenderIds?: string[]
   }): Promise<void> {
     try {
       const { error } = await supabase
@@ -166,6 +178,12 @@ class KabaddiScoringService {
           points_scored: data.pointsScored,
           touch_points: data.touchPoints,
           success: data.success,
+          type: data.type || 'raid',
+          is_bonus: data.isBonus || false,
+          is_super_raid: data.isSuperRaid || false,
+          is_super_tackle: data.isSuperTackle || false,
+          is_do_or_die: data.isDoOrDie || false,
+          defender_ids: data.defenderIds || [],
           created_at: new Date().toISOString(),
         })
 
@@ -231,8 +249,9 @@ class KabaddiScoringService {
     try {
       const { data, error } = await supabase
         .from('kabaddi_matches')
-        .select('id, home_score, guest_score, raid_number')
+        .select('id, home_score, guest_score, raid_number, current_time, is_timer_running')
         .eq('id', matchId)
+
         .single()
 
       if (error) throw error
@@ -304,7 +323,29 @@ class KabaddiScoringService {
   }
 
   /**
+   * Update match clock
+   */
+  async updateMatchClock(matchId: string, currentTime: number, isRunning: boolean): Promise<void> {
+    try {
+      const { error } = await supabase
+        .from('kabaddi_matches')
+        .update({
+          current_time: currentTime,
+          is_timer_running: isRunning,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', matchId)
+
+      if (error) throw error
+    } catch (error) {
+      console.error('Error updating match clock:', error)
+      throw error
+    }
+  }
+
+  /**
    * Disconnect from realtime
+
    */
   disconnect(): void {
     if (this.channel) {

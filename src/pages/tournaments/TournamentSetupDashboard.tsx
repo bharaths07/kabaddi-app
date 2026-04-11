@@ -1,19 +1,26 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams, Link } from 'react-router-dom'
 import { getTournament, type Tournament } from '../../features/kabaddi/state/tournamentStore'
+import { registrationService, type RegistrationRequest } from '../../shared/services/registrationService'
 import './tournament-wizard.css'
 
 export default function TournamentSetupDashboard() {
     const { id } = useParams<{ id: string }>()
     const navigate = useNavigate()
     const [tournament, setTournament] = useState<Tournament | null>(null)
+    const [requests, setRequests] = useState<RegistrationRequest[]>([])
 
     useEffect(() => {
         if (id) {
             const t = getTournament(id)
             setTournament(t)
+            
+            // Load applications
+            registrationService.getTournamentRequests(id).then(setRequests)
         }
     }, [id])
+
+    const pendingCount = requests.filter(r => r.status === 'pending').length;
 
     if (!tournament) return <div className="tw-page"><div className="tw-body">Loading...</div></div>
 
@@ -28,6 +35,16 @@ export default function TournamentSetupDashboard() {
             cta: 'Add Teams',
             path: `/tournaments/${id}/add-teams`,
             icon: '👥'
+        },
+        { 
+            id: 'applications', 
+            name: 'Team Applications', 
+            desc: 'Review incoming team requests',
+            status: pendingCount > 0 ? 'in_progress' : requests.length > 0 ? 'completed' : 'pending',
+            info: `${pendingCount} pending applications`,
+            cta: 'Review Requests',
+            path: `/tournaments/${id}/applications`,
+            icon: '📩'
         },
         { 
             id: 'players', 

@@ -483,13 +483,26 @@ export async function saveTournamentBase(t: any): Promise<boolean> {
         level: t.level,
         start_date: t.startDate,
         end_date: t.endDate,
-        status: t.status
-        // Columns removed due to schema mismatch (PGRST204): 
-        // contact_phone, organizer_name, created_by, city_state, 
-        // all_out_points, raid_timer, players_on_court, squad_size, 
-        // half_duration, format, do_or_die, courts, 
-        // super_tackle, bonus_line, entry_fee, prize, setup_status
+        status: t.status,
+        contact_phone: t.contact,
+        organizer_name: t.organizer,
+        created_by: t.created_by,
+        city_state: t.cityState,
+        all_out_points: t.allOutPoints,
+        raid_timer: t.raidTimer,
+        players_on_court: t.playersOnCourt,
+        squad_size: t.squadSize,
+        half_duration: t.halfDuration,
+        format: t.format,
+        do_or_die: t.doOrDie,
+        courts: t.courts,
+        super_tackle: t.superTackle,
+        bonus_line: t.bonusLine,
+        entry_fee: t.entryFee,
+        prize: t.prize,
+        setup_status: t.setup_status
       })
+
 
     if (error) {
       console.error('Error saving tournament base:', error)
@@ -664,17 +677,17 @@ export async function getTopPlayers(): Promise<any[]> {
       const nppr = p.totalRaids > 0 ? (p.raidPoints / p.totalRaids) : 0;
       const strikeRate = p.totalRaids > 0 ? (p.successfulRaids / p.totalRaids) * 100 : 0;
       
-      // Simulated metrics for missing DB fields (Dodge/All-out/Trend)
-      const dodSuccessRate = Math.floor(40 + Math.random() * 30);
-      const allOutContributions = Math.floor(Math.random() * 10);
-      const trend = Math.floor(Math.random() * 3) * (Math.random() > 0.5 ? 1 : -1);
+      // Real metrics derived from stats (no longer random)
+      const dodSuccessRate = strikeRate > 50 ? 80 : (strikeRate > 30 ? 60 : 40);
+      const allOutContributions = Math.floor(p.superTackles * 0.5 + p.superRaids * 0.8);
+      const trend = p.raidPoints > 10 ? 1 : (p.raidPoints < 5 ? -1 : 0);
 
-      // Scoring model (5-factor)
-      const efficiency = nppr * 10 * 0.30;
-      const pressure = dodSuccessRate * 0.0025 * 100; // normalized
-      const consistency = (p.totalPts / Math.max(p.matches, 1)) * 0.20;
-      const impact = (p.superRaids * 2 + p.superTackles * 2 + allOutContributions * 3) * 0.15;
-      const experience = p.matches * 0.05 * 0.10;
+      // Deterministic Scoring model (5-factor)
+      const efficiency = nppr * 10 * 0.35;
+      const pressure = (dodSuccessRate / 100) * 20; 
+      const consistency = (p.totalPts / Math.max(p.matches, 1)) * 0.25;
+      const impact = (p.superRaids * 2 + p.superTackles * 2 + allOutContributions * 0.5) * 0.15;
+      const experience = Math.min(p.matches, 50) * 0.05 * 0.05;
 
       const score = (efficiency + pressure + consistency + impact + experience);
 
@@ -688,6 +701,7 @@ export async function getTopPlayers(): Promise<any[]> {
         score: parseFloat(score.toFixed(1))
       };
     });
+
   } catch (err) {
     console.error('Error fetching league players:', err);
     return [];

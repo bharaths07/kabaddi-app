@@ -1,6 +1,6 @@
 .sq-page-wrap {
   min-height: 100vh;
-  background: #f8fafc;
+  background: var(--bg-page);
   padding-bottom: 120px;
   font-family: var(--font-display, 'Nunito', sans-serif);
 }
@@ -12,7 +12,7 @@
   justify-content: center;
   gap: 12px;
   padding: 16px 20px;
-  background: #ffffff;
+  background: var(--bg-surface);
 }
 .sq-step-item {
   display: flex; align-items: center; gap: 8px;
@@ -31,7 +31,7 @@
 /* Tabs */
 .sq-tabs {
   display: flex;
-  background: #ffffff;
+  background: var(--bg-surface);
   border-bottom: 1px solid #e2e8f0;
   padding: 0 16px;
 }
@@ -59,7 +59,7 @@
   display: flex;
   justify-content: space-between;
   padding: 16px 20px;
-  background: #f1f5f9;
+  background: var(--bg-elevated);
 }
 .sq-counter {
   font-size: 13px; font-weight: 800; color: #475569;
@@ -74,7 +74,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #ffffff;
+  background: var(--bg-surface);
   border: 1px solid #e2e8f0;
   border-radius: 12px;
   padding: 12px 16px;
@@ -88,7 +88,7 @@
   display: flex; align-items: center; gap: 12px;
 }
 .sq-p-photo {
-  width: 40px; height: 40px; border-radius: 50%; background: #f1f5f9; object-fit: cover;
+  width: 40px; height: 40px; border-radius: 50%; background: var(--bg-elevated); object-fit: cover;
 }
 .sq-p-name { font-size: 15px; font-weight: 800; color: #0f172a; }
 .sq-p-role { font-size: 12px; font-weight: 700; color: #94a3b8; margin-top: 2px; }
@@ -101,13 +101,13 @@
   display: flex; gap: 8px;
 }
 .sq-btn-start {
-  background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1;
+  background: var(--bg-elevated); color: #64748b; border: 1px solid #cbd5e1;
   padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 800; cursor: pointer;
 }
 .sq-btn-start.active { background: #ea580c; color: #fff; border-color: #ea580c; }
 
 .sq-btn-sub {
-  background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1;
+  background: var(--bg-elevated); color: #64748b; border: 1px solid #cbd5e1;
   padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 800; cursor: pointer;
 }
 .sq-btn-sub.active { background: #3b82f6; color: #fff; border-color: #3b82f6; }
@@ -117,14 +117,14 @@
 }
 .sq-c-btn {
   width: 28px; height: 28px; border-radius: 50%; font-size: 11px; font-weight: 900;
-  border: 1px solid #cbd5e1; background: #fff; color: #94a3b8; display: flex; align-items: center; justify-content: center; cursor: pointer;
+  border: 1px solid #cbd5e1; background: var(--bg-surface); color: #94a3b8; display: flex; align-items: center; justify-content: center; cursor: pointer;
 }
 .sq-c-btn.active.c { background: #22c55e; border-color: #22c55e; color: #fff; }
 .sq-c-btn.active.vc { background: #f59e0b; border-color: #f59e0b; color: #fff; }
 
 /* Toss Section */
 .sq-toss-card {
-  background: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; margin: 16px; padding: 16px;
+  background: var(--bg-surface); border-radius: 12px; border: 1px solid #e2e8f0; margin: 16px; padding: 16px;
 }
 .sq-toss-title {
   font-size: 15px; font-weight: 800; color: #334155; margin-bottom: 12px;
@@ -140,7 +140,7 @@
 }
 .sq-toss-select {
   width: 100%; appearance: none;
-  background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;
+  background: var(--bg-page); border: 1px solid #e2e8f0; border-radius: 8px;
   padding: 12px 16px; font-size: 14px; font-weight: 700; color: #64748b;
   outline: none;
 }
@@ -151,7 +151,7 @@
 .sq-ctrl-footer {
   position: fixed;
   bottom: 0; left: 0; right: 0;
-  background: #ffffff;
+  background: var(--bg-surface);
   border-top: 1px solid #e2e8f0;
   padding: 16px 20px;
   display: flex;
@@ -159,7 +159,7 @@
   z-index: 100;
 }
 .sq-btn-back {
-  flex: 0.35; background: #f1f5f9; color: #64748b; border: none; border-radius: 8px; font-weight: 800; font-size: 15px; cursor: pointer;
+  flex: 0.35; background: var(--bg-elevated); color: #64748b; border: none; border-radius: 8px; font-weight: 800; font-size: 15px; cursor: pointer;
 }
 .sq-btn-next {
   flex: 1; background: #ea580c; color: #ffffff; border: none; border-radius: 8px; padding: 16px; font-weight: 900; font-size: 16px; cursor: pointer; box-shadow: 0 4px 12px rgba(234, 88, 12, 0.25);

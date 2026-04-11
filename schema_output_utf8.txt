@@ -1,0 +1,24 @@
+
+>>> START TABLE: tournaments <<<
+COLUMNS: ["id","name","description","start_date","end_date","venue","level","format","status","join_code","logo_url","created_by","created_at","updated_at","organizer_id","entry_fee","prize","registration_deadline","venue_name","city_state","maps_link","courts_available","half_duration_min","players_on_court","squad_size","timeouts_per_half","super_tackle_enabled","bonus_point_enabled","scoring_notes","contact","slug","do_or_die_enabled","cover_image"]
+>>> END TABLE: tournaments <<<
+
+>>> START TABLE: kabaddi_matches <<<
+STATUS: Empty
+>>> END TABLE: kabaddi_matches <<<
+
+>>> START TABLE: teams <<<
+STATUS: Empty
+>>> END TABLE: teams <<<
+
+>>> START TABLE: news_posts <<<
+STATUS: Empty
+>>> END TABLE: news_posts <<<
+
+>>> START TABLE: feed_posts <<<
+COLUMNS: ["id","user_id","type","caption","image_url","tournament_id","match_id","likes_count","created_at","updated_at","comments_count"]
+>>> END TABLE: feed_posts <<<
+
+>>> START TABLE: profiles <<<
+COLUMNS: ["id","full_name","phone","email","avatar_url","city","state","date_of_birth","is_profile_complete","created_at","updated_at","banner_url","player_id","role","team_name","jersey_number","bio"]
+>>> END TABLE: profiles <<<

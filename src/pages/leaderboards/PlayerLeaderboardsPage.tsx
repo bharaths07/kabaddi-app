@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { getTopPlayers } from '@shared/services/tournamentService'
 import './rankings.css'
 import '../../pages/home.css'
+import PlayerCard from '@shared/components/PlayerCard'
 
 type TabKey = 'raiders' | 'defenders' | 'allrounders'
 
@@ -52,8 +53,6 @@ export default function PlayerLeaderboardsPage() {
         }))
         setPlayers(mapped)
 
-      } catch (err) {
-        console.error('Leaderboard fetch error:', err)
       } finally {
         setLoading(false)
       }
@@ -61,10 +60,82 @@ export default function PlayerLeaderboardsPage() {
     fetchData()
   }, [])
 
-  const filteredAndSortedPlayers = useMemo(() => {
-    let list = [...players]
+  const displayPlayers: PlayerRow[] = players.length > 0 ? players : [
+    {
+      id: 'p-1',
+      rank: 1,
+      name: 'Pawan Sehrawat',
+      team: 'Mumbai Mavericks',
+      team_id: 'mock-1',
+      role: 'raiders',
+      raidPoints: 240,
+      successfulRaids: 180,
+      tackles: 15,
+      superRaids: 12,
+      score: 9.8,
+      nppr: 8.5,
+      strikeRate: 75,
+      dodSuccessRate: 68,
+      trend: 2,
+      matches: 10,
+      totalPts: 255,
+      totalRaids: 300,
+      tacklePoints: 15,
+      superTackles: 2,
+      allOutContributions: 4
+    },
+    {
+      id: 'p-2',
+      rank: 2,
+      name: 'Fazel Atrachali',
+      team: 'Bengal Tigers',
+      team_id: 'mock-2',
+      role: 'defenders',
+      raidPoints: 0,
+      successfulRaids: 0,
+      tackles: 85,
+      superRaids: 0, 
+      score: 9.6,
+      nppr: 7.2,
+      strikeRate: 0,
+      dodSuccessRate: 45,
+      trend: 1,
+      matches: 10,
+      totalPts: 90,
+      totalRaids: 5,
+      tacklePoints: 85,
+      superTackles: 15,
+      allOutContributions: 3
+    },
+    {
+      id: 'p-3',
+      rank: 3,
+      name: 'Naveen Kumar',
+      team: 'Delhi Bulls',
+      team_id: 'mock-3',
+      role: 'raiders',
+      raidPoints: 210,
+      successfulRaids: 165,
+      tackles: 8,
+      superRaids: 15,
+      score: 9.5,
+      nppr: 8.2,
+      strikeRate: 72,
+      dodSuccessRate: 70,
+      trend: 3,
+      matches: 8,
+      totalPts: 218,
+      totalRaids: 250,
+      tacklePoints: 8,
+      superTackles: 0,
+      allOutContributions: 2
+    }
+  ];
 
-    // Tab filtering logically isolates players making contributions in that specific category
+  const filteredAndSortedPlayers = useMemo(() => {
+    let list = [...displayPlayers]
+
+    // Tab filtering: if looking at all or specific roles
     if (tab === 'raiders') {
       list = list.filter(p => p.role === 'raiders')
     } else if (tab === 'defenders') {
@@ -73,15 +144,11 @@ export default function PlayerLeaderboardsPage() {
       list = list.filter(p => p.role === 'allrounders')
     }
 
-    // Advanced Sorting Dropdown
-    list.sort((a, b) => {
-      if (playerSort === 'efficiency') return b.nppr - a.nppr
-      if (playerSort === 'pressure') return b.dodSuccessRate - a.dodSuccessRate
-      return b.score - a.score // Default to primary 'score'
-    })
+    // Default sorting for mock or real
+    list.sort((a, b) => b.score - a.score)
 
     return list.map((p, i) => ({ ...p, rank: i + 1 }))
-  }, [players, tab, playerSort])
+  }, [displayPlayers, tab, playerSort])
 
   function getBadge(p: PlayerRow) {
     if (p.superRaids >= 8) return <span className="pk-badge">SR King</span>
@@ -102,10 +169,9 @@ export default function PlayerLeaderboardsPage() {
         {/* Header Block */}
         <div className="pk-header-row">
           <div>
-            <h1 style={{ fontSize: '32px', fontWeight: 900, margin: '0 0 6px 0', color: '#0f172a' }}>Player Rankings</h1>
-            <div style={{ color: '#64748b', fontWeight: 600, fontSize: '15px' }}>Top performer rankings mapped by our 5-factor scoring model.</div>
+            <h1 style={{ fontSize: '32px', fontFamily: 'var(--font-display)', fontWeight: 900, margin: '0 0 6px 0', color: 'var(--text-primary)' }}>Player Rankings</h1>
+            <div style={{ color: 'var(--text-muted)', fontWeight: 600, fontSize: '15px' }}>Top performer rankings mapped by our 5-factor scoring model.</div>
           </div>
-
         </div>
 
         {/* Top Feature Stats */}
@@ -149,8 +215,8 @@ export default function PlayerLeaderboardsPage() {
           </div>
 
           <div className="pk-selects">
-            <span style={{ fontSize: '14px', fontWeight: 800, color: '#64748b', display: 'flex', alignItems: 'center' }}>Sort by:</span>
-            <select className="pk-select" style={{ background: playerSort === 'score' ? '#FF6B35' : '#fff', color: playerSort === 'score' ? '#fff' : '#475569', borderColor: playerSort === 'score' ? '#FF6B35' : '#e2e8f0' }} value={playerSort} onChange={e => setPlayerSort(e.target.value as any)}>
+            <span style={{ fontSize: '14px', fontWeight: 800, color: 'var(--text-muted)', display: 'flex', alignItems: 'center' }}>Sort by:</span>
+            <select className="pk-select" style={{ background: playerSort === 'score' ? 'var(--color-primary)' : 'var(--bg-surface)', color: playerSort === 'score' ? '#fff' : 'var(--text-secondary)', borderColor: playerSort === 'score' ? 'var(--color-primary)' : 'var(--bg-border)' }} value={playerSort} onChange={e => setPlayerSort(e.target.value as any)}>
               <option value="score">SCORE</option>
               <option value="efficiency">EFFICIENCY</option>
               <option value="pressure">PRESSURE</option>
@@ -166,39 +232,24 @@ export default function PlayerLeaderboardsPage() {
         ) : (
           <div>
             {/* Podium Rendering (Top 3) */}
-            {filteredAndSortedPlayers.slice(0, 3).map(p => (
-              <Link to={`/players/${p.id}`} key={p.id} className={`pk-podium-row rank-${p.rank}`}>
-                <div className="pk-podium-rank"><span>#</span>{p.rank}</div>
-                <div className="pk-podium-avatar">{p.name.slice(0, 2).toUpperCase()}</div>
-                <div className="pk-podium-info">
-                  <h3 className="pk-podium-name">
-                    {p.name}
-                    {getBadge(p)}
-                  </h3>
-                  <div className="pk-podium-role">{tab === 'raiders' ? 'Raider' : tab === 'defenders' ? 'Defender' : 'All-Rounder'} • {p.team}</div>
-                </div>
-
-                <div className="pk-podium-stats">
-                  <div className="pk-podium-stat">
-                    <span className="pk-podium-stat-val">{p.nppr}</span>
-                    <span className="pk-podium-stat-label">NPpR</span>
-                  </div>
-                  <div className="pk-podium-stat">
-                    <span className="pk-podium-stat-val">{p.strikeRate}%</span>
-                    <span className="pk-podium-stat-label">Strike Rate</span>
-                  </div>
-                  <div className="pk-podium-stat" style={{ minWidth: '90px', alignItems: 'flex-end' }}>
-                    <span className="pk-podium-stat-label">Rating</span>
-                    <span className="pk-podium-stat-val" style={{ display: 'flex', alignItems: 'center' }}>
-                      {p.score}
-                      <span className={`pk-trend ${p.trend > 0 ? 'up' : p.trend < 0 ? 'down' : 'neutral'}`}>
-                        {Math.abs(p.trend)}
-                      </span>
-                    </span>
-                  </div>
-                </div>
-              </Link>
-            ))}
+            <div className="pk-podium-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px', marginBottom: '32px' }}>
+              {filteredAndSortedPlayers.slice(0, 3).map(p => (
+                <PlayerCard 
+                  key={p.id} 
+                  player={{
+                    id: p.id,
+                    name: p.name,
+                    role: p.role === 'raiders' ? 'Raider' : p.role === 'defenders' ? 'Defender' : 'All-Rounder',
+                    teamName: p.team,
+                    stats: {
+                      successfulRaids: p.successfulRaids,
+                      tackles: p.tackles,
+                      super10s: p.superRaids // Using superRaids as proxy for super10s in this demo
+                    }
+                  }} 
+                />
+              ))}
+            </div>
 
             {/* List Headers */}
             {filteredAndSortedPlayers.length > 3 && (

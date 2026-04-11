@@ -1,3 +1,3 @@
-.pg-panel{display:flex;flex-direction:column;gap:12px;background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:12px}
+.pg-panel{display:flex;flex-direction:column;gap:12px;background: var(--bg-surface);border:1px solid #e2e8f0;border-radius:12px;padding:12px}
 .pg-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .pg-title{font-weight:900;color:#1e293b}

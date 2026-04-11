@@ -47,7 +47,7 @@
 
 /* Player Profile New Styles */
 .pp-container {
-  background: #f8fafc;
+  background: var(--bg-page);
   min-height: 100vh;
 }
 
@@ -152,7 +152,7 @@
 }
 
 .pp-chip {
-  background: #fff;
+  background: var(--bg-surface);
   padding: 8px 20px;
   border-radius: 20px;
   font-size: 13px;
@@ -163,7 +163,7 @@
 }
 
 .pp-edit-btn {
-  background: #fff;
+  background: var(--bg-surface);
   padding: 10px 24px;
   border-radius: 12px;
   font-size: 14px;
@@ -234,7 +234,7 @@
 }
 
 .pp-grid-card {
-  background: #fff;
+  background: var(--bg-surface);
   padding: 24px;
   border-radius: 20px;
   border: 1px solid #f1f5f9;
@@ -248,7 +248,7 @@
 }
 
 .pp-stat-card {
-  background: #fff;
+  background: var(--bg-surface);
   padding: 24px;
   border-radius: 24px;
   border: 1px solid #f1f5f9;
@@ -363,7 +363,7 @@
 
 .pkl-player-card {
   position: relative;
-  background: #fff;
+  background: var(--bg-surface);
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 4px 15px rgba(0,0,0,0.08);
@@ -461,7 +461,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 12px 20px;
-  background: #fff;
+  background: var(--bg-surface);
   border-top: 1px solid #f1f5f9;
 }
 
@@ -513,3 +513,26 @@
  .lb-head{background:var(--bg-elevated);border-bottom:1px solid var(--bg-border)}
  .lb-head .lb-cell{font-weight:800;color:var(--text-primary)}
  
+ /* Responsive Layout Classes */
+ .hp-sticky-tabs {
+   display: flex;
+   gap: 8px;
+   padding: 20px 0;
+   overflow-x: auto;
+   position: sticky;
+   top: 0;
+   background: rgba(248, 250, 252, 0.95);
+   backdrop-filter: blur(10px);
+   z-index: 50;
+   border-bottom: 1px solid var(--bg-border);
+ }
+ 
+ .hp-shimmer {
+   background: var(--bg-surface);
+   animation: pulse 1.5s infinite ease-in-out;
+ }
+ 
+ @keyframes pulse {
+   0%, 100% { opacity: 1; }
+   50% { opacity: 0.5; }
+ }

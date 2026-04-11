@@ -22,7 +22,7 @@
 .ap-stat-value { font-size: 32px; font-weight: 900; color: var(--color-sky); display: block; }
 .ap-stat-label { font-size: 14px; color: #0369a1; font-weight: 800; text-transform: uppercase; margin-top: 4px; }
 
-.ap-cta { text-align: center; margin-top: 60px; padding: 40px; background: #f8fafc; border-radius: 20px; border: 1px solid #e2e8f0; }
+.ap-cta { text-align: center; margin-top: 60px; padding: 40px; background: var(--bg-page); border-radius: 20px; border: 1px solid #e2e8f0; }
 .ap-cta-title { font-size: 24px; font-weight: 800; color: #1e293b; margin-bottom: 16px; }
 .ap-cta-btn { display: inline-block; background: #0c1832; color: #fff; padding: 16px 32px; border-radius: 12px; font-weight: 800; text-decoration: none; transition: background 0.2s; }
 .ap-cta-btn:hover { background: #1e3a8a; }

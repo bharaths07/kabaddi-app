@@ -90,9 +90,9 @@ export default function TossScreen() {
   return (
     <div className="cm-page">
       <div className="cm-header">
-        <button className="cm-back" onClick={() => navigate('/kabaddi/create/lineup')}>← Back</button>
-        <div className="cm-header-title">Toss</div>
-        <div className="cm-step-badge">4 of 4</div>
+        <button className="cm-back" onClick={() => navigate('/kabaddi/create/lineup')}>BACK</button>
+        <div className="cm-header-title">The Toss</div>
+        <div className="cm-step-badge">STEP 4/4</div>
       </div>
 
       <div className="cm-steps">
@@ -106,15 +106,15 @@ export default function TossScreen() {
 
       <div className="cm-body">
         {/* Teams display */}
-        <div className="cm-toss-teams">
-          <div className="cm-toss-team" style={{ borderColor: teamA?.color }}>
-            <div className="cm-toss-team-badge" style={{ background: teamA?.color }}>{teamA?.short}</div>
-            <div className="cm-toss-team-name">{teamA?.name}</div>
+        <div className="cm-toss-teams" style={{animation: 'fadeIn 0.6s ease-out'}}>
+          <div className="cm-toss-team" style={{ borderColor: teamA?.color, background: `${teamA?.color}05` }}>
+            <div className="cm-toss-team-badge" style={{ background: teamA?.color, color: 'white', fontWeight: 900, fontFamily: 'var(--font-display)' }}>{teamA?.short}</div>
+            <div className="cm-toss-team-name" style={{ fontWeight: 800 }}>{teamA?.name}</div>
           </div>
           <div className="cm-toss-vs">VS</div>
-          <div className="cm-toss-team" style={{ borderColor: teamB?.color }}>
-            <div className="cm-toss-team-badge" style={{ background: teamB?.color }}>{teamB?.short}</div>
-            <div className="cm-toss-team-name">{teamB?.name}</div>
+          <div className="cm-toss-team" style={{ borderColor: teamB?.color, background: `${teamB?.color}05` }}>
+            <div className="cm-toss-team-badge" style={{ background: teamB?.color, color: 'white', fontWeight: 900, fontFamily: 'var(--font-display)' }}>{teamB?.short}</div>
+            <div className="cm-toss-team-name" style={{ fontWeight: 800 }}>{teamB?.name}</div>
           </div>
         </div>
 
@@ -140,22 +140,22 @@ export default function TossScreen() {
         </div>
 
         {/* Call choice */}
-        <div className="cm-section">
+        <div className="cm-section" style={{animation: 'fadeInUp 0.4s ease-out both'}}>
           <div className="cm-section-title">{callerTeam?.name} calls</div>
           <div className="cm-coin-choice">
             <button
               className={`cm-choice-btn ${calledChoice === 'heads' ? 'active' : ''}`}
-              onClick={() => setCalledChoice('heads')}
+              onClick={() => !flipping && setCalledChoice('heads')}
             >
-              <div className="cm-coin-face heads">H</div>
-              Heads
+              <div className="cm-coin-face heads" style={{fontFamily: 'var(--font-display)', fontWeight: 900}}>H</div>
+              <span style={{fontWeight: 900}}>Heads</span>
             </button>
             <button
               className={`cm-choice-btn ${calledChoice === 'tails' ? 'active' : ''}`}
-              onClick={() => setCalledChoice('tails')}
+              onClick={() => !flipping && setCalledChoice('tails')}
             >
-              <div className="cm-coin-face tails">T</div>
-              Tails
+              <div className="cm-coin-face tails" style={{fontFamily: 'var(--font-display)', fontWeight: 900}}>T</div>
+              <span style={{fontWeight: 900}}>Tails</span>
             </button>
           </div>
         </div>
@@ -195,14 +195,14 @@ export default function TossScreen() {
 
         {/* Winner's decision */}
         {winner && (
-          <div className="cm-section">
+          <div className="cm-section" style={{animation: 'fadeInUp 0.4s ease-out both'}}>
             <div className="cm-section-title">{winnerTeam?.name} chooses to...</div>
             <div className="cm-decision-btns">
               <button
                 className={`cm-decision-btn ${decision === 'raid_first' ? 'active' : ''}`}
                 onClick={() => setDecision('raid_first')}
               >
-                <div className="cm-decision-icon">🏉</div>
+                <div className="cm-decision-icon" style={{fontSize: '32px'}}>🏐</div>
                 <div className="cm-decision-label">Raid First</div>
                 <div className="cm-decision-sub">Attack in 1st half</div>
               </button>
@@ -210,16 +210,16 @@ export default function TossScreen() {
                 className={`cm-decision-btn ${decision === 'court_side' ? 'active' : ''}`}
                 onClick={() => setDecision('court_side')}
               >
-                <div className="cm-decision-icon">🏟️</div>
+                <div className="cm-decision-icon" style={{fontSize: '32px'}}>🏟️</div>
                 <div className="cm-decision-label">Choose Side</div>
                 <div className="cm-decision-sub">Pick court side</div>
               </button>
             </div>
 
             {raidingTeam && (
-              <div className="cm-raid-first-banner" style={{ borderColor: raidingTeam.color, background: `${raidingTeam.color}10` }}>
-                <span style={{ color: raidingTeam.color, fontWeight: 900 }}>{raidingTeam.name}</span>
-                <span> raids first</span>
+              <div className="cm-raid-first-banner" style={{ borderBottom: `4px solid ${raidingTeam.color}` }}>
+                <span style={{ color: raidingTeam.color, fontWeight: 900, marginRight: '4px' }}>{raidingTeam.name}</span>
+                <span>starts the match with the first raid</span>
               </div>
             )}
           </div>
@@ -231,9 +231,9 @@ export default function TossScreen() {
           className={`cm-next-btn ${result ? 'ready' : ''}`}
           disabled={!result}
           onClick={handleStart}
-          style={{ background: result ? 'linear-gradient(135deg,#16a34a,#15803d)' : '' }}
+          style={result ? { background: 'var(--color-green)', boxShadow: 'var(--shadow-green)' } : {}}
         >
-          🏉 Start Match
+          {result ? 'START PRO MATCH 🚀' : 'FLIP COIN TO START'}
         </button>
       </div>
     </div>

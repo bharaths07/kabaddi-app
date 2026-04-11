@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../shared/lib/supabase'
 import { useAuth } from '../shared/context/AuthContext'
 import { getAllTournaments } from '../features/kabaddi/state/tournamentStore'
+import { useKabaddiStore } from '../stores/useKabaddiStore'
 import './tournaments.css'
 import './home.css'
 
@@ -82,6 +83,8 @@ function TournamentCard({ t, userId }: { t: Tournament & { computedStatus: strin
 export default function Tournaments() {
   const now = new Date()
   const { user } = useAuth()
+  const navigate = useNavigate()
+  const { setSearchOpen } = useKabaddiStore()
   const [tab, setTab] = useState<'all' | 'ongoing' | 'upcoming' | 'completed'>('all')
   const [tournaments, setTournaments] = useState<Tournament[]>([])
   const [loading, setLoading] = useState(true)
@@ -138,7 +141,7 @@ export default function Tournaments() {
           </div>
           <div className="hp-discover-banner">
             <span className="hp-discover-text">Discover Tournaments Near You</span>
-            <button className="hp-discover-btn" onClick={() => window.scrollTo({ top: 500, behavior: 'smooth'})}>EXPLORE</button>
+            <button className="hp-discover-btn" onClick={() => setSearchOpen(true)}>EXPLORE</button>
           </div>
         </div>
 

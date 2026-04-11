@@ -14,9 +14,9 @@
   padding: 20px 20px 0;
   position: sticky;
   top: 0;
-  background: #f8fafc;
+  background: var(--bg-page);
   z-index: 20;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid var(--bg-border);
   margin-bottom: 16px;
 }
 .feed-header-top {
@@ -29,11 +29,11 @@
   font-family: 'Rajdhani', sans-serif;
   font-weight: 900;
   font-size: 26px;
-  color: #0f172a;
+  color: var(--text-primary);
   margin: 0;
 }
 .feed-create-fab {
-  background: linear-gradient(135deg, #0ea5e9, #0284c7);
+  background: linear-gradient(135deg, var(--color-primary), var(--hover-primary));
   color: #fff;
   border: none;
   border-radius: 20px;
@@ -43,12 +43,12 @@
   font-family: 'Rajdhani', sans-serif;
   letter-spacing: 0.04em;
   cursor: pointer;
-  box-shadow: 0 4px 14px rgba(14,165,233,0.30);
+  box-shadow: 0 4px 14px rgba(255, 107, 53, 0.30);
   transition: transform 0.15s, box-shadow 0.15s;
 }
 .feed-create-fab:hover {
   transform: translateY(-1px);
-  box-shadow: 0 6px 18px rgba(14,165,233,0.40);
+  box-shadow: 0 6px 18px rgba(255, 107, 53, 0.40);
 }
 
 /* Tabs */
@@ -63,7 +63,7 @@
   padding: 10px 16px;
   border: none;
   background: transparent;
-  color: #94a3b8;
+  color: var(--text-muted);
   font-size: 13px;
   font-weight: 800;
   cursor: pointer;
@@ -73,8 +73,8 @@
   white-space: nowrap;
 }
 .feed-tab.active {
-  color: #0ea5e9;
-  border-bottom-color: #0ea5e9;
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
 }
 
 /* ── Create prompt ───────────────────────────────────────────── */
@@ -82,19 +82,19 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  background: #fff;
-  border: 1.5px solid #e2e8f0;
+  background: var(--bg-surface);
+  border: 1.5px solid var(--bg-border);
   border-radius: 16px;
   padding: 12px 14px;
   margin: 0 20px 16px;
   cursor: pointer;
   transition: border-color 0.15s;
 }
-.feed-create-prompt:hover { border-color: #0ea5e9; }
+.feed-create-prompt:hover { border-color: var(--color-primary); }
 .feed-create-placeholder {
   flex: 1;
   font-size: 14px;
-  color: #94a3b8;
+  color: var(--text-muted);
   font-weight: 600;
 }
 .feed-create-icons { display: flex; gap: 8px; font-size: 18px; }
@@ -125,8 +125,8 @@
 }
 
 .feed-post-card {
-  background: #fff;
-  border: 1px solid #e2e8f0;
+  background: var(--bg-surface);
+  border: 1px solid var(--bg-border);
   border-radius: 18px;
   overflow: hidden;
   animation: feedIn 0.35s ease both;
@@ -148,18 +148,18 @@
 .feed-post-author {
   font-weight: 900;
   font-size: 14px;
-  color: #0f172a;
+  color: var(--text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .feed-post-time {
   font-size: 11px;
-  color: #94a3b8;
+  color: var(--text-muted);
   font-weight: 600;
   margin-top: 2px;
 }
-.feed-post-tournament { color: #0ea5e9; font-weight: 700; }
+.feed-post-tournament { color: var(--color-primary); font-weight: 700; }
 .feed-post-type-badge {
   border-radius: 20px;
   padding: 3px 10px;
@@ -182,7 +182,7 @@
 .feed-post-caption {
   padding: 12px 16px;
   font-size: 14px;
-  color: #334155;
+  color: var(--text-secondary);
   line-height: 1.65;
   font-weight: 600;
   margin: 0;
@@ -193,7 +193,7 @@
   align-items: center;
   gap: 4px;
   padding: 8px 12px 12px;
-  border-top: 1px solid #f8fafc;
+  border-top: 1px solid var(--bg-elevated);
 }
 .feed-action-btn {
   display: flex;
@@ -204,13 +204,13 @@
   padding: 8px 12px;
   font-size: 13px;
   font-weight: 800;
-  color: #64748b;
+  color: var(--text-muted);
   cursor: pointer;
   border-radius: 10px;
   font-family: 'Nunito', sans-serif;
   transition: background 0.15s, color 0.15s;
 }
-.feed-action-btn:hover { background: #f1f5f9; color: #0f172a; }
+.feed-action-btn:hover { background: var(--bg-elevated); color: var(--text-primary); }
 .feed-like-btn.liked { color: #ef4444; }
 .feed-like-btn.liked:hover { background: #fef2f2; }
 .feed-action-count { font-size: 13px; font-weight: 800; }
@@ -232,12 +232,12 @@
 .feed-load-more {
   width: 100%;
   padding: 14px;
-  border: 1.5px solid #e2e8f0;
-  background: #fff;
+  border: 1.5px solid var(--bg-border);
+  background: var(--bg-surface);
   border-radius: 14px;
   font-size: 14px;
   font-weight: 800;
-  color: #0ea5e9;
+  color: var(--color-primary);
   cursor: pointer;
   font-family: 'Nunito', sans-serif;
   display: flex;
@@ -252,8 +252,8 @@
 
 /* ── Skeleton ────────────────────────────────────────────────── */
 .feed-skeleton {
-  background: #fff;
-  border: 1px solid #e2e8f0;
+  background: var(--bg-surface);
+  border: 1px solid var(--bg-border);
   border-radius: 18px;
   padding: 16px;
 }
@@ -261,20 +261,20 @@
 .feed-skeleton-avatar {
   width: 42px; height: 42px;
   border-radius: 50%;
-  background: #e2e8f0;
+  background: var(--bg-border);
   flex-shrink: 0;
   animation: shimmer 1.2s ease infinite alternate;
 }
 .feed-skeleton-lines { flex: 1; }
 .feed-skeleton-line {
   height: 12px;
-  background: #e2e8f0;
+  background: var(--bg-border);
   border-radius: 6px;
   animation: shimmer 1.2s ease infinite alternate;
 }
 .feed-skeleton-body {
   height: 100px;
-  background: #e2e8f0;
+  background: var(--bg-border);
   border-radius: 10px;
   animation: shimmer 1.2s ease infinite alternate;
 }
@@ -284,15 +284,15 @@
 .feed-empty {
   text-align: center;
   padding: 60px 20px;
-  background: #fff;
+  background: var(--bg-surface);
   border-radius: 18px;
-  border: 1px dashed #e2e8f0;
+  border: 1px dashed var(--bg-border);
 }
 .feed-empty-icon { font-size: 52px; margin-bottom: 12px; }
-.feed-empty-title { font-family: 'Rajdhani', sans-serif; font-weight: 900; font-size: 22px; color: #0f172a; margin-bottom: 6px; }
-.feed-empty-sub { font-size: 14px; color: #94a3b8; font-weight: 600; margin-bottom: 20px; }
+.feed-empty-title { font-family: 'Rajdhani', sans-serif; font-weight: 900; font-size: 22px; color: var(--text-primary); margin-bottom: 6px; }
+.feed-empty-sub { font-size: 14px; color: var(--text-muted); font-weight: 600; margin-bottom: 20px; }
 .feed-empty-btn {
-  background: linear-gradient(135deg, #0ea5e9, #0284c7);
+  background: linear-gradient(135deg, var(--color-primary), var(--hover-primary));
   color: #fff;
   border: none;
   border-radius: 12px;
@@ -301,7 +301,7 @@
   font-weight: 900;
   font-family: 'Rajdhani', sans-serif;
   cursor: pointer;
-  box-shadow: 0 4px 14px rgba(14,165,233,0.30);
+  box-shadow: 0 4px 14px rgba(255, 107, 53, 0.30);
 }
 
 /* ── Error banner ────────────────────────────────────────────── */
@@ -336,7 +336,7 @@
 @keyframes overlayIn { from { opacity: 0; } to { opacity: 1; } }
 
 .feed-modal {
-  background: #fff;
+  background: var(--bg-surface);
   border-radius: 24px 24px 0 0;
   padding: 24px 20px 40px;
   width: 100%;
@@ -357,14 +357,14 @@
   font-family: 'Rajdhani', sans-serif;
   font-weight: 900;
   font-size: 20px;
-  color: #0f172a;
+  color: var(--text-primary);
 }
 .feed-modal-close {
   width: 32px; height: 32px;
   border-radius: 50%;
   border: none;
-  background: #f1f5f9;
-  color: #64748b;
+  background: var(--bg-elevated);
+  color: var(--text-muted);
   font-size: 14px;
   cursor: pointer;
   display: flex;
@@ -372,7 +372,7 @@
   justify-content: center;
   transition: background 0.15s;
 }
-.feed-modal-close:hover { background: #e2e8f0; }
+.feed-modal-close:hover { background: var(--bg-border); }
 
 .feed-modal-author {
   display: flex;
@@ -383,7 +383,7 @@
 .feed-modal-author-name {
   font-weight: 900;
   font-size: 15px;
-  color: #0f172a;
+  color: var(--text-primary);
 }
 
 /* Type selector */
@@ -396,11 +396,11 @@
 .feed-type-btn {
   padding: 7px 12px;
   border-radius: 20px;
-  border: 1.5px solid #e2e8f0;
-  background: #fff;
+  border: 1.5px solid var(--bg-border);
+  background: var(--bg-surface);
   font-size: 12px;
   font-weight: 800;
-  color: #64748b;
+  color: var(--text-muted);
   cursor: pointer;
   font-family: 'Nunito', sans-serif;
   transition: all 0.15s;
@@ -411,43 +411,43 @@
 .feed-caption-input {
   width: 100%;
   padding: 14px 16px;
-  border: 1.5px solid #e2e8f0;
+  border: 1.5px solid var(--bg-border);
   border-radius: 14px;
   font-size: 15px;
   font-family: 'Nunito', sans-serif;
   font-weight: 600;
-  color: #0f172a;
+  color: var(--text-primary);
   resize: none;
   outline: none;
   line-height: 1.6;
   transition: border-color 0.15s;
   margin-bottom: 4px;
 }
-.feed-caption-input:focus { border-color: #0ea5e9; }
+.feed-caption-input:focus { border-color: var(--color-primary); }
 .feed-char-count {
   text-align: right;
   font-size: 11px;
-  color: #94a3b8;
+  color: var(--text-muted);
   font-weight: 700;
   margin-bottom: 12px;
 }
 
 /* Image upload */
 .feed-image-upload {
-  border: 2px dashed #e2e8f0;
+  border: 2px dashed var(--bg-border);
   border-radius: 14px;
   overflow: hidden;
   cursor: pointer;
   margin-bottom: 16px;
   transition: border-color 0.15s;
 }
-.feed-image-upload:hover { border-color: #0ea5e9; }
+.feed-image-upload:hover { border-color: var(--color-primary); }
 .feed-upload-placeholder {
   padding: 28px;
   text-align: center;
 }
 .feed-upload-icon { font-size: 32px; margin-bottom: 8px; }
-.feed-upload-text { font-size: 13px; color: #94a3b8; font-weight: 700; }
+.feed-upload-text { font-size: 13px; color: var(--text-muted); font-weight: 700; }
 .feed-image-preview-wrap { position: relative; }
 .feed-image-preview {
   width: 100%;
@@ -485,7 +485,7 @@
 .feed-submit-btn {
   width: 100%;
   padding: 15px;
-  background: linear-gradient(135deg, #0ea5e9, #0284c7);
+  background: linear-gradient(135deg, var(--color-primary), var(--hover-primary));
   color: #fff;
   border: none;
   border-radius: 14px;
@@ -494,7 +494,7 @@
   font-family: 'Rajdhani', sans-serif;
   letter-spacing: 0.05em;
   cursor: pointer;
-  box-shadow: 0 4px 18px rgba(14,165,233,0.30);
+  box-shadow: 0 4px 18px rgba(255, 107, 53, 0.30);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -502,11 +502,11 @@
   transition: all 0.2s;
 }
 .feed-submit-btn:disabled { opacity: 0.6; cursor: not-allowed; box-shadow: none; }
-.feed-submit-btn:not(:disabled):hover { transform: translateY(-1px); box-shadow: 0 6px 22px rgba(14,165,233,0.40); }
+.feed-submit-btn:not(:disabled):hover { transform: translateY(-1px); box-shadow: 0 6px 22px rgba(255, 107, 53, 0.40); }
 
 /* ── Comments sheet ───────────────────────────────────────────── */
 .feed-comments-sheet {
-  background: #fff;
+  background: var(--bg-surface);
   border-radius: 24px 24px 0 0;
   width: 100%;
   max-width: 640px;
@@ -547,7 +547,7 @@
 
 .feed-comment-body {
   flex: 1;
-  background: #f1f5f9;
+  background: var(--bg-elevated);
   padding: 10px 14px;
   border-radius: 0 16px 16px 16px;
 }
@@ -555,35 +555,35 @@
 .feed-comment-author {
   font-size: 13px;
   font-weight: 900;
-  color: #0f172a;
+  color: var(--text-primary);
   margin-bottom: 2px;
 }
 
 .feed-comment-time {
   font-weight: 600;
-  color: #94a3b8;
+  color: var(--text-muted);
   font-size: 11px;
 }
 
 .feed-comment-text {
   font-size: 14px;
-  color: #334155;
+  color: var(--text-secondary);
   line-height: 1.5;
   font-weight: 600;
 }
 
 .feed-comment-input-wrap {
   padding: 16px 20px 30px;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid var(--bg-border);
   display: flex;
   gap: 10px;
-  background: #fff;
+  background: var(--bg-surface);
 }
 
 .feed-comment-input {
   flex: 1;
-  background: #f8fafc;
-  border: 1.5px solid #e2e8f0;
+  background: var(--bg-page);
+  border: 1.5px solid var(--bg-border);
   border-radius: 12px;
   padding: 10px 16px;
   font-size: 14px;
@@ -593,7 +593,7 @@
 }
 
 .feed-comment-send {
-  background: #0ea5e9;
+  background: var(--color-primary);
   color: #fff;
   border: none;
   width: 40px;
@@ -609,7 +609,7 @@
 .feed-comments-empty {
   text-align: center;
   padding: 60px 20px;
-  color: #94a3b8;
+  color: var(--text-muted);
   font-size: 14px;
   font-weight: 600;
 }
@@ -622,12 +622,12 @@
 
 .feed-spinner.dark {
   border-color: rgba(14, 165, 233, 0.1);
-  border-top-color: #0ea5e9;
+  border-top-color: var(--color-primary);
 }
 
 /* ── Share sheet ─────────────────────────────────────────────── */
 .feed-share-sheet {
-  background: #fff;
+  background: var(--bg-surface);
   border-radius: 24px 24px 0 0;
   padding: 24px 20px 40px;
   width: 100%;
@@ -636,10 +636,10 @@
 }
 .feed-share-preview {
   padding: 14px 16px;
-  background: #f8fafc;
+  background: var(--bg-page);
   border-radius: 12px;
   font-size: 14px;
-  color: #64748b;
+  color: var(--text-muted);
   font-weight: 600;
   line-height: 1.6;
   margin-bottom: 20px;
@@ -662,7 +662,7 @@
   border-radius: 12px;
   transition: background 0.15s;
 }
-.feed-share-option:hover { background: #f1f5f9; }
+.feed-share-option:hover { background: var(--bg-elevated); }
 .feed-share-icon {
   width: 52px; height: 52px;
   border-radius: 14px;
@@ -677,7 +677,7 @@
 .feed-share-label {
   font-size: 12px;
   font-weight: 800;
-  color: #334155;
+  color: var(--text-secondary);
   font-family: 'Nunito', sans-serif;
 }
 

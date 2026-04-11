@@ -208,11 +208,14 @@ function Scorecard({ d }: { d: Details }) {
   return (
     <div className="md-table">
       <div className="md-table-title">Match Scorecard</div>
-      <div className="md-table-head">
-        <div className="md-th player">Player</div><div className="md-th small">Pts</div>
+      <div className="md-tr" style={{ borderBottom: '2px solid var(--bg-border)', paddingBottom: '12px' }}>
+        <div className="md-th">Player</div>
+        <div className="md-th">Pts</div>
       </div>
       {allPlayers.length === 0 ? (
-        <div style={{ padding: 20, textAlign: 'center', color: '#64748b' }}>No points recorded for players yet.</div>
+        <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-muted)', fontSize: '14px', fontWeight: 600 }}>
+          No points recorded for players yet.
+        </div>
       ) : allPlayers.map(p=>(
         <div key={p.id} className="md-tr">
           <div className="md-td player">
@@ -276,7 +279,7 @@ export default function MatchDetailsPage() {
       if (!data && id.match(/^[0-9a-fA-F-]{36}$/)) {
         const { data: dbMatch } = await supabase
           .from('kabaddi_matches')
-          .select('*')
+          .select('id, status, home_score, guest_score, period, created_at, team_home_id, team_guest_id, home_team_name, guest_team_name')
           .eq('id', id)
           .maybeSingle();
         
@@ -296,6 +299,7 @@ export default function MatchDetailsPage() {
               time: '40:00'
             },
             events: [],
+            startsAt: dbMatch.created_at || undefined,
             stats: {
               raidPointsA: 0, raidPointsB: 0, tacklePointsA: 0, tacklePointsB: 0,
               allOutsA: 0, allOutsB: 0, superRaidsA: 0, superRaidsB: 0,

@@ -28,7 +28,10 @@ alter table profiles add column if not exists state text;
 alter table profiles add column if not exists avatar_url text;
 alter table profiles add column if not exists date_of_birth date;
 alter table profiles add column if not exists is_profile_complete boolean not null default false;
+alter table profiles add column if not exists subscription_tier text default 'free';
+alter table profiles add column if not exists subscription_status text default 'active';
 alter table profiles add column if not exists created_at timestamptz not null default now();
+
 alter table profiles add column if not exists updated_at timestamptz not null default now();
 
 alter table profiles enable row level security;
@@ -101,25 +104,64 @@ create table if not exists tournaments (
   level text,
   format text,
   join_code text unique,
-  organizer_id uuid references users(id)
+  organizer_id uuid references users(id),
+  
+  -- Missing Config Columns
+  contact_phone text,
+  organizer_name text,
+  created_by uuid,
+  city_state text,
+  all_out_points int default 2,
+  raid_timer int default 30,
+  players_on_court int default 7,
+  squad_size int default 12,
+  half_duration int default 20,
+  do_or_die boolean default true,
+  courts int default 1,
+  super_tackle boolean default true,
+  bonus_line boolean default true,
+  entry_fee text,
+  prize text,
+  setup_status jsonb default '{}'::jsonb
 );
+
+-- Ensure match_scorers exists (often used as alias for fixture_scorers)
+create table if not exists public.match_scorers (
+  match_id uuid references public.fixtures(id) on delete cascade,
+  user_id uuid references auth.users(id),
+  assigned_at timestamptz default now(),
+  status text,
+  primary key (match_id, user_id)
+);
+
+-- Note: `match_scorers` and `fixture_scorers` are logically similar. 
+-- In this app, `fixture_scorers` is preferred for consistency with the component names.
+
+
 
 create table if not exists teams (
   id uuid primary key default gen_random_uuid(),
   tournament_id uuid references tournaments(id) on delete cascade,
   name text not null,
+  slug text unique,
+  city text,
   short text,
+  logo text,
   color text,
   status text
 );
+
 
 create table if not exists players (
   id uuid primary key default gen_random_uuid(),
   team_id uuid references teams(id) on delete cascade,
   name text not null,
+  slug text unique,
   role text,
-  number int
+  number int,
+  photo text
 );
+
 
 create table if not exists fixtures (
   id uuid primary key default gen_random_uuid(),
@@ -146,6 +188,83 @@ create table if not exists events (
   type text not null,
   payload jsonb
 );
+
+-- 14. Kabaddi Live Scoring Tables
+create table if not exists public.kabaddi_matches (
+  id uuid primary key references public.fixtures(id) on delete cascade,
+  home_score int default 0,
+  guest_score int default 0,
+  raid_number int default 0,
+  current_time int default 1200, -- 20 mins in seconds
+  is_timer_running boolean default false,
+  status text default 'upcoming' check (status in ('upcoming', 'live', 'completed')),
+  updated_at timestamptz default now()
+);
+
+create table if not exists public.raid_events (
+  id uuid primary key default gen_random_uuid(),
+  match_id uuid references public.fixtures(id) on delete cascade not null,
+  raid_number int not null,
+  raider_id uuid references public.players(id) on delete cascade,
+  defending_team text check (defending_team in ('home', 'guest')),
+  points_scored int default 0,
+  touch_points int default 0,
+  is_bonus boolean default false,
+  is_super_raid boolean default false,
+  is_super_tackle boolean default false,
+  is_do_or_die boolean default false,
+  type text default 'raid' check (type in ('raid', 'tackle', 'empty', 'technical')),
+  defender_ids uuid[] default array[]::uuid[],
+  success boolean default true,
+  created_at timestamptz default now()
+);
+
+create table if not exists public.player_match_stats (
+  id uuid primary key default gen_random_uuid(),
+  player_id uuid references public.players(id) on delete cascade not null,
+  match_id uuid references public.fixtures(id) on delete cascade not null,
+  raids int default 0,
+  raid_pts int default 0, 
+  successful_raids int default 0,
+  empty_raids int default 0,
+  super_raids int default 0,
+  bonus_pts int default 0,     
+  tackles int default 0,
+  tackle_pts int default 0,
+  super_tackles int default 0,
+  total_pts int default 0,
+  created_at timestamptz default now(),
+  unique(player_id, match_id)
+);
+
+alter table public.kabaddi_matches enable row level security;
+alter table public.raid_events enable row level security;
+alter table public.player_match_stats enable row level security;
+
+create policy "Kabaddi matches are public" on public.kabaddi_matches for select using (true);
+create policy "Raid events are public" on public.raid_events for select using (true);
+create policy "Player stats are public" on public.player_match_stats for select using (true);
+
+create policy "Scorers can update match data"
+  on public.kabaddi_matches for update
+  using (
+    exists (
+      select 1 from public.fixture_scorers
+      where fixture_id = id
+      and user_id = auth.uid()
+    )
+  );
+
+create policy "Scorers can insert raid events"
+  on public.raid_events for insert
+  with check (
+    exists (
+      select 1 from public.fixture_scorers
+      where fixture_id = match_id
+      and user_id = auth.uid()
+    )
+  );
+
 
 -- 1. Create feed_posts table
 create table if not exists public.feed_posts (
@@ -332,3 +451,56 @@ alter table public.profiles add column if not exists role text;
 alter table public.profiles add column if not exists team_name text;
 alter table public.profiles add column if not exists jersey_number text;
 alter table public.profiles add column if not exists bio text;
+
+-- 13. Registration Requests Table
+create table if not exists public.registration_requests (
+  id uuid primary key default gen_random_uuid(),
+  tournament_id uuid references public.tournaments(id) on delete cascade not null,
+  user_id uuid references auth.users(id) on delete cascade not null,
+  team_name text not null,
+  team_short text,
+  team_color text,
+  captain_name text,
+  players jsonb default '[]',
+  status text default 'pending' check (status in ('pending', 'approved', 'rejected')),
+  created_at timestamptz default now() not null
+);
+
+alter table public.registration_requests enable row level security;
+
+create policy "Users can view their own registration requests"
+  on public.registration_requests for select
+  using (auth.uid() = user_id);
+
+create policy "Organizers can view requests for their tournaments"
+  on public.registration_requests for select
+  using (
+    exists (
+      select 1 from public.tournaments
+      where tournaments.id = tournament_id
+      and tournaments.organizer_id = auth.uid()
+    )
+  );
+
+create policy "Authenticated users can submit registration requests"
+  on public.registration_requests for insert
+  with check (auth.uid() = user_id);
+
+create policy "Organizers can update request status"
+  on public.registration_requests for update
+  using (
+    exists (
+      select 1 from public.tournaments
+      where tournaments.id = tournament_id
+      and tournaments.organizer_id = auth.uid()
+    )
+  );
+
+-- MIGRATION SCRIPT (Run this if database is already created)
+-- ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS subscription_tier text DEFAULT 'free';
+-- ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS subscription_status text DEFAULT 'active';
+-- ALTER TABLE public.teams ADD COLUMN IF NOT EXISTS slug text UNIQUE;
+-- ALTER TABLE public.teams ADD COLUMN IF NOT EXISTS city text;
+-- ALTER TABLE public.teams ADD COLUMN IF NOT EXISTS logo text;
+-- ALTER TABLE public.players ADD COLUMN IF NOT EXISTS slug text UNIQUE;
+-- ALTER TABLE public.players ADD COLUMN IF NOT EXISTS photo text;

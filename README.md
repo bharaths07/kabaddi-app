@@ -58,4 +58,18 @@ Copy `.env.example` to `.env.local` (or `.env`) and fill these values before run
 
 ---
 
+## ⚡ Quick Start
+
+1. **Install Dependencies**: `npm install`
+2. **Setup Env**: Copy `.env.example` to `.env` and add your Supabase credentials.
+3. **Run Locally**: `npm run dev`
+4. **Build for Production**: `npm run build`
+
+## 🚀 Deployment (Vercel)
+
+The project is optimized for deployment on Vercel:
+1. Connect your GitHub repository to Vercel.
+2. Add your `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` as environment variables.
+3. Vercel will automatically use the `vercel.json` and build the project.
+
 _Built for the legends of Kabaddi._

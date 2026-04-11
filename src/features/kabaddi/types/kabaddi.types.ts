@@ -175,8 +175,11 @@ export interface ScoringUpdate {
     homeScore: number
     guestScore: number
     currentRaid: number
+    currentTime?: number
+    isTimerRunning?: boolean
   }
 }
+
 
 /**
  * Match Summary

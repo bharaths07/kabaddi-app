@@ -1,3 +1,18 @@
 /* App-specific overrides (optional) */
 /* Use sparingly; prefer tokens.css + global.css + components.css */
 
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  background-color: var(--bg-page);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.5;
+  background-image: url('/kabaddi_raider_silhouette_1775195699802.png');
+  background-repeat: repeat;
+  background-size: 400px;
+  background-attachment: fixed;
+  background-blend-mode: soft-light;
+  opacity: 0.98;
+}

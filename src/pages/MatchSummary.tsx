@@ -43,8 +43,7 @@ export default function MatchSummary() {
           .select(`
             id, home_score, guest_score, status, created_at,
             home_team:teams!team_home_id(id, name, short, color),
-            guest_team:teams!team_guest_id(id, name, short, color),
-            tournament:tournaments!tournament_id(name)
+            guest_team:teams!team_guest_id(id, name, short, color)
           `)
           .eq('id', id)
           .maybeSingle()
@@ -52,7 +51,7 @@ export default function MatchSummary() {
         if (matchData) {
           setMatch({
             id: matchData.id,
-            tournament_name: (matchData.tournament as any)?.name || 'Standalone Match',
+            tournament_name: 'Standalone Match',
             home_team: (matchData.home_team as any),
             guest_team: (matchData.guest_team as any),
             home_score: matchData.home_score || 0,

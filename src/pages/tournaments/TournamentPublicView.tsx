@@ -7,6 +7,10 @@ import {
   TTeam,
   TFixture,
 } from "../../features/kabaddi/state/tournamentStore";
+import { supabase } from "../../shared/lib/supabase";
+import { useAuth } from "../../shared/context/AuthContext";
+import TeamRegistrationModal from "../../features/kabaddi/components/modals/TeamRegistrationModal";
+import "./tournament-public.css";
 
 // ── Helpers ──────────────────────────────────────────────────────
 function fmtDate(d: string | null | undefined) {
@@ -100,17 +104,49 @@ export default function TournamentPublicView() {
   const [tournament, setTournament] = useState<Tournament | null>(null);
   const [loading,    setLoading]    = useState(true);
   const [matchTab,   setMatchTab]   = useState<"upcoming" | "live" | "completed">("upcoming");
+  const [showReg,    setShowReg]    = useState(false);
+  const [regSuccess, setRegSuccess] = useState(false);
+  const { user } = useAuth();
 
   useEffect(() => {
-    if (!id) { setLoading(false); return; }
-    const t = getTournament(id);
-    setTournament(t);
-    if (t) {
-      if (t.fixtures.some(f => f.status === "live")) setMatchTab("live");
-      else if (t.fixtures.some(f => f.status === "scheduled")) setMatchTab("upcoming");
+    async function load() {
+      if (!id) { setLoading(false); return; }
+      
+      // 1. Try Local
+      const t = getTournament(id);
+      if (t) {
+        setTournament(t);
+        updateTabs(t);
+        setLoading(false);
+        return;
+      }
+
+      // 2. Try Supabase
+      const { data: dbT } = await supabase.from('tournaments').select('*').eq('id', id).single();
+      if (dbT) {
+        const fullT: Tournament = {
+          ...dbT,
+          startDate: dbT.start_date || dbT.startDate,
+          endDate: dbT.end_date || dbT.endDate,
+          cityState: dbT.city_state || dbT.cityState,
+          teams: [], // We'd need to fetch these related records for a full hydrate
+          fixtures: [],
+          groups: [],
+          rounds: [],
+          createdAt: dbT.created_at || new Date().toISOString()
+        } as any;
+        setTournament(fullT);
+      }
+      setLoading(false);
+    }
+
+    function updateTabs(t: any) {
+      if (t.fixtures.some((f: any) => f.status === "live")) setMatchTab("live");
+      else if (t.fixtures.some((f: any) => f.status === "scheduled")) setMatchTab("upcoming");
       else setMatchTab("completed");
     }
-    setLoading(false);
+
+    load();
   }, [id]);
 
   if (loading) return (
@@ -144,13 +180,37 @@ export default function TournamentPublicView() {
           <div>
             <h1 className="pv-name">{tournament.name}</h1>
             <p className="pv-venue">📍 {tournament.venue || tournament.cityState} · {fmtDate(tournament.startDate)} – {fmtDate(tournament.endDate)}</p>
-            <div className="pv-badges">
-              <StatusBadge status={tournament.status} />
-              <span className="pv-badge">{tournament.format}</span>
-              <span className="pv-badge">{teams.length} Teams</span>
-            </div>
+            <div className="tp-hero-badges">
+            <span className={`tp-status tp-status--${tournament.status}`}>{tournament.status.toUpperCase()}</span>
+            <span>{tournament.format.replace('_', ' ').toUpperCase()}</span>
           </div>
+          
+          {(tournament.status === 'registration' || tournament.status === 'draft') && (
+            <div className="tp-action-row">
+              {regSuccess ? (
+                <div className="tp-success-badge">✅ Application Submitted!</div>
+              ) : (
+                <button className="tp-apply-btn" onClick={() => setShowReg(true)}>
+                  Apply to Join Tournament →
+                </button>
+              )}
+            </div>
+          )}
         </div>
+      </div>
+
+      {showReg && (
+        <TeamRegistrationModal 
+          tournamentId={tournament.id}
+          tournamentName={tournament.name}
+          onClose={() => setShowReg(false)}
+          onSuccess={() => {
+            setShowReg(false);
+            setRegSuccess(true);
+            setTimeout(() => setRegSuccess(false), 5000);
+          }}
+        />
+      )}
         {tournament.organizer && (
           <p className="pv-organizer">Organized by <strong>{tournament.organizer}</strong></p>
         )}

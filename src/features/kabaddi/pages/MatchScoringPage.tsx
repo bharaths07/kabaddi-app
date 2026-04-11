@@ -4,6 +4,7 @@ import KabaddiLiveScorer from '../components/scorers/KabaddiLiveScorer'
 import { getCurrentMatch } from '../state/matchStore'
 import { useAuth } from '../../../shared/context/AuthContext'
 import { useRole } from '../../../shared/hooks/useRole'
+import { supabase } from '../../../shared/lib/supabase'
 
 export default function MatchScoringPage() {
   const { id } = useParams()
@@ -13,52 +14,71 @@ export default function MatchScoringPage() {
   const [matchData, setMatchDetails] = useState<any>(null)
 
   useEffect(() => {
-    // 1. Try to get real-time match from local state (match creation flow)
-    const m = getCurrentMatch()
-    
-    if (m && m.id === id) {
-      setMatchDetails({
-        id: m.id,
-        owner_id: user?.id || 'local_owner', // Creators of local drafts are implicitly the owner
-        scorer_id: m.scorer_id,
-        tournament_organizer_id: m.tournament_organizer_id,
-        homeTeam: { 
-          name: m.playersA?.[0]?.name ? (m.teamAId || 'Team A') : 'Home Team', 
-          short: 'A', 
-          color: '#ef4444',
-          squad: m.playersA?.map(p => ({ 
-            id: p.id, 
-            name: p.name, 
-            jerseyNumber: p.jerseyNumber, 
-            role: p.isCaptain ? 'captain' : 'player' 
-          })) 
-        },
-        guestTeam: { 
-          name: m.playersB?.[0]?.name ? (m.teamBId || 'Team B') : 'Guest Team', 
-          short: 'B', 
-          color: '#0ea5e9',
-          squad: m.playersB?.map(p => ({ 
-            id: p.id, 
-            name: p.name, 
-            jerseyNumber: p.jerseyNumber, 
-            role: p.isCaptain ? 'captain' : 'player' 
-          })) 
-        },
-        periodMins: m.config?.halfDurationMinutes || 20
-      })
-      setLoading(false)
-    } else {
-      // 2. Fallback: Mock data (In a real app, fetch from Supabase by ID)
-      // Since this is a fallback mock from a shareable link, it has no owner, meaning 'viewer' role!
-      setMatchDetails({
-        id: id,
-        owner_id: 'mock_owner_id_999', 
-        homeTeam: { name: 'Home Team', short: 'HT', color: '#ef4444' },
-        guestTeam: { name: 'Guest Team', short: 'GT', color: '#0ea5e9' },
-        periodMins: 20
-      })
+    async function loadMatch() {
+      setLoading(true)
+      
+      // 1. Try to get from local state first (for immediate navigation after creation)
+      const m = getCurrentMatch()
+      if (m && m.id === id) {
+        setMatchDetails({
+          id: m.id,
+          owner_id: user?.id || 'local_owner',
+          homeTeam: { 
+            name: m.playersA?.[0]?.name ? (m.teamAId || 'Team A') : 'Home Team', 
+            squad: m.playersA?.map(p => ({ id: p.id, name: p.name, jerseyNumber: p.jerseyNumber, role: p.isCaptain ? 'captain' : 'player' })) 
+          },
+          guestTeam: { 
+            name: m.playersB?.[0]?.name ? (m.teamBId || 'Team B') : 'Guest Team', 
+            squad: m.playersB?.map(p => ({ id: p.id, name: p.name, jerseyNumber: p.jerseyNumber, role: p.isCaptain ? 'captain' : 'player' })) 
+          },
+          periodMins: m.config?.halfDurationMinutes || 20
+        })
+        setLoading(false)
+        return
+      }
+
+      // 2. Fetch from Supabase
+      const { data: dbMatch, error } = await supabase
+        .from('kabaddi_matches')
+        .select(`
+          id, status, home_score, guest_score, period, created_by, owner_id,
+          home_team:teams!team_home_id(id, name, color, players(*)),
+          guest_team:teams!team_guest_id(id, name, color, players(*))
+        `)
+        .eq('id', id)
+        .single()
+
+      if (dbMatch && !error) {
+        setMatchDetails({
+          id: dbMatch.id,
+          owner_id: dbMatch.owner_id || dbMatch.created_by,
+          homeTeam: {
+            name: dbMatch.home_team?.name || dbMatch.home_team_name,
+            color: dbMatch.home_team?.color || '#ef4444',
+            squad: (dbMatch.home_team?.players || []).map((p: any) => ({
+              id: p.id,
+              name: p.name,
+              jerseyNumber: p.number || p.jersey_number || 0,
+              role: p.role || 'player'
+            }))
+          },
+          guestTeam: {
+            name: dbMatch.guest_team?.name || dbMatch.guest_team_name,
+            color: dbMatch.guest_team?.color || '#0ea5e9',
+            squad: (dbMatch.guest_team?.players || []).map((p: any) => ({
+              id: p.id,
+              name: p.name,
+              jerseyNumber: p.number || p.jersey_number || 0,
+              role: p.role || 'player'
+            }))
+          },
+          periodMins: 20 // Default or from tournament config
+        })
+      }
       setLoading(false)
     }
+
+    if (id) loadMatch()
   }, [id, user?.id])
 
   const { canScore } = useRole(matchData)

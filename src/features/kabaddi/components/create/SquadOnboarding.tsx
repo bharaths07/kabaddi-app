@@ -184,9 +184,9 @@ export default function PlayerLineupScreen() {
     return (
         <div className="cm-page">
             <div className="cm-header">
-                <button className="cm-back" onClick={() => navigate('/kabaddi/create/setup')}>← Back</button>
-                <div className="cm-header-title">Player Lineup</div>
-                <div className="cm-step-badge">3 of 4</div>
+                <button className="cm-back" onClick={() => navigate('/kabaddi/create/setup')}>BACK</button>
+                <div className="cm-header-title">Squad Selection</div>
+                <div className="cm-step-badge">STEP 3/4</div>
             </div>
 
             <div className="cm-steps">
@@ -207,12 +207,12 @@ export default function PlayerLineupScreen() {
                         <button
                             key={t}
                             className={`cm-team-tab ${activeTeam === t ? 'active' : ''}`}
-                            style={activeTeam === t ? { borderBottomColor: tm?.color || '#0ea5e9' } : {}}
+                            style={activeTeam === t ? { borderBottomColor: tm?.color || 'var(--color-primary)' } : {}}
                             onClick={() => setActiveTeam(t)}
                         >
-                            <span className="cm-team-tab-name">{tm?.name || `Team ${t}`}</span>
-                            <span className={`cm-team-tab-count ${sc === 7 ? 'full' : ''}`}>
-                                {sc}/7 starters
+                            <span className="cm-team-tab-name" style={activeTeam === t ? { color: 'var(--text-primary)' } : {}}>{tm?.name || `Team ${t}`}</span>
+                            <span className={`cm-team-tab-count ${sc === 7 ? 'full' : ''}`} style={sc === 7 && activeTeam === t ? { color: 'var(--color-green)' } : {}}>
+                                {sc}/7 STARTERS
                             </span>
                         </button>
                     )
@@ -220,17 +220,17 @@ export default function PlayerLineupScreen() {
             </div>
 
             {/* Counter bar */}
-            <div className="cm-lineup-bar">
+            <div className="cm-lineup-bar" style={{animation: 'fadeIn 0.5s ease-out'}}>
                 <div className="cm-lineup-stat">
-                    <span className="cm-lineup-stat-num" style={{ color: starters.size === 7 ? '#16a34a' : '#0ea5e9' }}>
-                        {starters.size}/7
+                    <span className="cm-lineup-stat-num" style={{ color: starters.size === 7 ? 'var(--color-green)' : 'var(--color-primary)' }}>
+                        {starters.size} <span style={{fontSize: '14px', color: 'var(--text-muted)'}}>/ 7</span>
                     </span>
-                    <span className="cm-lineup-stat-label">Starters</span>
+                    <span className="cm-lineup-stat-label">Starting 7</span>
                 </div>
                 <div className="cm-lineup-divider" />
                 <div className="cm-lineup-stat">
-                    <span className="cm-lineup-stat-num" style={{ color: '#7c3aed' }}>
-                        {subs.size}/5
+                    <span className="cm-lineup-stat-num" style={{ color: 'var(--color-purple)' }}>
+                        {subs.size} <span style={{fontSize: '14px', color: 'var(--text-muted)'}}>/ 5</span>
                     </span>
                     <span className="cm-lineup-stat-label">Substitutes</span>
                 </div>
@@ -238,7 +238,7 @@ export default function PlayerLineupScreen() {
                     className="cm-add-player-btn"
                     onClick={() => activeTeam === 'A' ? setShowAddA(true) : setShowAddB(true)}
                 >
-                    + Add Player
+                    + NEW PLAYER
                 </button>
             </div>
 
@@ -269,10 +269,10 @@ export default function PlayerLineupScreen() {
                         </button>
                     </div>
                 ) : (
-                    <div className="cm-player-list">
+                    <div className="cm-player-list" key={activeTeam} style={{animation: 'fadeInUp 0.5s ease-out'}}>
                         {/* Starters section */}
                         {players.filter(p => starters.has(p.id)).length > 0 && (
-                            <div className="cm-player-section-label">Starting 7</div>
+                            <div className="cm-player-section-label">THE STARTING SEVEN</div>
                         )}
                         {players.filter(p => starters.has(p.id)).map(p => (
                             <PlayerRow key={p.id} player={p} state="starter"
@@ -280,7 +280,7 @@ export default function PlayerLineupScreen() {
                         ))}
                         {/* Subs section */}
                         {players.filter(p => subs.has(p.id)).length > 0 && (
-                            <div className="cm-player-section-label">Substitutes</div>
+                            <div className="cm-player-section-label">SUBSTITUTE BENCH</div>
                         )}
                         {players.filter(p => subs.has(p.id)).map(p => (
                             <PlayerRow key={p.id} player={p} state="sub"
@@ -288,7 +288,7 @@ export default function PlayerLineupScreen() {
                         ))}
                         {/* Bench */}
                         {players.filter(p => !starters.has(p.id) && !subs.has(p.id)).length > 0 && (
-                            <div className="cm-player-section-label">Available</div>
+                            <div className="cm-player-section-label">RESERVE PLAYERS</div>
                         )}
                         {players.filter(p => !starters.has(p.id) && !subs.has(p.id)).map(p => (
                             <PlayerRow key={p.id} player={p} state="bench"
@@ -301,8 +301,8 @@ export default function PlayerLineupScreen() {
             <div className="cm-footer">
                 {!canProceed && (
                     <div className="cm-footer-hint">
-                        {startersA.size < 7 && `${state?.teamA?.name}: need ${7 - startersA.size} more starters`}
-                        {startersA.size === 7 && startersB.size < 7 && `${state?.teamB?.name}: need ${7 - startersB.size} more starters`}
+                        {startersA.size < 7 && `${state?.teamA?.name}: Select ${7 - startersA.size} more starters`}
+                        {startersA.size === 7 && startersB.size < 7 && `${state?.teamB?.name}: Select ${7 - startersB.size} more starters`}
                     </div>
                 )}
                 <button
@@ -310,7 +310,7 @@ export default function PlayerLineupScreen() {
                     disabled={!canProceed}
                     onClick={handleNext}
                 >
-                    Next: Toss →
+                    Finalize Lineups 🛡️
                 </button>
             </div>
         </div>

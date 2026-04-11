@@ -1,12 +1,14 @@
 import React from 'react'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { useLayout } from './LayoutContext'
+import { useKabaddiStore } from '../../stores/useKabaddiStore'
 import './layout.css'
 
 export default function TopNav() {
   const { toggleSidebar } = useLayout()
   const location = useLocation()
   const navigate = useNavigate()
+  const { setSearchOpen } = useKabaddiStore()
 
   // Define sub-pages that should show a back button instead of the logo
   const subPagePaths = [
@@ -28,7 +30,8 @@ export default function TopNav() {
     '/scorer/',
     '/key-stats',
     '/news',
-    '/feed'
+    '/feed',
+    '/search'
   ]
 
   const isSubPage = subPagePaths.some(p => location.pathname.startsWith(p)) && location.pathname !== '/'
@@ -50,7 +53,7 @@ export default function TopNav() {
         </div>
         {!isSubPage && (
           <div className="gl-icons">
-            <span style={{ cursor: 'pointer' }}>🔍</span>
+            <button onClick={() => setSearchOpen(true)} style={{ background: 'none', border: 'none', color: 'white', fontSize: '20px', cursor: 'pointer', outline: 'none' }} title="Search">🔍</button>
             <Link to="/notifications" style={{ color: 'white', textDecoration: 'none' }}>🔔</Link>
             <button className="gl-menu" aria-label="Toggle menu" onClick={toggleSidebar}>☰</button>
           </div>

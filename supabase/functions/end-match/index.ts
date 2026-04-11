@@ -1,5 +1,12 @@
-import { serve } from "https://deno.land/std@0.192.0/http/server.ts"
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
+/// <reference path="../deno.d.ts" />
+/// <reference no-default-lib="true" />
+
+/// <reference lib="dom" />
+/// <reference lib="dom.iterable" />
+/// <reference lib="dom.asynciterable" />
+
+import { serve } from "std/http/server.ts"
+import { createClient } from "supabase"
 
 const json = (body: Record<string, unknown>, status = 200) =>
   new Response(JSON.stringify(body), {
@@ -7,7 +14,7 @@ const json = (body: Record<string, unknown>, status = 200) =>
     status,
   })
 
-serve(async (req) => {
+serve(async (req: Request) => {
   try {
     const body = await req.json().catch(() => null)
     const matchId = body?.matchId as string | undefined

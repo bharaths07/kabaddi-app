@@ -1,46 +1,202 @@
-/* matches.css — For the Matches Screen alongside SVG Design */
+/* matches.css — Pro Level Design Overhaul */
 
-.mx-header {
-  padding: 24px 20px 16px;
+.mx-overhaul {
+  --orange:       #F07800;
+  --orange-light: #FFF3E5;
+  --orange-mid:   #FFE0B8;
+  --orange-dark:  #C05E00;
+  --bg:           #F6F4F0;
+  --white:        #FFFFFF;
+  --surface:      #FAFAF8;
+  --border:       #E8E4DC;
+  --border-strong:#D4CEBC;
+  --text:         #1A1714;
+  --muted:        #7A746A;
+  --subtle:       #B0A89C;
+  --live-red:     #D93025;
+  --green:        #1A7F37;
+  --green-bg:     #EAF5EC;
+  --blue:         #1558A8;
+  --blue-bg:      #EAF0FB;
+
+  font-family: 'Barlow', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: calc(100vh - 62px);
+  padding-bottom: 2rem;
 }
-.mx-title {
-  margin: 0;
-  font-size: 24px;
-  font-family: 'Nunito', sans-serif;
+
+/* ── HEADER ── */
+.mx-overhaul .mx-header {
+  background: var(--orange);
+  padding: 3rem 2.5rem 1.5rem;
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+}
+
+.mx-overhaul .mx-header::before {
+  content: '';
+  position: absolute; top: -40px; right: -40px;
+  width: 300px; height: 300px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 50%;
+}
+
+.mx-overhaul .mx-header-content { position: relative; z-index: 2; }
+
+.mx-overhaul h1 {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 3rem;
   font-weight: 900;
-  color: #000000;
-  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.5rem;
 }
 
-.mx-tabs {
+.mx-overhaul .mx-header-sub {
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.8);
+}
+
+/* ── TABS ── */
+.mx-overhaul .mx-tabs {
+  background: var(--white);
+  padding: 1.25rem 2.5rem;
+  border-bottom: 1.5px solid var(--border);
   display: flex;
-  gap: 12px;
-  padding: 0 20px 16px;
+  gap: 1rem;
   overflow-x: auto;
   scrollbar-width: none;
+  position: sticky; top: 0; z-index: 50;
 }
-.mx-tabs::-webkit-scrollbar { display: none; }
+.mx-overhaul .mx-tabs::-webkit-scrollbar { display: none; }
 
-.mx-tab {
-  background: #f1f5f9;
-  border: 1px solid transparent;
-  color: #64748b;
+.mx-overhaul .mx-tab {
+  padding: 0.6rem 1.5rem;
   border-radius: 20px;
-  padding: 8px 16px;
-  font-size: 13px;
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  font-family: 'Barlow', sans-serif;
+  font-size: 0.85rem; font-weight: 800;
+  color: var(--muted);
   cursor: pointer;
-  font-weight: 800;
-  font-family: 'Nunito', sans-serif;
   transition: all 0.2s;
   white-space: nowrap;
 }
-.mx-tab:hover {
-  background: #e2e8f0;
-  color: #334155;
+.mx-overhaul .mx-tab:hover { border-color: var(--orange); color: var(--orange); }
+.mx-overhaul .mx-tab.active {
+  background: var(--orange);
+  color: #fff;
+  border-color: var(--orange);
+  box-shadow: 0 4px 12px rgba(240,120,0,0.2);
 }
-.mx-tab.active {
-  background: #333333;
-  color: #ffffff;
-  border-color: #333333;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+
+/* ── MATCH CARDS ── */
+.mx-overhaul .mx-container {
+  max-width: 900px;
+  margin: 2rem auto;
+  padding: 0 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.mx-overhaul .mx-card {
+  background: var(--white);
+  border: 1.5px solid var(--border);
+  border-radius: 16px;
+  padding: 1.5rem;
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.2s;
+  display: block;
+  position: relative;
+  overflow: hidden;
+}
+.mx-overhaul .mx-card:hover { border-color: var(--orange); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.06); }
+
+/* Live Card Special */
+.mx-overhaul .mx-card.is-live { border-left: 6px solid var(--live-red); }
+
+.mx-overhaul .mx-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.8rem;
+  border-radius: 6px;
+  font-size: 0.7rem; font-weight: 800;
+  text-transform: uppercase; letter-spacing: 0.05em;
+  margin-bottom: 1.25rem;
+}
+.mx-overhaul .mx-badge.live { background: var(--live-red); color: #fff; }
+.mx-overhaul .mx-badge.upcoming { background: var(--blue-bg); color: var(--blue); }
+.mx-overhaul .mx-badge.completed { background: var(--green-bg); color: var(--green); }
+
+.mx-overhaul .mx-live-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: #fff; animation: mx-pulse 1s infinite alternate;
+}
+@keyframes mx-pulse { from { opacity: 0.4; } to { opacity: 1; } }
+
+.mx-overhaul .mx-teams-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.mx-overhaul .mx-team-block {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.mx-overhaul .mx-team-block.guest { align-items: flex-end; text-align: right; }
+
+.mx-overhaul .mx-team-name {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 1.5rem; font-weight: 800;
+  text-transform: uppercase; color: var(--text);
+  line-height: 1.1;
+}
+.mx-overhaul .mx-team-short { font-size: 0.8rem; font-weight: 700; color: var(--subtle); }
+
+.mx-overhaul .mx-score-block {
+  padding: 0 2rem;
+  text-align: center;
+}
+.mx-overhaul .mx-vs-label {
+  font-size: 0.7rem; font-weight: 900; color: var(--subtle);
+  margin-bottom: 0.25rem; display: block;
+}
+.mx-overhaul .mx-score-val {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 2.5rem; font-weight: 900;
+  color: var(--text); line-height: 1;
+}
+
+.mx-overhaul .mx-footer-row {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.mx-overhaul .mx-meta-item {
+  font-size: 0.75rem; font-weight: 700; color: var(--muted);
+  display: flex; align-items: center; gap: 0.4rem;
+}
+
+.mx-overhaul .mx-btn-link {
+  font-size: 0.8rem; font-weight: 800; color: var(--orange);
+}
+
+@media (max-width: 600px) {
+  .mx-overhaul .mx-team-name { font-size: 1.1rem; }
+  .mx-overhaul .mx-score-val { font-size: 1.8rem; }
+  .mx-overhaul .mx-score-block { padding: 0 1rem; }
 }

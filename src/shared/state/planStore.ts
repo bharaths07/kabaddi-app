@@ -1,4 +1,5 @@
-import { supabase } from '@shared/lib/supabase'
+import { supabase } from '../lib/supabase'
+
 
 export type Plan = 'free' | 'pro' | 'enterprise'
 
@@ -18,15 +19,29 @@ export function setPlan(p: Plan) {
 }
 
 export async function getUserPlan(): Promise<Plan> {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return 'free'
+  
   const { data } = await supabase
-    .from('users')
-    .select('plan')
-    .eq('id', (await supabase.auth.getUser()).data.user?.id)
+    .from('profiles')
+    .select('subscription_tier')
+    .eq('id', user.id)
     .single()
-  return (data?.plan as Plan) || 'free'
+    
+  return (data?.subscription_tier as Plan) || 'free'
 }
 
 export async function upgradePlan(plan: Plan) {
   const { data: { user } } = await supabase.auth.getUser()
-  await supabase.from('users').update({ plan }).eq('id', user!.id)
+  if (!user) return;
+  
+  await supabase
+    .from('profiles')
+    .update({ 
+      subscription_tier: plan,
+      subscription_status: 'active',
+      updated_at: new Date().toISOString()
+    })
+    .eq('id', user.id)
 }
+

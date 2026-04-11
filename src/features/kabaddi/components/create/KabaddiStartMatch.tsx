@@ -80,9 +80,9 @@ export default function MatchSetupScreen() {
   return (
     <div className="cm-page">
       <div className="cm-header">
-        <button className="cm-back" onClick={() => navigate('/kabaddi/create/teams')}>← Back</button>
+        <button className="cm-back" onClick={() => navigate('/kabaddi/create/teams')}>BACK</button>
         <div className="cm-header-title">Match Setup</div>
-        <div className="cm-step-badge">2 of 4</div>
+        <div className="cm-step-badge">STEP 2/4</div>
       </div>
 
       <div className="cm-steps">
@@ -96,17 +96,17 @@ export default function MatchSetupScreen() {
 
       {/* Team preview banner */}
       {state?.teamA && state?.teamB && (
-        <div className="cm-match-banner">
-          <div className="cm-banner-team" style={{ color: state.teamA.color }}>{state.teamA.name}</div>
-          <div className="cm-banner-vs">vs</div>
-          <div className="cm-banner-team" style={{ color: state.teamB.color }}>{state.teamB.name}</div>
+        <div className="cm-match-banner" style={{animation: 'fadeIn 0.8s ease-in-out'}}>
+          <div className="cm-banner-team" style={{ color: state.teamA.color, fontFamily: 'var(--font-display)', fontSize: 'var(--text-lg)' }}>{state.teamA.name}</div>
+          <div className="cm-banner-vs">VS</div>
+          <div className="cm-banner-team" style={{ color: state.teamB.color, fontFamily: 'var(--font-display)', fontSize: 'var(--text-lg)' }}>{state.teamB.name}</div>
         </div>
       )}
 
       <div className="cm-body">
         {/* Match title */}
-        <div className="cm-section">
-          <div className="cm-section-title">Match Title (optional)</div>
+        <div className="cm-section" style={{animation: 'fadeInUp 0.4s ease-out both'}}>
+          <div className="cm-section-title">Match Identity</div>
           <input
             className="cm-input"
             placeholder="e.g. KPL 2026 Quarter Final"
@@ -116,8 +116,8 @@ export default function MatchSetupScreen() {
         </div>
 
         {/* Match type */}
-        <div className="cm-section">
-          <div className="cm-section-title">Match Type</div>
+        <div className="cm-section" style={{animation: 'fadeInUp 0.4s ease-out 0.1s both'}}>
+          <div className="cm-section-title">Match Format</div>
           <div className="cm-type-grid">
             {TYPES.map(t => (
               <div
@@ -211,7 +211,7 @@ export default function MatchSetupScreen() {
 
       <div className="cm-footer">
         <button className="cm-next-btn ready" onClick={handleNext}>
-          Next: Player Lineup →
+          Confirm Match Rules
         </button>
       </div>
     </div>
