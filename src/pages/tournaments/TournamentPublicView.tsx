@@ -126,10 +126,14 @@ export default function TournamentPublicView() {
       if (dbT) {
         const fullT: Tournament = {
           ...dbT,
-          startDate: dbT.start_date || dbT.startDate,
-          endDate: dbT.end_date || dbT.endDate,
-          cityState: dbT.city_state || dbT.cityState,
-          teams: [], // We'd need to fetch these related records for a full hydrate
+          startDate: dbT.start_date || dbT.startDate || '',
+          endDate: dbT.end_date || dbT.endDate || '',
+          cityState: dbT.city_state || dbT.cityState || '',
+          status: dbT.status || 'upcoming',
+          format: dbT.format || 'league',
+          venue: dbT.venue || dbT.venue_name || '',
+          organizer: dbT.organizer || '',
+          teams: [], 
           fixtures: [],
           groups: [],
           rounds: [],
@@ -181,8 +185,8 @@ export default function TournamentPublicView() {
             <h1 className="pv-name">{tournament.name}</h1>
             <p className="pv-venue">📍 {tournament.venue || tournament.cityState} · {fmtDate(tournament.startDate)} – {fmtDate(tournament.endDate)}</p>
             <div className="tp-hero-badges">
-            <span className={`tp-status tp-status--${tournament.status}`}>{tournament.status.toUpperCase()}</span>
-            <span>{tournament.format.replace('_', ' ').toUpperCase()}</span>
+            <span className={`tp-status tp-status--${tournament.status || 'upcoming'}`}>{(tournament.status || 'upcoming').toUpperCase()}</span>
+            <span>{(tournament.format || 'league').replace('_', ' ').toUpperCase()}</span>
           </div>
           
           {(tournament.status === 'registration' || tournament.status === 'draft') && (

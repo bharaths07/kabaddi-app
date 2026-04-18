@@ -338,7 +338,19 @@ export default function TournamentDashboard() {
       // 2. Try Supabase
       const { data: dbT } = await supabase.from('tournaments').select('*').eq('id', id).single();
       if (dbT) {
-        setTournament({ ...dbT, teams: [], fixtures: [], groups: [], rounds: [] } as any);
+        setTournament({ 
+          ...dbT, 
+          status: dbT.status || 'upcoming',
+          format: dbT.format || 'league',
+          venue: dbT.venue || dbT.venue_name || '',
+          startDate: dbT.start_date || dbT.startDate || '',
+          endDate: dbT.end_date || dbT.endDate || '',
+          cityState: dbT.city_state || dbT.cityState || '',
+          teams: [], 
+          fixtures: [], 
+          groups: [], 
+          rounds: [] 
+        } as any);
       }
       setLoading(false);
     }
