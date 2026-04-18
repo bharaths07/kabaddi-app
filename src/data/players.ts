@@ -29,6 +29,7 @@ export interface Player {
     careerHistory: { season: string; team: string; points: number }[];
     user_id?: string;
     is_claimed?: boolean;
+    claimed_by?: string | null;
 }
 
 export const PLAYERS: Player[] = [

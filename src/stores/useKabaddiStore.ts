@@ -125,7 +125,9 @@ export const useKabaddiStore = create<KabaddiState>((set, get) => ({
                 role: (data.role || 'Player').toLowerCase(),
                 teamSlug: (data.teams as any)?.slug || 'pro-kabaddi',
                 avatar: data.photo || `https://api.dicebear.com/7.x/avataaars/svg?seed=${data.id}`,
-                powerScore: 75
+                powerScore: 75,
+                is_claimed: data.is_claimed || false,
+                claimed_by: data.claimed_by || null
             } as any;
             set((state) => ({ players: [...state.players, player] }));
             return player;
@@ -140,19 +142,60 @@ export const useKabaddiStore = create<KabaddiState>((set, get) => ({
 
     claimPlayer: async (playerSlug: string, userId: string) => {
         set({ loading: true });
-        await delay(800); // simulate verification
+        console.log(`Attempting to claim profile for slug: ${playerSlug} by user: ${userId}`);
         
-        const { players } = get();
-        const pIdx = players.findIndex(p => p.slug === playerSlug);
-        if (pIdx >= 0) {
-            const updated = [...players];
-            updated[pIdx] = { ...updated[pIdx], is_claimed: true, user_id: userId };
-            set({ players: updated, loading: false });
+        try {
+            // 1. Get player ID and current claim status
+            const { data: pData, error: pError } = await supabase
+                .from('players')
+                .select('id, name, is_claimed')
+                .eq('slug', playerSlug)
+                .maybeSingle();
+
+            if (pError || !pData) {
+                console.error('Player fetch failed:', pError?.message || 'Player not found');
+                set({ loading: false });
+                return false;
+            }
+
+            if (pData.is_claimed) {
+                console.warn('Profile is already claimed');
+                set({ loading: false });
+                return false;
+            }
+
+            // 2. Update player in DB
+            const { error: updateError } = await supabase
+                .from('players')
+                .update({ 
+                    is_claimed: true, 
+                    claimed_by: userId 
+                })
+                .eq('id', pData.id);
+
+            if (updateError) {
+                console.error('Claim update failed:', updateError.message);
+                set({ loading: false });
+                return false;
+            }
+            
+            // 3. Update local state
+            const { players } = get();
+            const pIdx = players.findIndex(p => p.slug === playerSlug);
+            if (pIdx >= 0) {
+                const updated = [...players];
+                updated[pIdx] = { ...updated[pIdx], is_claimed: true, claimed_by: userId };
+                set({ players: updated });
+            }
+
+            console.log(`Successfully claimed profile for ${pData.name}`);
+            set({ loading: false });
             return true;
+        } catch (err) {
+            console.error('Unexpected error during claim:', err);
+            set({ loading: false });
+            return false;
         }
-        
-        set({ loading: false });
-        return false;
     },
 
     searchEntities: async (query: string) => {

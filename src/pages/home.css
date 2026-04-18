@@ -30,12 +30,18 @@
   position: relative;
   background: var(--orange);
   overflow: hidden;
-  padding: 3.5rem 2.5rem 3rem;
+  padding: 4.5rem 1.5rem 3rem; /* Reduced horizontal padding for mobile */
   display: flex;
   align-items: flex-end;
   gap: 3rem;
   border-radius: 0;
   margin: 0;
+}
+
+@media (min-width: 768px) {
+  .hp-overhaul .hp-hero {
+    padding: 3.5rem 2.5rem 3rem;
+  }
 }
 
 .hp-overhaul .hp-hero::before {
@@ -158,21 +164,53 @@
 .hp-overhaul .hp-stats-bar {
   background: var(--white);
   border-bottom: 1.5px solid var(--border);
-  display: flex; overflow-x: auto;
-  padding: 0 2.5rem;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* 2x2 grid on mobile */
+  padding: 0;
 }
+
+@media (min-width: 768px) {
+  .hp-overhaul .hp-stats-bar {
+    display: flex;
+    overflow-x: auto;
+    padding: 0 2.5rem;
+  }
+}
+
 .hp-overhaul .hp-stat-item {
-  display: flex; align-items: center; gap: 10px;
-  padding: 1.1rem 2rem 1.1rem 0;
-  margin-right: 2rem; flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 1.2rem 1.5rem;
   border-right: 1.5px solid var(--border);
+  border-bottom: 1.5px solid var(--border);
 }
-.hp-overhaul .hp-stat-item:last-child { border-right: none; }
+
+.hp-overhaul .hp-stat-item:nth-child(2n) {
+  border-right: none;
+}
+
+@media (min-width: 768px) {
+  .hp-overhaul .hp-stat-item {
+    padding: 1.1rem 2rem 1.1rem 0;
+    margin-right: 2rem;
+    flex-shrink: 0;
+    border-bottom: none;
+  }
+}
+
 .hp-overhaul .hp-stat-num {
   font-family: 'Barlow Condensed', sans-serif;
-  font-size: 1.9rem; font-weight: 900; color: var(--orange);
+  font-size: 1.9rem;
+  font-weight: 900;
+  color: var(--orange);
 }
-.hp-overhaul .hp-stat-label { font-size: 0.72rem; color: var(--muted); line-height: 1.4; }
+
+.hp-overhaul .hp-stat-label {
+  font-size: 0.72rem;
+  color: var(--muted);
+  line-height: 1.4;
+}
 
 /* ── LAYOUT ── */
 .hp-overhaul .hp-main { display: flex; flex-wrap: wrap; }
@@ -197,9 +235,11 @@
   display: flex; align-items: center; gap: 8px;
 }
 .hp-overhaul .hp-section-see-all {
-  font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em;
+  font-size: 0.85rem; /* Larger tap target */
+  font-weight: 700; letter-spacing: 0.08em;
   text-transform: uppercase; color: var(--orange);
   text-decoration: none; transition: opacity 0.2s;
+  padding: 4px 8px; /* Extra padding for tap */
 }
 .hp-overhaul .hp-section-see-all:hover { opacity: 0.65; }
 

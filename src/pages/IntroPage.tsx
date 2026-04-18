@@ -131,6 +131,12 @@ export default function IntroPage() {
               Get Started Free →
             </button>
             <button
+              className="intro-cta-demo"
+              onClick={() => navigate('/demo')}
+            >
+              🚀 Explore Demo
+            </button>
+            <button
               className="intro-cta-secondary"
               onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
             >

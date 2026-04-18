@@ -2,6 +2,7 @@ import React from 'react'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { useLayout } from './LayoutContext'
 import { useKabaddiStore } from '../../stores/useKabaddiStore'
+import { Search, Bell, Menu, ArrowLeft } from 'lucide-react'
 import './layout.css'
 
 export default function TopNav() {
@@ -42,7 +43,7 @@ export default function TopNav() {
         <div className="gl-brand">
           {isSubPage ? (
             <button className="gl-back-nav-btn" onClick={() => navigate(-1)}>
-              <span className="gl-back-arrow">←</span>
+              <ArrowLeft size={20} />
               <span className="gl-back-text">Back</span>
             </button>
           ) : (
@@ -53,9 +54,19 @@ export default function TopNav() {
         </div>
         {!isSubPage && (
           <div className="gl-icons">
-            <button onClick={() => setSearchOpen(true)} style={{ background: 'none', border: 'none', color: 'white', fontSize: '20px', cursor: 'pointer', outline: 'none' }} title="Search">🔍</button>
-            <Link to="/notifications" style={{ color: 'white', textDecoration: 'none' }}>🔔</Link>
-            <button className="gl-menu" aria-label="Toggle menu" onClick={toggleSidebar}>☰</button>
+            <button 
+              onClick={() => setSearchOpen(true)} 
+              style={{ background: 'none', border: 'none', color: 'white', display: 'flex', alignItems: 'center', cursor: 'pointer', outline: 'none', padding: '4px' }} 
+              title="Search"
+            >
+              <Search size={22} />
+            </button>
+            <Link to="/notifications" style={{ color: 'white', textDecoration: 'none', display: 'flex', alignItems: 'center', padding: '4px' }}>
+              <Bell size={22} />
+            </Link>
+            <button className="gl-menu" aria-label="Toggle menu" onClick={toggleSidebar} style={{ padding: '4px' }}>
+              <Menu size={24} />
+            </button>
           </div>
         )}
       </div>

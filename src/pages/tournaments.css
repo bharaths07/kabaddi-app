@@ -62,11 +62,20 @@
 }
 
 .hp-tourn-cover {
-  height: 170px;
+  height: 200px;
   background-size: cover;
   background-position: center;
   position: relative;
-  background-color: #333;
+  background-color: #222;
+  transition: transform 0.3s;
+}
+
+.hp-tourn-cover::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 60%);
+  pointer-events: none;
 }
 
 .hp-tourn-badge {

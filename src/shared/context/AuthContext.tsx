@@ -27,15 +27,19 @@ type AuthContextValue = {
   profile: Profile | null
   loading: boolean
   profileLoading: boolean
+  isDemo: boolean
   signOut: () => Promise<void>
   refreshProfile: () => Promise<void>
+  signInAsDemo: () => void
 }
 
 const Ctx = createContext<AuthContextValue>({
   user: null, profile: null, loading: true,
   profileLoading: false,
+  isDemo: false,
   signOut: async () => {},
   refreshProfile: async () => {},
+  signInAsDemo: () => {},
 })
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -106,15 +110,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
+  const [isDemo, setIsDemo] = useState(false)
+
+  const signInAsDemo = () => {
+    setIsDemo(true)
+    setUser({
+      id: 'demo-user-123',
+      email: 'demo@kabaddipulse.com',
+      user_metadata: { full_name: 'Demo Scorer' }
+    })
+    setProfile({
+      id: 'demo-user-123',
+      full_name: 'Demo Scorer',
+      role: 'scorer',
+      is_profile_complete: true,
+      city: 'Mumbai',
+      state: 'Maharashtra'
+    })
+    setLoading(false)
+  }
+
   const value = useMemo<AuthContextValue>(() => ({
-    user, profile, loading, profileLoading,
+    user, profile, loading, profileLoading, isDemo,
     signOut: async () => {
-      try { await supabase.auth.signOut() } catch {}
+      if (isDemo) {
+        setIsDemo(false)
+      } else {
+        try { await supabase.auth.signOut() } catch {}
+      }
       setUser(null)
       setProfile(null)
     },
     refreshProfile,
-  }), [user, profile, loading, profileLoading])
+    signInAsDemo,
+  }), [user, profile, loading, profileLoading, isDemo])
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
 }

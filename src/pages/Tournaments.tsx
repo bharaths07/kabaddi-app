@@ -30,16 +30,12 @@ function getStatus(t: Tournament, now: Date): 'upcoming' | 'ongoing' | 'complete
   return 'ongoing'
 }
 
-const placeholderImages = [
-  'https://images.unsplash.com/photo-1540747913346-19e32d15e347?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80',
-  'https://images.unsplash.com/photo-1518609878373-06d740f60d8b?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80',
-  'https://images.unsplash.com/photo-1599058917212-d750089bc07e?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80',
-  'https://images.unsplash.com/photo-1577223625816-7546f13df25d?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80',
-]
-
-function getTournamentImage(id: string) {
-  const sum = id.split('').reduce((a, b) => a + b.charCodeAt(0), 0)
-  return placeholderImages[sum % placeholderImages.length]
+function getTournamentImage(status: string | null) {
+  const s = (status || '').toLowerCase()
+  if (s === 'ongoing') return '/assets/tournaments/kabaddi_ongoing.png'
+  if (s === 'completed') return '/assets/tournaments/kabaddi_completed.png'
+  if (s === 'upcoming') return '/assets/tournaments/kabaddi_upcoming.png'
+  return '/assets/tournaments/kabaddi_fallback.png'
 }
 
 function formatDateRange(start: string | null, end: string | null) {
@@ -51,7 +47,7 @@ function formatDateRange(start: string | null, end: string | null) {
 }
 
 function TournamentCard({ t, userId }: { t: Tournament & { computedStatus: string }; userId: string | undefined }) {
-  const bgImg = getTournamentImage(t.id)
+  const bgImg = getTournamentImage(t.computedStatus)
   const isOrganizer = !!userId && t.created_by === userId
   const href = isOrganizer ? `/tournaments/${t.id}/dashboard` : `/tournaments/${t.id}`
 

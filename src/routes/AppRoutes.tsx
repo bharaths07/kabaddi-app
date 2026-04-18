@@ -1,8 +1,10 @@
-import { createBrowserRouter, Navigate, useParams, useLocation } from 'react-router-dom'
+import { useEffect } from 'react'
+import { createHashRouter, Navigate, useParams, useLocation } from 'react-router-dom'
 
 // ── Components ──────────────────────────────────────────────────
 import Layout from '../shared/components/Layout'
 import { PublicOnlyRoute, ProtectedRoute } from '../shared/components/RouteGuards'
+import { useAuth } from '../shared/context/AuthContext'
 
 // ── Pages ──────────────────────────────────────────────────────
 import Home from '../pages/Home'
@@ -65,7 +67,7 @@ import SquadOnboarding from '../features/kabaddi/components/create/SquadOnboardi
 import KabaddiMatchPreview from '../features/kabaddi/components/create/KabaddiMatchPreview'
 import KabaddiToss from '../features/kabaddi/components/create/KabaddiToss'
 
-export const router = createBrowserRouter([
+export const router = createHashRouter([
   // ── Public intro routes ─────────────────────────────────────────
   { path: '/intro', element: <PublicOnlyRoute><IntroPage /></PublicOnlyRoute> },
   { path: '/', element: <PublicOnlyRoute><IntroPage /></PublicOnlyRoute> },
@@ -76,6 +78,7 @@ export const router = createBrowserRouter([
   { path: '/verify-otp', element: <PublicOnlyRoute><VerifyOTP /></PublicOnlyRoute> },
   { path: '/onboarding', element: <ProtectedRoute><OnboardingPage /></ProtectedRoute> },
   { path: '/auth/callback', element: <AuthCallback /> },
+  { path: '/demo', element: <DemoLauncher /> },
 
   // ── Public Player Profiles (no auth required) ───────────────────
   { path: '/player/:id', element: <PlayerProfilePage /> },
@@ -180,6 +183,27 @@ export const router = createBrowserRouter([
   // Fallback
   { path: '*', element: <Navigate to="/intro" replace /> }
 ])
+
+function DemoLauncher() {
+  const { signInAsDemo, user } = useAuth()
+  useEffect(() => {
+    if (!user) signInAsDemo()
+  }, [user, signInAsDemo])
+
+  if (user) return <Navigate to="/home" replace />
+  return (
+    <div style={{ 
+      height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
+      background: '#0a0b1e', color: 'white', fontFamily: 'sans-serif' 
+    }}>
+      <div style={{ textAlign: 'center' }}>
+        <div style={{ fontSize: 40, marginBottom: 16 }}>🚀</div>
+        <h2>Launching Demo...</h2>
+        <p style={{ opacity: 0.6 }}>Preparing your professional kabaddi scoring environment</p>
+      </div>
+    </div>
+  )
+}
 
 function RedirectWithId() {
   const { id } = useParams();

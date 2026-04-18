@@ -159,7 +159,9 @@ create table if not exists players (
   slug text unique,
   role text,
   number int,
-  photo text
+  photo text,
+  is_claimed boolean default false,
+  claimed_by uuid references profiles(id) on delete set null
 );
 
 
